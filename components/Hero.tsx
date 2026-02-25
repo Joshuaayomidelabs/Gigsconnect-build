@@ -21,7 +21,7 @@ const Hero: React.FC = () => {
   }, []);
 
   return (
-    <div className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-gradient-to-b from-brand-50/50 to-white">
+    <div className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-gradient-to-b from-brand-50/50 to-gray-50">
       {/* Animated Background Blobs */}
       <div className="absolute inset-0 w-full h-full pointer-events-none overflow-hidden transform-gpu">
         <div className="absolute top-[-10%] left-[-10%] w-[40rem] h-[40rem] bg-purple-200/60 rounded-full mix-blend-multiply filter blur-3xl animate-blob"></div>

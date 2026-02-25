@@ -11,27 +11,46 @@
         theme: {
           extend: {
             colors: {
+              gray: {
+                50: '#fafafa',
+                100: '#f4f4f5',
+                200: '#e4e4e7',
+                300: '#d4d4d8',
+                400: '#a1a1aa',
+                500: '#71717a',
+                600: '#52525b',
+                700: '#3f3f46',
+                800: '#27272a',
+                900: '#18181b',
+              },
               brand: {
-                50: '#f3f1ff',
-                100: '#e9e4ff',
-                200: '#d4cbff',
-                300: '#bba6ff',
-                400: '#a27dff',
-                500: '#8b5cf6', // Lighter purple base
-                600: '#7c3aed', // New Primary: Electric Violet
-                700: '#6d28d9',
-                800: '#5b21b6',
-                900: '#4c1d95',
+                50: '#fdf4ff',
+                100: '#fae8ff',
+                200: '#f5d0fe',
+                300: '#f0abfc',
+                400: '#e879f9',
+                500: '#d946ef', // Fuchsia base
+                600: '#c026d3', 
+                700: '#a21caf',
+                800: '#86198f',
+                900: '#701a75',
               },
               accent: {
-                400: '#d9f99d',
-                500: '#ccff00', // Electric Lime
-                600: '#a3e635',
+                400: '#fde047',
+                500: '#eab308', // Yellow
+                600: '#ca8a04',
+              },
+              surface: {
+                50: '#fafafa',
+                100: '#f4f4f5',
+                200: '#e4e4e7',
+                800: '#27272a',
+                900: '#18181b',
               }
             },
             fontFamily: {
-              sans: ['Outfit', 'sans-serif'],
-              display: ['Space Grotesk', 'sans-serif'],
+              sans: ['Inter', 'sans-serif'],
+              display: ['Outfit', 'sans-serif'],
             },
             animation: {
               blob: "blob 20s infinite alternate",
@@ -56,13 +75,13 @@
         }
       }
     </script>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
       body {
-        font-family: 'Outfit', sans-serif;
+        font-family: 'Inter', sans-serif;
       }
       h1, h2, h3, h4, h5, h6, .font-display {
-        font-family: 'Space Grotesk', sans-serif;
+        font-family: 'Outfit', sans-serif;
       }
     </style>
   <script type="importmap">
@@ -79,7 +98,7 @@
 }
 </script>
 </head>
-  <body class="bg-white text-gray-900 antialiased selection:bg-accent-500 selection:text-brand-900">
+  <body class="bg-surface-50 text-surface-900 antialiased selection:bg-brand-500 selection:text-white">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
   </body>

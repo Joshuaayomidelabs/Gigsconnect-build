@@ -9,6 +9,10 @@ export const NAV_LINKS = [
   { name: 'Pricing', href: '#pricing' },
 ];
 
+// TODO: Replace this URL with your direct image link (e.g. from a public hosting service)
+// The provided Google Drive folder link cannot be accessed directly by the application.
+export const LOGO_URL = "https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=100&h=100&fit=crop&q=80";
+
 export const FEATURES: Feature[] = [
   {
     title: 'Verified Artists',
