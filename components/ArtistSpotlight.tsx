@@ -1,5 +1,4 @@
 import React from 'react';
-import { openSignupModal } from '../utils';
 
 const ArtistSpotlight: React.FC = () => {
   return (
@@ -27,10 +26,7 @@ const ArtistSpotlight: React.FC = () => {
               </p>
             </div>
 
-            <button 
-              onClick={openSignupModal}
-              className="px-8 py-4 rounded-full bg-[#e9c0e9] text-[#502274] font-semibold text-lg hover:bg-white transition-colors"
-            >
+            <button className="px-8 py-4 rounded-full bg-[#e9c0e9] text-[#502274] font-semibold text-lg hover:bg-white transition-colors">
               Get started for free
             </button>
           </div>

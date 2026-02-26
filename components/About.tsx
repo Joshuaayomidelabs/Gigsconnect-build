@@ -1,5 +1,4 @@
 import React from 'react';
-import { openSignupModal } from '../utils';
 
 const About: React.FC = () => {
   return (
@@ -41,10 +40,7 @@ const About: React.FC = () => {
                  </div>
                </div>
             </div>
-            <button 
-              onClick={openSignupModal}
-              className="px-8 py-4 rounded-full bg-linktree-purple text-white font-semibold text-lg hover:bg-[#3a1853] transition-colors"
-            >
+            <button className="px-8 py-4 rounded-full bg-linktree-purple text-white font-semibold text-lg hover:bg-[#3a1853] transition-colors">
               Get started for free
             </button>
           </div>

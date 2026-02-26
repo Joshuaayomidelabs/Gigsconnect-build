@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import About from './components/About';
@@ -8,17 +8,8 @@ import ArtistSpotlight from './components/ArtistSpotlight';
 import Pricing from './components/Pricing';
 import FAQ from './components/FAQ';
 import Footer from './components/Footer';
-import SignupModal from './components/SignupModal';
 
 const App: React.FC = () => {
-  const [isSignupOpen, setIsSignupOpen] = useState(false);
-
-  useEffect(() => {
-    const handleOpenSignup = () => setIsSignupOpen(true);
-    window.addEventListener('open-signup', handleOpenSignup);
-    return () => window.removeEventListener('open-signup', handleOpenSignup);
-  }, []);
-
   return (
     <div className="min-h-screen font-sans selection:bg-linktree-lime selection:text-linktree-green">
       <Navbar />
@@ -32,7 +23,6 @@ const App: React.FC = () => {
         <FAQ />
       </main>
       <Footer />
-      <SignupModal isOpen={isSignupOpen} onClose={() => setIsSignupOpen(false)} />
     </div>
   );
 };

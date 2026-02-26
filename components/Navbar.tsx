@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
 import { NAV_LINKS } from '../constants';
 import Logo from './Logo';
-import { openSignupModal } from '../utils';
 
 const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -43,10 +42,7 @@ const Navbar: React.FC = () => {
           <button className="py-3 px-6 text-base font-semibold text-linktree-dark bg-linktree-gray hover:bg-gray-200 rounded-lg transition-colors">
             Log in
           </button>
-          <button 
-            onClick={openSignupModal}
-            className="py-3 px-6 text-base font-semibold text-linktree-dark bg-linktree-lime hover:bg-[#b5e853] rounded-full transition-colors"
-          >
+          <button className="py-3 px-6 text-base font-semibold text-linktree-dark bg-linktree-lime hover:bg-[#b5e853] rounded-full transition-colors">
             Sign up free
           </button>
         </div>
@@ -60,13 +56,33 @@ const Navbar: React.FC = () => {
           </button>
         </div>
 
-        {/* Mobile menu */}
+        {/* Mobile menu overlay */}
         <div 
-          className={`absolute top-full left-0 right-0 mt-4 origin-top transition-all duration-300 ease-out ${
+          className={`fixed inset-0 z-40 bg-black/20 backdrop-blur-sm transition-opacity lg:hidden pointer-events-auto ${
+            isOpen ? 'opacity-100 visible' : 'opacity-0 invisible'
+          }`}
+          onClick={() => setIsOpen(false)}
+        />
+
+        {/* Mobile menu panel */}
+        <div 
+          className={`fixed top-4 left-4 right-4 z-50 bg-white rounded-[2rem] shadow-xl p-4 transition-all duration-300 ease-out lg:hidden origin-top pointer-events-auto ${
             isOpen ? 'opacity-100 scale-100 visible' : 'opacity-0 scale-95 invisible'
           }`}
         >
-          <div className="bg-white rounded-[2rem] shadow-xl p-4 flex flex-col space-y-2 mx-2 border border-gray-100">
+          <div className="flex items-center justify-between mb-4 px-2">
+            <div className="flex items-center gap-2">
+              <Logo variant="color" />
+              <span className="font-bold text-xl tracking-tighter text-linktree-dark">GigsConnect</span>
+            </div>
+            <button 
+              onClick={() => setIsOpen(false)} 
+              className="text-linktree-dark hover:text-black p-2 bg-linktree-gray rounded-full transition-colors"
+            >
+              <X className="h-6 w-6" />
+            </button>
+          </div>
+          <div className="flex flex-col space-y-2">
             {NAV_LINKS.map((link) => (
               <a
                 key={link.name}
@@ -81,13 +97,7 @@ const Navbar: React.FC = () => {
               <button className="w-full justify-center py-4 rounded-xl font-semibold text-lg text-linktree-dark bg-linktree-gray hover:bg-gray-200 transition-colors">
                 Log in
               </button>
-              <button 
-                onClick={() => {
-                  setIsOpen(false);
-                  openSignupModal();
-                }}
-                className="w-full justify-center py-4 rounded-full font-semibold text-lg text-linktree-dark bg-linktree-lime hover:bg-[#b5e853] transition-colors"
-              >
+              <button className="w-full justify-center py-4 rounded-full font-semibold text-lg text-linktree-dark bg-linktree-lime hover:bg-[#b5e853] transition-colors">
                 Sign up free
               </button>
             </div>

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Check } from 'lucide-react';
 import { PRICING_DATA } from '../constants';
-import { openSignupModal } from '../utils';
 
 const Pricing: React.FC = () => {
   const [region, setRegion] = useState<'nigeria' | 'international'>('nigeria');
@@ -81,7 +80,6 @@ const Pricing: React.FC = () => {
               </ul>
 
               <button 
-                onClick={openSignupModal}
                 className={`w-full py-4 rounded-full font-semibold text-lg transition-colors ${
                   tier.recommended 
                     ? 'bg-linktree-lime text-linktree-dark hover:bg-[#b5e853]' 
