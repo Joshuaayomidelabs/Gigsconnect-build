@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
+import { Link } from 'react-router-dom';
 
 const HowItWorks: React.FC = () => {
   return (
@@ -51,9 +52,9 @@ const HowItWorks: React.FC = () => {
               </div>
             </div>
 
-            <button className="px-8 py-4 rounded-full bg-linktree-pink text-linktree-dark font-semibold text-lg hover:bg-[#d8a8d8] transition-colors">
+            <Link to="/signup" className="inline-block px-8 py-4 rounded-full bg-linktree-pink text-linktree-dark font-semibold text-lg hover:bg-[#d8a8d8] transition-colors">
               Get started for free
-            </button>
+            </Link>
           </motion.div>
 
           <motion.div 

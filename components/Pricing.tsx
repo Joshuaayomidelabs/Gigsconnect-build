@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Check } from 'lucide-react';
 import { PRICING_DATA } from '../constants';
 import { motion } from 'motion/react';
+import { Link } from 'react-router-dom';
 
 const Pricing: React.FC = () => {
   const [region, setRegion] = useState<'nigeria' | 'international'>('nigeria');
@@ -90,15 +91,16 @@ const Pricing: React.FC = () => {
                 ))}
               </ul>
 
-              <button 
-                className={`w-full py-4 rounded-full font-semibold text-lg transition-colors ${
+              <Link 
+                to="/signup"
+                className={`w-full py-4 rounded-full font-semibold text-lg transition-colors text-center inline-block ${
                   tier.recommended 
                     ? 'bg-linktree-lime text-linktree-dark hover:bg-[#b5e853]' 
                     : 'bg-linktree-gray text-linktree-dark hover:bg-gray-200'
                 }`}
               >
                 Get Started
-              </button>
+              </Link>
             </motion.div>
           ))}
         </div>

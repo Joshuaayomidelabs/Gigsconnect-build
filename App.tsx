@@ -1,4 +1,5 @@
 import React from 'react';
+import { Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import About from './components/About';
@@ -8,22 +9,32 @@ import ArtistSpotlight from './components/ArtistSpotlight';
 import Pricing from './components/Pricing';
 import FAQ from './components/FAQ';
 import Footer from './components/Footer';
+import SignUp from './pages/SignUp';
+import Login from './pages/Login';
+
+const LandingPage = () => (
+  <div className="min-h-screen font-sans selection:bg-linktree-lime selection:text-linktree-green">
+    <Navbar />
+    <main>
+      <Hero />
+      <About />
+      <HowItWorks />
+      <Features />
+      <ArtistSpotlight />
+      <Pricing />
+      <FAQ />
+    </main>
+    <Footer />
+  </div>
+);
 
 const App: React.FC = () => {
   return (
-    <div className="min-h-screen font-sans selection:bg-linktree-lime selection:text-linktree-green">
-      <Navbar />
-      <main>
-        <Hero />
-        <About />
-        <HowItWorks />
-        <Features />
-        <ArtistSpotlight />
-        <Pricing />
-        <FAQ />
-      </main>
-      <Footer />
-    </div>
+    <Routes>
+      <Route path="/" element={<LandingPage />} />
+      <Route path="/signup" element={<SignUp />} />
+      <Route path="/login" element={<Login />} />
+    </Routes>
   );
 };
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { NAV_LINKS } from '../constants';
 import Logo from './Logo';
 
@@ -39,12 +40,12 @@ const Navbar: React.FC = () => {
         </div>
 
         <div className="hidden lg:flex items-center gap-3 ml-auto">
-          <button className="py-3 px-6 text-base font-semibold text-linktree-dark bg-linktree-gray hover:bg-gray-200 rounded-lg transition-colors">
+          <Link to="/login" className="py-3 px-6 text-base font-semibold text-linktree-dark bg-linktree-gray hover:bg-gray-200 rounded-lg transition-colors">
             Log in
-          </button>
-          <button className="py-3 px-6 text-base font-semibold text-linktree-dark bg-linktree-lime hover:bg-[#b5e853] rounded-full transition-colors">
+          </Link>
+          <Link to="/signup" className="py-3 px-6 text-base font-semibold text-linktree-dark bg-linktree-lime hover:bg-[#b5e853] rounded-full transition-colors">
             Sign up free
-          </button>
+          </Link>
         </div>
 
         <div className="lg:hidden flex items-center ml-auto">
@@ -94,12 +95,12 @@ const Navbar: React.FC = () => {
               </a>
             ))}
             <div className="pt-4 pb-2 px-2 flex flex-col gap-3">
-              <button className="w-full justify-center py-4 rounded-xl font-semibold text-lg text-linktree-dark bg-linktree-gray hover:bg-gray-200 transition-colors">
+              <Link to="/login" className="w-full flex justify-center py-4 rounded-xl font-semibold text-lg text-linktree-dark bg-linktree-gray hover:bg-gray-200 transition-colors">
                 Log in
-              </button>
-              <button className="w-full justify-center py-4 rounded-full font-semibold text-lg text-linktree-dark bg-linktree-lime hover:bg-[#b5e853] transition-colors">
+              </Link>
+              <Link to="/signup" className="w-full flex justify-center py-4 rounded-full font-semibold text-lg text-linktree-dark bg-linktree-lime hover:bg-[#b5e853] transition-colors">
                 Sign up free
-              </button>
+              </Link>
             </div>
           </div>
         </div>

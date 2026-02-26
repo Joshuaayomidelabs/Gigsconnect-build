@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
+import { Link } from 'react-router-dom';
 
 const ArtistSpotlight: React.FC = () => {
   return (
@@ -33,9 +34,9 @@ const ArtistSpotlight: React.FC = () => {
               </p>
             </div>
 
-            <button className="px-8 py-4 rounded-full bg-[#e9c0e9] text-[#502274] font-semibold text-lg hover:bg-white transition-colors">
+            <Link to="/signup" className="inline-block px-8 py-4 rounded-full bg-[#e9c0e9] text-[#502274] font-semibold text-lg hover:bg-white transition-colors">
               Get started for free
-            </button>
+            </Link>
           </motion.div>
 
           <motion.div 
