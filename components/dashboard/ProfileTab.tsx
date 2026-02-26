@@ -1,25 +1,97 @@
-import React, { useState } from 'react';
-import { Camera, Edit2, Save } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Camera, Edit2, Save, Loader2 } from 'lucide-react';
+import { supabase } from '../../src/supabaseClient';
 
 const ProfileTab = () => {
   const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState({
-    fullName: 'Alex Johnson',
-    stageName: 'AJ Beats',
-    email: 'alex@example.com',
-    phone: '+1 (555) 123-4567',
-    genres: 'Afrobeats, R&B, Pop',
-    bio: 'Experienced producer and multi-instrumentalist based in Lagos. Always looking for the next big sound.'
+    fullName: '',
+    stageName: '',
+    email: '',
+    phone: '',
+    genres: '',
+    bio: ''
   });
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+
+        if (error && error.code !== 'PGRST116') {
+          console.error('Error fetching profile:', error);
+        }
+
+        if (data) {
+          setFormData({
+            fullName: data.full_name || '',
+            stageName: data.stage_name || '',
+            email: data.email || user.email || '',
+            phone: data.phone || '',
+            genres: data.genres || '',
+            bio: data.bio || ''
+          });
+        } else {
+          setFormData(prev => ({ ...prev, email: user.email || '' }));
+        }
+      } catch (error) {
+        console.error('Error:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSave = () => {
-    setIsEditing(false);
-    // Simulate save
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { error } = await supabase
+        .from('profiles')
+        .upsert({
+          id: user.id,
+          full_name: formData.fullName,
+          stage_name: formData.stageName,
+          email: formData.email,
+          phone: formData.phone,
+          genres: formData.genres,
+          bio: formData.bio,
+        });
+
+      if (error) throw error;
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      alert('Failed to save profile');
+    } finally {
+      setIsSaving(false);
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 relative z-10 max-w-4xl mx-auto">
@@ -89,9 +161,9 @@ const ProfileTab = () => {
                 <button onClick={() => setIsEditing(false)} className="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-700 font-semibold hover:bg-gray-50 transition-colors">
                   Cancel
                 </button>
-                <button onClick={handleSave} className="px-5 py-2.5 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-500 transition-colors flex items-center gap-2">
-                  <Save className="w-4 h-4" />
-                  Save Changes
+                <button onClick={handleSave} disabled={isSaving} className="px-5 py-2.5 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-500 transition-colors flex items-center gap-2 disabled:opacity-70">
+                  {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                  {isSaving ? 'Saving...' : 'Save Changes'}
                 </button>
               </div>
             </div>

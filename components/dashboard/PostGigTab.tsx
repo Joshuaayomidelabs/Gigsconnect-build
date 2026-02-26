@@ -1,18 +1,57 @@
 import React, { useState } from 'react';
 import { UploadCloud } from 'lucide-react';
+import { supabase } from '../../src/supabaseClient';
 
 const PostGigTab = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    location: '',
+    pay: '',
+    date_time: ''
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
+    setErrorMsg(null);
+    setSuccess(false);
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('You must be logged in to post a gig.');
+
+      const { error } = await supabase
+        .from('gigs')
+        .insert([
+          {
+            user_id: user.id,
+            title: formData.title,
+            description: formData.description,
+            location: formData.location,
+            pay: formData.pay,
+            date_time: formData.date_time
+          }
+        ]);
+
+      if (error) throw error;
+
       setSuccess(true);
+      setFormData({ title: '', description: '', location: '', pay: '', date_time: '' });
       setTimeout(() => setSuccess(false), 3000);
-    }, 1000);
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Failed to post gig.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -28,31 +67,36 @@ const PostGigTab = () => {
             Gig posted successfully!
           </div>
         )}
+        {errorMsg && (
+          <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-center font-medium">
+            {errorMsg}
+          </div>
+        )}
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label className="block text-sm font-semibold text-gray-900 mb-2">Gig Title *</label>
-            <input required type="text" placeholder="e.g. Lead Guitarist for Studio Session" className="w-full p-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-600 transition-all" />
+            <input required name="title" value={formData.title} onChange={handleChange} type="text" placeholder="e.g. Lead Guitarist for Studio Session" className="w-full p-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-600 transition-all" />
           </div>
           
           <div>
             <label className="block text-sm font-semibold text-gray-900 mb-2">Description *</label>
-            <textarea required rows={4} placeholder="Describe the gig, requirements, and expectations..." className="w-full p-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-600 transition-all resize-none"></textarea>
+            <textarea required name="description" value={formData.description} onChange={handleChange} rows={4} placeholder="Describe the gig, requirements, and expectations..." className="w-full p-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-600 transition-all resize-none"></textarea>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-semibold text-gray-900 mb-2">Location *</label>
-              <input required type="text" placeholder="City, Country or Remote" className="w-full p-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-600 transition-all" />
+              <input required name="location" value={formData.location} onChange={handleChange} type="text" placeholder="City, Country or Remote" className="w-full p-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-600 transition-all" />
             </div>
             <div>
               <label className="block text-sm font-semibold text-gray-900 mb-2">Pay Amount *</label>
-              <input required type="text" placeholder="e.g. $500 or ₦200k" className="w-full p-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-600 transition-all" />
+              <input required name="pay" value={formData.pay} onChange={handleChange} type="text" placeholder="e.g. $500 or ₦200k" className="w-full p-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-600 transition-all" />
             </div>
           </div>
 
           <div>
             <label className="block text-sm font-semibold text-gray-900 mb-2">Date & Time *</label>
-            <input required type="text" placeholder="e.g. Oct 15, 2026 at 6:00 PM" className="w-full p-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-600 transition-all" />
+            <input required name="date_time" value={formData.date_time} onChange={handleChange} type="text" placeholder="e.g. Oct 15, 2026 at 6:00 PM" className="w-full p-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-600 transition-all" />
           </div>
 
           <div>

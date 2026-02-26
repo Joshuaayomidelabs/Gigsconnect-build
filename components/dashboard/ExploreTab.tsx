@@ -1,8 +1,17 @@
-import React, { useState } from 'react';
-import { Search, MapPin, Calendar, Bookmark } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Search, MapPin, Calendar, Bookmark, Loader2 } from 'lucide-react';
+import { supabase } from '../../src/supabaseClient';
 
-const GigCardExplore = ({ title, location, pay, date, description }: { title: string, location: string, pay: string, date: string, description: string }) => {
+const GigCardExplore = ({ id, title, location, pay, date, description, onApply }: { id: string, title: string, location: string, pay: string, date: string, description: string, onApply?: (id: string) => void }) => {
   const [bookmarked, setBookmarked] = useState(false);
+  const [applying, setApplying] = useState(false);
+
+  const handleApply = async () => {
+    if (!onApply) return;
+    setApplying(true);
+    await onApply(id);
+    setApplying(false);
+  };
   
   return (
     <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200 flex flex-col h-full hover:-translate-y-1 relative">
@@ -34,8 +43,12 @@ const GigCardExplore = ({ title, location, pay, date, description }: { title: st
         <button className="flex-1 py-2.5 px-4 rounded-xl border border-gray-200 text-gray-700 font-semibold hover:bg-gray-50 transition-colors text-sm">
           View Details
         </button>
-        <button className="flex-1 py-2.5 px-4 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-500 transition-colors text-sm shadow-sm">
-          Apply Now
+        <button 
+          onClick={handleApply}
+          disabled={applying}
+          className="flex-1 py-2.5 px-4 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-500 transition-colors text-sm shadow-sm disabled:opacity-70 flex justify-center items-center"
+        >
+          {applying ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Apply Now'}
         </button>
       </div>
     </div>
@@ -43,6 +56,53 @@ const GigCardExplore = ({ title, location, pay, date, description }: { title: st
 };
 
 const ExploreTab = () => {
+  const [gigs, setGigs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchGigs = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('gigs')
+          .select('*')
+          .order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        setGigs(data || []);
+      } catch (error) {
+        console.error('Error fetching gigs:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchGigs();
+  }, []);
+
+  const handleApply = async (gigId: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return alert('Please log in to apply');
+
+      const { error } = await supabase
+        .from('applications')
+        .insert([{ gig_id: gigId, applicant_id: user.id }]);
+
+      if (error) {
+        if (error.code === '23505') {
+          alert('You have already applied for this gig.');
+        } else {
+          throw error;
+        }
+      } else {
+        alert('Application submitted successfully!');
+      }
+    } catch (error: any) {
+      console.error('Error applying:', error);
+      alert('Failed to apply. ' + error.message);
+    }
+  };
+
   return (
     <div className="space-y-8 relative z-10">
       <section>
@@ -81,34 +141,28 @@ const ExploreTab = () => {
       </section>
 
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <GigCardExplore 
-          title="Session Drummer - Studio Recording"
-          location="Remote / Nairobi"
-          pay="$150 / track"
-          date="Flexible"
-          description="Indie pop artist looking for a session drummer to record stems for an upcoming 5-track EP. Must have own recording setup if remote."
-        />
-        <GigCardExplore 
-          title="Wedding Band (4-piece)"
-          location="Cape Town, SA"
-          pay="R15,000"
-          date="Dec 5, 2026"
-          description="Seeking a lively 4-piece band (vocals, guitar, bass, drums) for a wedding reception. Mix of classics and modern hits."
-        />
-        <GigCardExplore 
-          title="Lead Guitarist for Afrobeats Tour"
-          location="Lagos, Nigeria (Touring)"
-          pay="₦500k - ₦800k"
-          date="Oct 15 - Nov 20, 2026"
-          description="Looking for an experienced lead guitarist comfortable with Afrobeats, Highlife, and contemporary pop for a 5-city tour."
-        />
-        <GigCardExplore 
-          title="Jazz Pianist for Corporate Gala"
-          location="Accra, Ghana"
-          pay="$400 / night"
-          date="Sept 12, 2026"
-          description="Need a smooth jazz pianist to provide background music for a high-end corporate networking event. 3-hour set."
-        />
+        {loading ? (
+          <div className="col-span-1 lg:col-span-2 flex justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+          </div>
+        ) : gigs.length > 0 ? (
+          gigs.map((gig) => (
+            <GigCardExplore 
+              key={gig.id}
+              id={gig.id}
+              title={gig.title}
+              location={gig.location}
+              pay={gig.pay}
+              date={gig.date_time}
+              description={gig.description}
+              onApply={handleApply}
+            />
+          ))
+        ) : (
+          <div className="col-span-1 lg:col-span-2 text-center py-12 text-gray-500">
+            No gigs found.
+          </div>
+        )}
       </section>
     </div>
   );
