@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
+import { supabase } from '../src/supabaseClient';
 
 const SignUp: React.FC = () => {
   const navigate = useNavigate();
@@ -16,6 +17,7 @@ const SignUp: React.FC = () => {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [supabaseError, setSupabaseError] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -52,11 +54,24 @@ const SignUp: React.FC = () => {
     if (!validate()) return;
 
     setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
+    setSupabaseError(null);
+
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (error) {
+        setSupabaseError(error.message);
+      } else {
+        navigate('/');
+      }
+    } catch (err: any) {
+      setSupabaseError(err.message || 'An unexpected error occurred');
+    } finally {
       setIsLoading(false);
-      navigate('/dashboard');
-    }, 1500);
+    }
   };
 
   return (
@@ -232,6 +247,12 @@ const SignUp: React.FC = () => {
                 )}
               </button>
             </div>
+            
+            {supabaseError && (
+              <div className="mt-4 text-sm text-red-600 text-center bg-red-50 p-3 rounded-lg border border-red-100">
+                {supabaseError}
+              </div>
+            )}
           </form>
 
           <p className="mt-8 text-center text-sm text-gray-500">
