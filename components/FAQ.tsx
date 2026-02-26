@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import Section from './Section';
 import { Plus, Minus } from 'lucide-react';
 
 interface FAQItemProps {
@@ -11,22 +10,22 @@ interface FAQItemProps {
 
 const FAQItem: React.FC<FAQItemProps> = ({ question, answer, isOpen, toggle }) => {
   return (
-    <div className="border-b border-gray-100 last:border-0">
+    <div className="border-b border-gray-200 last:border-0">
       <button
-        className="w-full py-6 text-left flex justify-between items-center focus:outline-none group"
+        className="w-full py-8 text-left flex justify-between items-center focus:outline-none group"
         onClick={toggle}
       >
-        <span className={`text-lg font-medium transition-colors duration-200 ${isOpen ? 'text-brand-600' : 'text-gray-900 group-hover:text-brand-600'}`}>
+        <span className="text-2xl font-bold text-linktree-dark pr-8">
           {question}
         </span>
-        <span className={`ml-6 flex-shrink-0 bg-brand-50 rounded-full p-1 text-brand-600 transition-all duration-300 ${isOpen ? 'bg-brand-600 text-white rotate-180' : ''}`}>
-          {isOpen ? <Minus className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
+        <span className={`flex-shrink-0 text-linktree-dark transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}>
+          {isOpen ? <Minus className="w-6 h-6" /> : <Plus className="w-6 h-6" />}
         </span>
       </button>
       <div 
-        className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-48 opacity-100 pb-6' : 'max-h-0 opacity-0'}`}
+        className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-96 opacity-100 pb-8' : 'max-h-0 opacity-0'}`}
       >
-        <p className="text-gray-600 leading-relaxed pr-8">{answer}</p>
+        <p className="text-linktree-dark/80 text-lg font-medium leading-relaxed pr-8">{answer}</p>
       </div>
     </div>
   );
@@ -63,33 +62,25 @@ const FAQ: React.FC = () => {
   };
 
   return (
-    <Section id="faq">
-      <div className="grid md:grid-cols-12 gap-12">
-        <div className="md:col-span-4">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Frequently Asked Questions</h2>
-          <p className="text-gray-600 mb-6">
-            Everything you need to know about the product and billing. Can't find the answer you're looking for?
-          </p>
-          <a href="mailto:support@gigsconnect.com" className="inline-flex items-center font-medium text-brand-600 hover:text-brand-700 transition-colors">
-            Contact our support team &rarr;
-          </a>
-        </div>
+    <section id="faq" className="py-24 lg:py-32 bg-white">
+      <div className="max-w-[1000px] mx-auto px-6">
+        <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-linktree-dark mb-16 tracking-tighter leading-[1.1] text-center">
+          Got questions?
+        </h2>
         
-        <div className="md:col-span-8">
-          <div className="bg-white rounded-2xl">
-            {faqs.map((faq, index) => (
-              <FAQItem
-                key={index}
-                question={faq.question}
-                answer={faq.answer}
-                isOpen={openIndex === index}
-                toggle={() => handleToggle(index)}
-              />
-            ))}
-          </div>
+        <div className="bg-white">
+          {faqs.map((faq, index) => (
+            <FAQItem
+              key={index}
+              question={faq.question}
+              answer={faq.answer}
+              isOpen={openIndex === index}
+              toggle={() => handleToggle(index)}
+            />
+          ))}
         </div>
       </div>
-    </Section>
+    </section>
   );
 };
 

@@ -1,32 +1,65 @@
 import React from 'react';
-import Section from './Section';
-import { FEATURES } from '../constants';
+import { openSignupModal } from '../utils';
 
 const Features: React.FC = () => {
   return (
-    <Section id="features">
-      <div className="text-center max-w-3xl mx-auto mb-16">
-        <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 font-display">Why Artists Choose Us</h2>
-        <p className="text-gray-600 text-lg font-sans">Built by musicians, for musicians. We understand the industry.</p>
-      </div>
+    <section id="features" className="py-24 lg:py-32 bg-white">
+      <div className="max-w-[1200px] mx-auto px-6">
+        <div className="grid md:grid-cols-2 gap-16 items-center">
+          <div className="order-2 md:order-1 relative">
+            <div className="relative w-full aspect-square max-w-md mx-auto">
+              <div className="absolute inset-0 bg-linktree-gray rounded-[3rem] transform -rotate-6"></div>
+              <img 
+                src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=800" 
+                alt="Analytics Dashboard" 
+                referrerPolicy="no-referrer"
+                className="absolute inset-0 w-full h-full object-cover rounded-[3rem] shadow-2xl transform rotate-3"
+              />
+            </div>
+          </div>
 
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {FEATURES.map((feature, index) => (
-          <div key={index} className="group p-8 rounded-2xl bg-white border border-gray-100 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 flex flex-col items-start cursor-default relative overflow-hidden">
-            {/* Hover decorative blob */}
-            <div className="absolute top-0 right-0 w-24 h-24 bg-brand-50 rounded-bl-[4rem] -mr-4 -mt-4 transition-all duration-500 group-hover:bg-brand-100 group-hover:scale-150"></div>
+          <div className="order-1 md:order-2">
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-linktree-dark mb-6 tracking-tighter leading-[1.1]">
+              Why Artists Choose Us
+            </h2>
+            <p className="text-linktree-dark/80 text-lg md:text-xl mb-8 leading-relaxed font-medium">
+              Built by musicians, for musicians. We understand the industry.
+            </p>
             
-            <div className="w-12 h-12 bg-brand-50 rounded-xl flex items-center justify-center mb-6 group-hover:bg-brand-600 group-hover:text-white transition-all duration-300 relative z-10">
-              <div className="group-hover:text-white transition-colors duration-300 [&>svg]:text-current">
-                 {React.cloneElement(feature.icon as React.ReactElement, { className: "w-6 h-6 text-brand-600 group-hover:text-white" })}
+            <div className="space-y-6 mb-8">
+              <div className="flex items-start gap-4">
+                <div className="w-2 h-2 mt-2.5 rounded-full bg-linktree-dark flex-shrink-0"></div>
+                <div>
+                  <h3 className="font-bold text-linktree-dark text-xl mb-1">Verified Artists</h3>
+                  <p className="text-linktree-dark/80 font-medium">We vet every profile to ensure talent authenticity and quality for organizers.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-4">
+                <div className="w-2 h-2 mt-2.5 rounded-full bg-linktree-dark flex-shrink-0"></div>
+                <div>
+                  <h3 className="font-bold text-linktree-dark text-xl mb-1">Secure Payments</h3>
+                  <p className="text-linktree-dark/80 font-medium">Guaranteed payments for completed gigs. No more chasing invoices.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-4">
+                <div className="w-2 h-2 mt-2.5 rounded-full bg-linktree-dark flex-shrink-0"></div>
+                <div>
+                  <h3 className="font-bold text-linktree-dark text-xl mb-1">Pan-African Reach</h3>
+                  <p className="text-linktree-dark/80 font-medium">Access opportunities beyond your city. Connect with organizers across the continent.</p>
+                </div>
               </div>
             </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-brand-600 transition-colors duration-300 font-display relative z-10">{feature.title}</h3>
-            <p className="text-gray-600 leading-relaxed font-sans relative z-10">{feature.description}</p>
+
+            <button 
+              onClick={openSignupModal}
+              className="px-8 py-4 rounded-full bg-linktree-pink text-linktree-dark font-semibold text-lg hover:bg-[#d8a8d8] transition-colors"
+            >
+              Get started for free
+            </button>
           </div>
-        ))}
+        </div>
       </div>
-    </Section>
+    </section>
   );
 };
 
