@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 
 const SignUp: React.FC = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     fullName: '',
     stageName: '',
@@ -54,7 +55,7 @@ const SignUp: React.FC = () => {
     // Simulate API call
     setTimeout(() => {
       setIsLoading(false);
-      alert('Account created successfully!');
+      navigate('/dashboard');
     }, 1500);
   };
 

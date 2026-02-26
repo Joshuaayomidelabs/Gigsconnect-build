@@ -11,6 +11,7 @@ import FAQ from './components/FAQ';
 import Footer from './components/Footer';
 import SignUp from './pages/SignUp';
 import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
 
 const LandingPage = () => (
   <div className="min-h-screen font-sans selection:bg-linktree-lime selection:text-linktree-green">
@@ -34,6 +35,7 @@ const App: React.FC = () => {
       <Route path="/" element={<LandingPage />} />
       <Route path="/signup" element={<SignUp />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/dashboard" element={<Dashboard />} />
     </Routes>
   );
 };

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 
 const Login: React.FC = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -44,7 +45,7 @@ const Login: React.FC = () => {
     // Simulate API call
     setTimeout(() => {
       setIsLoading(false);
-      alert('Logged in successfully!');
+      navigate('/dashboard');
     }, 1500);
   };
 
