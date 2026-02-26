@@ -58,7 +58,7 @@ const Login: React.FC = () => {
       if (error) {
         setSupabaseError(error.message);
       } else {
-        navigate('/');
+        navigate('/dashboard');
       }
     } catch (err: any) {
       setSupabaseError(err.message || 'An unexpected error occurred');
