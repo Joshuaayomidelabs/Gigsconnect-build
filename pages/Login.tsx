@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { supabase } from '../src/supabaseClient';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const state = location.state as { email?: string; signupSuccess?: boolean } | null;
+
   const [formData, setFormData] = useState({
-    email: '',
+    email: state?.email || '',
     password: '',
     rememberMe: false,
   });
@@ -102,6 +105,11 @@ const Login: React.FC = () => {
 
       <div className="relative z-10 mt-8 sm:mx-auto sm:w-full sm:max-w-[400px]">
         <div className="bg-white px-6 py-10 shadow-xl sm:rounded-2xl sm:px-12 border border-gray-100">
+          {state?.signupSuccess && (
+            <div className="mb-6 p-4 rounded-lg bg-green-50 border border-green-200 text-green-700 text-sm text-center font-medium">
+              Your account has been created. Please check your email and verify your address before logging in.
+            </div>
+          )}
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
               <label className="block text-sm font-medium leading-6 text-gray-900">

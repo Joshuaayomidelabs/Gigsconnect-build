@@ -65,7 +65,7 @@ const SignUp: React.FC = () => {
       if (error) {
         setSupabaseError(error.message);
       } else {
-        navigate('/');
+        navigate('/login', { state: { email: formData.email, signupSuccess: true } });
       }
     } catch (err: any) {
       setSupabaseError(err.message || 'An unexpected error occurred');
