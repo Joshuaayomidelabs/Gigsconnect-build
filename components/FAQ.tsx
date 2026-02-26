@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Plus, Minus } from 'lucide-react';
+import { motion } from 'motion/react';
 
 interface FAQItemProps {
   question: string;
@@ -64,19 +65,32 @@ const FAQ: React.FC = () => {
   return (
     <section id="faq" className="py-24 lg:py-32 bg-white">
       <div className="max-w-[1000px] mx-auto px-6">
-        <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-linktree-dark mb-16 tracking-tighter leading-[1.1] text-center">
+        <motion.h2 
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="text-4xl md:text-5xl lg:text-6xl font-black text-linktree-dark mb-16 tracking-tighter leading-[1.1] text-center"
+        >
           Got questions?
-        </h2>
+        </motion.h2>
         
         <div className="bg-white">
           {faqs.map((faq, index) => (
-            <FAQItem
+            <motion.div
               key={index}
-              question={faq.question}
-              answer={faq.answer}
-              isOpen={openIndex === index}
-              toggle={() => handleToggle(index)}
-            />
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.5, ease: "easeOut", delay: index * 0.1 }}
+            >
+              <FAQItem
+                question={faq.question}
+                answer={faq.answer}
+                isOpen={openIndex === index}
+                toggle={() => handleToggle(index)}
+              />
+            </motion.div>
           ))}
         </div>
       </div>

@@ -1,11 +1,18 @@
 import React from 'react';
+import { motion } from 'motion/react';
 
 const HowItWorks: React.FC = () => {
   return (
     <section id="how-it-works" className="py-24 lg:py-32 bg-linktree-red">
       <div className="max-w-[1200px] mx-auto px-6">
         <div className="grid md:grid-cols-2 gap-16 items-center">
-          <div className="order-1">
+          <motion.div 
+            initial={{ opacity: 0, x: -50 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.7, ease: "easeOut" }}
+            className="order-1"
+          >
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-linktree-pink mb-6 tracking-tighter leading-[1.1]">
               How It Works
             </h2>
@@ -47,9 +54,15 @@ const HowItWorks: React.FC = () => {
             <button className="px-8 py-4 rounded-full bg-linktree-pink text-linktree-dark font-semibold text-lg hover:bg-[#d8a8d8] transition-colors">
               Get started for free
             </button>
-          </div>
+          </motion.div>
 
-          <div className="order-2 relative">
+          <motion.div 
+            initial={{ opacity: 0, x: 50 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.7, ease: "easeOut", delay: 0.2 }}
+            className="order-2 relative"
+          >
             <div className="relative w-full aspect-square max-w-md mx-auto">
               <div className="absolute inset-0 bg-linktree-purple rounded-[3rem] transform rotate-6"></div>
               <img 
@@ -59,7 +72,7 @@ const HowItWorks: React.FC = () => {
                 className="absolute inset-0 w-full h-full object-cover rounded-[3rem] shadow-2xl transform -rotate-3"
               />
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
     </section>

@@ -1,11 +1,18 @@
 import React from 'react';
+import { motion } from 'motion/react';
 
 const ArtistSpotlight: React.FC = () => {
   return (
     <section id="spotlight" className="py-24 lg:py-32 bg-[#502274]">
       <div className="max-w-[1200px] mx-auto px-6">
         <div className="grid md:grid-cols-2 gap-16 items-center">
-          <div className="order-1">
+          <motion.div 
+            initial={{ opacity: 0, x: -50 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.7, ease: "easeOut" }}
+            className="order-1"
+          >
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-[#e9c0e9] mb-6 tracking-tighter leading-[1.1]">
               Artist Spotlight
             </h2>
@@ -29,9 +36,15 @@ const ArtistSpotlight: React.FC = () => {
             <button className="px-8 py-4 rounded-full bg-[#e9c0e9] text-[#502274] font-semibold text-lg hover:bg-white transition-colors">
               Get started for free
             </button>
-          </div>
+          </motion.div>
 
-          <div className="order-2 relative">
+          <motion.div 
+            initial={{ opacity: 0, x: 50 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.7, ease: "easeOut", delay: 0.2 }}
+            className="order-2 relative"
+          >
             <div className="relative w-full aspect-square max-w-md mx-auto">
               <div className="absolute inset-0 bg-linktree-pink rounded-[3rem] transform rotate-6"></div>
               <img 
@@ -41,7 +54,7 @@ const ArtistSpotlight: React.FC = () => {
                 className="absolute inset-0 w-full h-full object-cover rounded-[3rem] shadow-2xl transform -rotate-3"
               />
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
     </section>

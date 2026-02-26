@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Check } from 'lucide-react';
 import { PRICING_DATA } from '../constants';
+import { motion } from 'motion/react';
 
 const Pricing: React.FC = () => {
   const [region, setRegion] = useState<'nigeria' | 'international'>('nigeria');
@@ -9,7 +10,13 @@ const Pricing: React.FC = () => {
   return (
     <section id="pricing" className="py-24 lg:py-32 bg-[#f3f3f1]">
       <div className="max-w-[1200px] mx-auto px-6">
-        <div className="text-center max-w-3xl mx-auto mb-16">
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="text-center max-w-3xl mx-auto mb-16"
+        >
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-linktree-dark mb-6 tracking-tighter leading-[1.1]">
             Simple, Transparent Pricing
           </h2>
@@ -40,12 +47,16 @@ const Pricing: React.FC = () => {
               International ($)
             </button>
           </div>
-        </div>
+        </motion.div>
 
         <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {data.tiers.map((tier, index) => (
-            <div 
+            <motion.div 
               key={index} 
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.5, ease: "easeOut", delay: index * 0.15 }}
               className={`relative rounded-[2rem] p-8 md:p-10 transition-all duration-300 flex flex-col ${
                 tier.recommended 
                   ? 'bg-linktree-dark text-white shadow-2xl scale-105 z-10' 
@@ -88,13 +99,19 @@ const Pricing: React.FC = () => {
               >
                 Get Started
               </button>
-            </div>
+            </motion.div>
           ))}
         </div>
         
-        <p className="text-center text-linktree-dark/50 text-sm mt-16 font-medium">
+        <motion.p 
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.6 }}
+          className="text-center text-linktree-dark/50 text-sm mt-16 font-medium"
+        >
           * Pricing subject to change based on local currency fluctuations for international users.
-        </p>
+        </motion.p>
       </div>
     </section>
   );
