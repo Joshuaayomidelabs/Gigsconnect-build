@@ -1,18 +1,17 @@
 import React, { useState } from 'react';
 import { UploadCloud } from 'lucide-react';
-import { supabase } from '../../src/supabaseClient';
+import { Gig } from '../../pages/Dashboard';
 
-const PostGigTab = () => {
+const PostGigTab = ({ onAddGig }: { onAddGig: (gig: Omit<Gig, 'id'>) => void }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     location: '',
     pay: '',
-    date_time: ''
+    date: ''
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -22,36 +21,15 @@ const PostGigTab = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setErrorMsg(null);
-    setSuccess(false);
-
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('You must be logged in to post a gig.');
-
-      const { error } = await supabase
-        .from('gigs')
-        .insert([
-          {
-            user_id: user.id,
-            title: formData.title,
-            description: formData.description,
-            location: formData.location,
-            pay: formData.pay,
-            date_time: formData.date_time
-          }
-        ]);
-
-      if (error) throw error;
-
+    
+    // Simulate API call
+    setTimeout(() => {
+      onAddGig(formData);
       setSuccess(true);
-      setFormData({ title: '', description: '', location: '', pay: '', date_time: '' });
-      setTimeout(() => setSuccess(false), 3000);
-    } catch (err: any) {
-      setErrorMsg(err.message || 'Failed to post gig.');
-    } finally {
+      setFormData({ title: '', description: '', location: '', pay: '', date: '' });
       setIsSubmitting(false);
-    }
+      setTimeout(() => setSuccess(false), 3000);
+    }, 1000);
   };
 
   return (
@@ -65,11 +43,6 @@ const PostGigTab = () => {
         {success && (
           <div className="mb-6 p-4 rounded-xl bg-green-50 border border-green-200 text-green-700 text-center font-medium">
             Gig posted successfully!
-          </div>
-        )}
-        {errorMsg && (
-          <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-center font-medium">
-            {errorMsg}
           </div>
         )}
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -96,7 +69,7 @@ const PostGigTab = () => {
 
           <div>
             <label className="block text-sm font-semibold text-gray-900 mb-2">Date & Time *</label>
-            <input required name="date_time" value={formData.date_time} onChange={handleChange} type="text" placeholder="e.g. Oct 15, 2026 at 6:00 PM" className="w-full p-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-600 transition-all" />
+            <input required name="date" value={formData.date} onChange={handleChange} type="text" placeholder="e.g. Oct 15, 2026 at 6:00 PM" className="w-full p-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-600 transition-all" />
           </div>
 
           <div>

@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { Search, Filter, MapPin, Calendar, Loader2 } from 'lucide-react';
-import { supabase } from '../../src/supabaseClient';
+import React from 'react';
+import { Search, Filter, MapPin, Calendar } from 'lucide-react';
+import { Gig } from '../../pages/Dashboard';
 
 const StatCard = ({ title, value, trend }: { title: string, value: string, trend: string }) => (
   <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 transition-shadow hover:shadow-md cursor-default">
@@ -12,16 +12,7 @@ const StatCard = ({ title, value, trend }: { title: string, value: string, trend
   </div>
 );
 
-export const GigCard = ({ id, title, location, pay, date, description, onApply }: { id: string, title: string, location: string, pay: string, date: string, description: string, onApply?: (id: string) => void }) => {
-  const [applying, setApplying] = useState(false);
-
-  const handleApply = async () => {
-    if (!onApply) return;
-    setApplying(true);
-    await onApply(id);
-    setApplying(false);
-  };
-
+export const GigCard = ({ title, location, pay, date, description }: { title: string, location: string, pay: string, date: string, description: string }) => {
   return (
     <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200 flex flex-col h-full hover:-translate-y-1 relative">
       <div className="flex justify-between items-start mb-4 gap-4">
@@ -47,66 +38,16 @@ export const GigCard = ({ id, title, location, pay, date, description, onApply }
           View Details
         </button>
         <button 
-          onClick={handleApply}
-          disabled={applying}
-          className="flex-1 py-2.5 px-4 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-500 transition-colors text-sm shadow-sm disabled:opacity-70 flex justify-center items-center"
+          className="flex-1 py-2.5 px-4 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-500 transition-colors text-sm shadow-sm flex justify-center items-center"
         >
-          {applying ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Apply Now'}
+          Apply Now
         </button>
       </div>
     </div>
   );
 };
 
-const HomeTab = () => {
-  const [gigs, setGigs] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchGigs = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('gigs')
-          .select('*')
-          .order('created_at', { ascending: false })
-          .limit(4);
-        
-        if (error) throw error;
-        setGigs(data || []);
-      } catch (error) {
-        console.error('Error fetching gigs:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchGigs();
-  }, []);
-
-  const handleApply = async (gigId: string) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return alert('Please log in to apply');
-
-      const { error } = await supabase
-        .from('applications')
-        .insert([{ gig_id: gigId, applicant_id: user.id }]);
-
-      if (error) {
-        if (error.code === '23505') {
-          alert('You have already applied for this gig.');
-        } else {
-          throw error;
-        }
-      } else {
-        alert('Application submitted successfully!');
-      }
-    } catch (error: any) {
-      console.error('Error applying:', error);
-      alert('Failed to apply. ' + error.message);
-    }
-  };
-
+const HomeTab = ({ gigs }: { gigs: Gig[] }) => {
   return (
     <div className="space-y-8 relative z-10">
       <section>
@@ -141,21 +82,15 @@ const HomeTab = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {loading ? (
-            <div className="col-span-1 lg:col-span-2 flex justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-            </div>
-          ) : gigs.length > 0 ? (
+          {gigs.length > 0 ? (
             gigs.map((gig) => (
               <GigCard 
                 key={gig.id}
-                id={gig.id}
                 title={gig.title}
                 location={gig.location}
                 pay={gig.pay}
-                date={gig.date_time}
+                date={gig.date}
                 description={gig.description}
-                onApply={handleApply}
               />
             ))
           ) : (

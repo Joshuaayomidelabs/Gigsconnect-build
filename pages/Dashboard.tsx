@@ -8,31 +8,100 @@ import ApplicationsTab from '../components/dashboard/ApplicationsTab';
 import SubscriptionTab from '../components/dashboard/SubscriptionTab';
 import ProfileTab from '../components/dashboard/ProfileTab';
 
+export interface Gig {
+  id: string;
+  title: string;
+  location: string;
+  pay: string;
+  date: string;
+  description: string;
+}
+
+const initialGigs: Gig[] = [
+  {
+    id: '1',
+    title: "Lead Guitarist for Afrobeats Tour",
+    location: "Lagos, Nigeria (Touring)",
+    pay: "₦500k - ₦800k",
+    date: "Oct 15 - Nov 20, 2026",
+    description: "Looking for an experienced lead guitarist comfortable with Afrobeats, Highlife, and contemporary pop for a 5-city tour."
+  },
+  {
+    id: '2',
+    title: "Jazz Pianist for Corporate Gala",
+    location: "Accra, Ghana",
+    pay: "$400 / night",
+    date: "Sept 12, 2026",
+    description: "Need a smooth jazz pianist to provide background music for a high-end corporate networking event. 3-hour set."
+  }
+];
+
 const BackgroundSVGs = () => (
-  <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-96 h-96 text-blue-900 opacity-[0.02] absolute top-20 -left-20 -rotate-12">
+  <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden text-gray-900 opacity-[0.03]">
+    {/* Music Note */}
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-64 h-64 absolute top-10 -left-10 -rotate-12">
       <path d="M9 18V5l12-2v13"></path>
       <circle cx="6" cy="18" r="3"></circle>
       <circle cx="18" cy="16" r="3"></circle>
     </svg>
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-[30rem] h-[30rem] text-purple-900 opacity-[0.02] absolute bottom-0 -right-20 rotate-12">
+    {/* Microphone */}
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-80 h-80 absolute bottom-20 -right-20 rotate-12">
+      <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
+      <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+      <line x1="12" x2="12" y1="19" y2="22"></line>
+    </svg>
+    {/* Headphones */}
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-48 h-48 absolute top-1/4 right-10 rotate-45">
       <path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"></path>
+    </svg>
+    {/* Guitar */}
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-72 h-72 absolute bottom-10 left-1/4 -rotate-45">
+      <path d="m11.5 8.5 4 4"></path>
+      <path d="m14.5 5.5 4 4"></path>
+      <path d="M15 4.5 19.5 9"></path>
+      <path d="m7.5 12.5 4 4"></path>
+      <path d="m4.5 15.5 4 4"></path>
+      <path d="M4.5 19.5 9 15"></path>
+      <path d="m13 11-2 2"></path>
+      <circle cx="9" cy="15" r="4"></circle>
+      <circle cx="15" cy="9" r="4"></circle>
+      <path d="m18 6-2-2"></path>
+      <path d="m6 18-2-2"></path>
+    </svg>
+    {/* Soundwave */}
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-56 h-56 absolute top-1/2 left-10 -rotate-6">
+      <path d="M2 10v3"></path>
+      <path d="M6 6v11"></path>
+      <path d="M10 3v18"></path>
+      <path d="M14 8v7"></path>
+      <path d="M18 5v13"></path>
+      <path d="M22 10v3"></path>
     </svg>
   </div>
 );
 
 const Dashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('home');
+  const [gigs, setGigs] = useState<Gig[]>(initialGigs);
+
+  const handleAddGig = (newGig: Omit<Gig, 'id'>) => {
+    const gig: Gig = {
+      ...newGig,
+      id: Math.random().toString(36).substr(2, 9)
+    };
+    setGigs([gig, ...gigs]);
+    setActiveTab('home');
+  };
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'home': return <HomeTab />;
-      case 'explore': return <ExploreTab />;
-      case 'post': return <PostGigTab />;
+      case 'home': return <HomeTab gigs={gigs} />;
+      case 'explore': return <ExploreTab gigs={gigs} />;
+      case 'post': return <PostGigTab onAddGig={handleAddGig} />;
       case 'applications': return <ApplicationsTab />;
       case 'subscription': return <SubscriptionTab />;
       case 'profile': return <ProfileTab />;
-      default: return <HomeTab />;
+      default: return <HomeTab gigs={gigs} />;
     }
   };
 
