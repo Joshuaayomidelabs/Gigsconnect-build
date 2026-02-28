@@ -90,14 +90,13 @@ const Dashboard: React.FC = () => {
       id: Math.random().toString(36).substr(2, 9)
     };
     setGigs([gig, ...gigs]);
-    setActiveTab('home');
   };
 
   const renderContent = () => {
     switch (activeTab) {
       case 'home': return <HomeTab gigs={gigs} />;
       case 'explore': return <ExploreTab gigs={gigs} />;
-      case 'post': return <PostGigTab onAddGig={handleAddGig} />;
+      case 'post': return <PostGigTab onAddGig={handleAddGig} onGigPosted={() => setActiveTab('home')} />;
       case 'applications': return <ApplicationsTab />;
       case 'subscription': return <SubscriptionTab />;
       case 'profile': return <ProfileTab />;
@@ -125,30 +124,30 @@ const Dashboard: React.FC = () => {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 md:ml-64 flex flex-col min-h-screen pb-20 md:pb-0 z-10 relative">
+      <main className="flex-1 md:ml-64 flex flex-col min-h-screen pb-24 md:pb-0 z-10 relative">
         {/* Top Navigation */}
-        <header className="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-30 px-6 py-4 flex items-center justify-between md:justify-end">
+        <header className="bg-white/80 backdrop-blur-xl border-b border-gray-100 sticky top-0 z-30 px-4 sm:px-6 py-4 flex items-center justify-between md:justify-end">
           <div className="md:hidden">
             <Link to="/" className="text-xl font-black text-gray-900 tracking-tighter">GigsConnect</Link>
           </div>
           <div className="flex items-center gap-4">
-            <button className="p-2 text-gray-500 hover:bg-gray-100 rounded-full transition-colors relative">
+            <button className="p-2 text-gray-500 hover:bg-gray-100 rounded-full transition-colors relative active:scale-95">
               <Bell className="w-6 h-6" />
               <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
             </button>
-            <div onClick={() => setActiveTab('profile')} className="w-10 h-10 rounded-full bg-blue-100 border-2 border-blue-600 overflow-hidden cursor-pointer hover:opacity-80 transition-opacity">
+            <div onClick={() => setActiveTab('profile')} className="w-10 h-10 rounded-full bg-blue-100 border-2 border-blue-600 overflow-hidden cursor-pointer hover:opacity-80 transition-opacity active:scale-95">
               <img src="https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&q=80&w=150" alt="Avatar" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
             </div>
           </div>
         </header>
 
-        <div className="p-6 max-w-6xl mx-auto w-full">
+        <div className="p-4 sm:p-6 max-w-6xl mx-auto w-full">
           {renderContent()}
         </div>
       </main>
 
       {/* Bottom Navigation (Mobile) */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-gray-200 flex justify-around p-3 z-40 pb-safe shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-t border-gray-100 flex justify-around p-2 z-40 pb-safe shadow-[0_-8px_30px_rgba(0,0,0,0.04)]">
         <MobileNavItem icon={<Home />} label="Home" active={activeTab === 'home'} onClick={() => setActiveTab('home')} />
         <MobileNavItem icon={<Compass />} label="Explore" active={activeTab === 'explore'} onClick={() => setActiveTab('explore')} />
         <MobileNavItem icon={<PlusSquare />} label="Post" active={activeTab === 'post'} onClick={() => setActiveTab('post')} />
@@ -167,9 +166,9 @@ const NavItem = ({ icon, label, active = false, onClick }: { icon: React.ReactEl
 );
 
 const MobileNavItem = ({ icon, label, active = false, onClick }: { icon: React.ReactElement, label: string, active?: boolean, onClick: () => void }) => (
-  <button onClick={onClick} className={`flex flex-col items-center gap-1 p-2 ${active ? 'text-blue-600' : 'text-gray-500 hover:text-gray-900'}`}>
+  <button onClick={onClick} className={`flex flex-col items-center gap-1 p-2 flex-1 active:scale-95 transition-transform ${active ? 'text-blue-600' : 'text-gray-500 hover:text-gray-900'}`}>
     {React.cloneElement(icon, { className: 'w-6 h-6' })}
-    <span className="text-[10px] font-medium">{label}</span>
+    <span className="text-[10px] font-medium tracking-tight">{label}</span>
   </button>
 );
 
