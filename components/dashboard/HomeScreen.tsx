@@ -164,9 +164,12 @@ const HomeScreen = () => {
         table: 'users' 
       }, (payload) => {
         // Update local user state if the updated record matches the current user
-        if (user && payload.new.id === user.id) {
-          setUser(payload.new as User);
-        }
+        setUser((currentUser) => {
+          if (currentUser && payload.new.id === currentUser.id) {
+            return payload.new as User;
+          }
+          return currentUser;
+        });
       })
       .subscribe();
 
@@ -196,20 +199,26 @@ const HomeScreen = () => {
       
       {/* 1. New User Welcome (Conditional Rendering) */}
       <section>
-        <motion.div 
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <h1 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">
-            {user?.profile_complete ? `Welcome back, ${user.full_name.split(' ')[0]}!` : 'Welcome, New User!'}
-          </h1>
-          <p className="text-gray-500 mt-1 text-base sm:text-lg">
-            {user?.profile_complete 
-              ? 'Here are the latest gigs for you' 
-              : 'Complete your profile to unlock more opportunities'}
-          </p>
-        </motion.div>
+        <div className="h-[80px] sm:h-[88px] flex flex-col justify-center">
+          <AnimatePresence mode="wait">
+            <motion.div 
+              key={user?.profile_complete ? 'complete' : 'incomplete'}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3 }}
+            >
+              <h1 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">
+                {user?.profile_complete ? `Welcome back, ${user.full_name?.split(' ')[0] || 'User'}!` : 'Welcome, New User!'}
+              </h1>
+              <p className="text-gray-500 mt-1 text-base sm:text-lg">
+                {user?.profile_complete 
+                  ? 'Here are the latest gigs for you' 
+                  : 'Complete your profile to unlock more opportunities'}
+              </p>
+            </motion.div>
+          </AnimatePresence>
+        </div>
       </section>
 
       {/* Stats Section */}

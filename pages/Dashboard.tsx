@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Bell, Home, Compass, PlusSquare, FileText, CreditCard, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import HomeTab from '../components/dashboard/HomeTab';
+import HomeScreen from '../components/dashboard/HomeScreen';
 import ExploreTab from '../components/dashboard/ExploreTab';
 import PostGigTab from '../components/dashboard/PostGigTab';
 import ApplicationsTab from '../components/dashboard/ApplicationsTab';
@@ -94,13 +94,13 @@ const Dashboard: React.FC = () => {
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'home': return <HomeTab gigs={gigs} />;
+      case 'home': return <HomeScreen />;
       case 'explore': return <ExploreTab gigs={gigs} />;
       case 'post': return <PostGigTab onAddGig={handleAddGig} onGigPosted={() => setActiveTab('home')} />;
       case 'applications': return <ApplicationsTab />;
       case 'subscription': return <SubscriptionTab />;
       case 'profile': return <ProfileTab />;
-      default: return <HomeTab gigs={gigs} />;
+      default: return <HomeScreen />;
     }
   };
 

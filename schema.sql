@@ -29,6 +29,7 @@ ALTER TABLE public.gigs ENABLE ROW LEVEL SECURITY;
 -- Create policies
 CREATE POLICY "Users can view all users" ON public.users FOR SELECT USING (true);
 CREATE POLICY "Users can update own profile" ON public.users FOR UPDATE USING (auth.uid() = id);
+CREATE POLICY "Users can insert own profile" ON public.users FOR INSERT WITH CHECK (auth.uid() = id);
 
 CREATE POLICY "Anyone can view gigs" ON public.gigs FOR SELECT USING (true);
 CREATE POLICY "Authenticated users can insert gigs" ON public.gigs FOR INSERT WITH CHECK (auth.role() = 'authenticated');
