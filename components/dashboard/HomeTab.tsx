@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Search, Filter, MapPin, Calendar } from 'lucide-react';
 import { Gig } from '../../pages/Dashboard';
+import GigDetailsModal from './GigDetailsModal';
 
 const StatCard = ({ title, value, trend }: { title: string, value: string, trend: string }) => (
   <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-gray-100 transition-all hover:shadow-md cursor-default">
@@ -12,29 +13,32 @@ const StatCard = ({ title, value, trend }: { title: string, value: string, trend
   </div>
 );
 
-export const GigCard = ({ title, location, pay, date, description }: { title: string, location: string, pay: string, date: string, description: string }) => {
+export const GigCard = ({ gig, onViewDetails }: { gig: Gig, onViewDetails: (gig: Gig) => void }) => {
   return (
     <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 flex flex-col h-full hover:-translate-y-1 relative group">
       <div className="flex justify-between items-start mb-4 gap-4">
-        <h3 className="text-lg sm:text-xl font-bold text-gray-900 leading-tight pr-2 group-hover:text-blue-600 transition-colors">{title}</h3>
-        <span className="px-3 py-1 bg-green-50 text-green-700 text-xs sm:text-sm font-bold rounded-full whitespace-nowrap flex-shrink-0 border border-green-100">{pay}</span>
+        <h3 className="text-lg sm:text-xl font-bold text-gray-900 leading-tight pr-2 group-hover:text-blue-600 transition-colors">{gig.title}</h3>
+        <span className="px-3 py-1 bg-green-50 text-green-700 text-xs sm:text-sm font-bold rounded-full whitespace-nowrap flex-shrink-0 border border-green-100">{gig.pay}</span>
       </div>
       
       <div className="flex flex-col gap-2 mb-4">
         <div className="flex items-center gap-2 text-gray-500 text-sm font-medium">
           <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
-          <span className="truncate">{location}</span>
+          <span className="truncate">{gig.location}</span>
         </div>
         <div className="flex items-center gap-2 text-gray-500 text-sm font-medium">
           <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0" />
-          <span className="truncate">{date}</span>
+          <span className="truncate">{gig.date}</span>
         </div>
       </div>
       
-      <p className="text-gray-600 text-sm leading-relaxed mb-6 flex-grow line-clamp-3">{description}</p>
+      <p className="text-gray-600 text-sm leading-relaxed mb-6 flex-grow line-clamp-3">{gig.description}</p>
       
       <div className="flex items-center gap-3 mt-auto pt-4 border-t border-gray-50">
-        <button className="flex-1 py-3 px-4 rounded-xl border border-gray-200 text-gray-700 font-bold hover:bg-gray-50 transition-colors text-sm active:scale-95">
+        <button 
+          onClick={() => onViewDetails(gig)}
+          className="flex-1 py-3 px-4 rounded-xl border border-gray-200 text-gray-700 font-bold hover:bg-gray-50 transition-colors text-sm active:scale-95"
+        >
           Details
         </button>
         <button 
@@ -48,6 +52,8 @@ export const GigCard = ({ title, location, pay, date, description }: { title: st
 };
 
 const HomeTab = ({ gigs }: { gigs: Gig[] }) => {
+  const [selectedGig, setSelectedGig] = useState<Gig | null>(null);
+
   return (
     <div className="space-y-8 relative z-10">
       <section>
@@ -86,11 +92,8 @@ const HomeTab = ({ gigs }: { gigs: Gig[] }) => {
             gigs.map((gig) => (
               <GigCard 
                 key={gig.id}
-                title={gig.title}
-                location={gig.location}
-                pay={gig.pay}
-                date={gig.date}
-                description={gig.description}
+                gig={gig}
+                onViewDetails={setSelectedGig}
               />
             ))
           ) : (
@@ -100,6 +103,12 @@ const HomeTab = ({ gigs }: { gigs: Gig[] }) => {
           )}
         </div>
       </section>
+
+      <GigDetailsModal 
+        gig={selectedGig} 
+        isOpen={!!selectedGig} 
+        onClose={() => setSelectedGig(null)} 
+      />
     </div>
   );
 };

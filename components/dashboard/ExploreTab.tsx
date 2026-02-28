@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Search, MapPin, Calendar, Bookmark } from 'lucide-react';
 import { Gig } from '../../pages/Dashboard';
+import GigDetailsModal from './GigDetailsModal';
 
-const GigCardExplore = ({ title, location, pay, date, description }: { title: string, location: string, pay: string, date: string, description: string }) => {
+const GigCardExplore = ({ gig, onViewDetails }: { gig: Gig, onViewDetails: (gig: Gig) => void }) => {
   const [bookmarked, setBookmarked] = useState(false);
   
   return (
@@ -14,25 +15,28 @@ const GigCardExplore = ({ title, location, pay, date, description }: { title: st
         <Bookmark className={`w-6 h-6 ${bookmarked ? 'fill-blue-600 text-blue-600' : ''}`} />
       </button>
       <div className="flex justify-between items-start mb-4 gap-4 pr-10">
-        <h3 className="text-lg sm:text-xl font-bold text-gray-900 leading-tight group-hover:text-blue-600 transition-colors">{title}</h3>
+        <h3 className="text-lg sm:text-xl font-bold text-gray-900 leading-tight group-hover:text-blue-600 transition-colors">{gig.title}</h3>
       </div>
       
       <div className="flex flex-col gap-2 mb-4">
-        <span className="inline-block px-3 py-1 bg-green-50 text-green-700 text-xs sm:text-sm font-bold rounded-full whitespace-nowrap w-max mb-1 border border-green-100">{pay}</span>
+        <span className="inline-block px-3 py-1 bg-green-50 text-green-700 text-xs sm:text-sm font-bold rounded-full whitespace-nowrap w-max mb-1 border border-green-100">{gig.pay}</span>
         <div className="flex items-center gap-2 text-gray-500 text-sm font-medium">
           <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
-          <span className="truncate">{location}</span>
+          <span className="truncate">{gig.location}</span>
         </div>
         <div className="flex items-center gap-2 text-gray-500 text-sm font-medium">
           <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0" />
-          <span className="truncate">{date}</span>
+          <span className="truncate">{gig.date}</span>
         </div>
       </div>
       
-      <p className="text-gray-600 text-sm leading-relaxed mb-6 flex-grow line-clamp-3">{description}</p>
+      <p className="text-gray-600 text-sm leading-relaxed mb-6 flex-grow line-clamp-3">{gig.description}</p>
       
       <div className="flex items-center gap-3 mt-auto pt-4 border-t border-gray-50">
-        <button className="flex-1 py-3 px-4 rounded-xl border border-gray-200 text-gray-700 font-bold hover:bg-gray-50 transition-colors text-sm active:scale-95">
+        <button 
+          onClick={() => onViewDetails(gig)}
+          className="flex-1 py-3 px-4 rounded-xl border border-gray-200 text-gray-700 font-bold hover:bg-gray-50 transition-colors text-sm active:scale-95"
+        >
           Details
         </button>
         <button 
@@ -46,6 +50,8 @@ const GigCardExplore = ({ title, location, pay, date, description }: { title: st
 };
 
 const ExploreTab = ({ gigs }: { gigs: Gig[] }) => {
+  const [selectedGig, setSelectedGig] = useState<Gig | null>(null);
+
   return (
     <div className="space-y-8 relative z-10">
       <section>
@@ -83,24 +89,29 @@ const ExploreTab = ({ gigs }: { gigs: Gig[] }) => {
         </div>
       </section>
 
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-        {gigs.length > 0 ? (
-          gigs.map((gig) => (
-            <GigCardExplore 
-              key={gig.id}
-              title={gig.title}
-              location={gig.location}
-              pay={gig.pay}
-              date={gig.date}
-              description={gig.description}
-            />
-          ))
-        ) : (
-          <div className="col-span-1 lg:col-span-2 text-center py-12 text-gray-500">
-            No gigs found.
-          </div>
-        )}
+      <section>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+          {gigs.length > 0 ? (
+            gigs.map((gig) => (
+              <GigCardExplore 
+                key={gig.id}
+                gig={gig}
+                onViewDetails={setSelectedGig}
+              />
+            ))
+          ) : (
+            <div className="col-span-1 lg:col-span-2 text-center py-12 text-gray-500">
+              No gigs found.
+            </div>
+          )}
+        </div>
       </section>
+
+      <GigDetailsModal 
+        gig={selectedGig} 
+        isOpen={!!selectedGig} 
+        onClose={() => setSelectedGig(null)} 
+      />
     </div>
   );
 };
