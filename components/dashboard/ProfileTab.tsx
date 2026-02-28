@@ -11,10 +11,10 @@ const ProfileTab = () => {
   
   const [formData, setFormData] = useState({
     id: '',
-    full_name: '',
+    name: '',
     stage_name: '',
     email: '',
-    profile_complete: false
+    profileComplete: false
   });
 
   // Fetch user data on mount
@@ -38,13 +38,13 @@ const ProfileTab = () => {
           } else if (userData) {
             setFormData({
               id: userData.id,
-              full_name: userData.full_name || '',
+              name: userData.name || '',
               stage_name: userData.stage_name || '',
               email: userData.email || authData.user.email || '',
-              profile_complete: userData.profile_complete || false
+              profileComplete: userData.profileComplete || false
             });
             // If profile is incomplete, automatically open edit mode
-            if (!userData.profile_complete) {
+            if (!userData.profileComplete) {
               setIsEditing(true);
             }
           }
@@ -64,8 +64,8 @@ const ProfileTab = () => {
   };
 
   const handleSave = async () => {
-    if (!formData.full_name.trim()) {
-      setMessage({ type: 'error', text: 'Full Name is required.' });
+    if (!formData.name.trim()) {
+      setMessage({ type: 'error', text: 'Name is required.' });
       return;
     }
 
@@ -78,16 +78,16 @@ const ProfileTab = () => {
         .from('users')
         .upsert({
           id: formData.id,
-          full_name: formData.full_name,
+          name: formData.name,
           stage_name: formData.stage_name,
           email: formData.email,
-          profile_complete: true // Set to true upon saving
+          profileComplete: true // Set to true upon saving
         });
 
       if (error) throw error;
 
       // Update local state immediately
-      setFormData(prev => ({ ...prev, profile_complete: true }));
+      setFormData(prev => ({ ...prev, profileComplete: true }));
       setIsEditing(false);
       setMessage({ type: 'success', text: 'Profile updated successfully!' });
       
@@ -151,7 +151,7 @@ const ProfileTab = () => {
             <div className="relative group">
               <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-white bg-white overflow-hidden shadow-md">
                 <img 
-                  src={`https://ui-avatars.com/api/?name=${encodeURIComponent(formData.full_name || 'User')}&background=random&size=150`} 
+                  src={`https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name || 'User')}&background=random&size=150`} 
                   alt="Profile" 
                   className="w-full h-full object-cover" 
                   referrerPolicy="no-referrer" 
@@ -175,10 +175,10 @@ const ProfileTab = () => {
             >
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Full Name *</label>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Name *</label>
                   <input 
-                    name="full_name" 
-                    value={formData.full_name} 
+                    name="name" 
+                    value={formData.name} 
                     onChange={handleChange} 
                     placeholder="e.g. Alex Johnson"
                     className="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all" 
@@ -207,7 +207,7 @@ const ProfileTab = () => {
               </div>
               
               <div className="flex justify-end gap-3 pt-6 border-t border-gray-100 mt-8">
-                {formData.profile_complete && (
+                {formData.profileComplete && (
                   <button 
                     onClick={() => setIsEditing(false)} 
                     disabled={isSaving}
@@ -238,12 +238,12 @@ const ProfileTab = () => {
             >
               <div>
                 <h2 className="text-2xl font-black text-gray-900 tracking-tight">
-                  {formData.full_name} 
+                  {formData.name} 
                   {formData.stage_name && <span className="text-gray-400 font-medium text-lg ml-2">({formData.stage_name})</span>}
                 </h2>
                 <div className="flex items-center gap-2 mt-2">
-                  <span className={`px-3 py-1 text-xs font-bold rounded-full uppercase tracking-wider border ${formData.profile_complete ? 'bg-green-50 text-green-700 border-green-100' : 'bg-orange-50 text-orange-700 border-orange-100'}`}>
-                    {formData.profile_complete ? 'Verified Profile' : 'Incomplete Profile'}
+                  <span className={`px-3 py-1 text-xs font-bold rounded-full uppercase tracking-wider border ${formData.profileComplete ? 'bg-green-50 text-green-700 border-green-100' : 'bg-orange-50 text-orange-700 border-orange-100'}`}>
+                    {formData.profileComplete ? 'Verified Profile' : 'Incomplete Profile'}
                   </span>
                 </div>
               </div>

@@ -11,30 +11,23 @@ import ProfileTab from '../components/dashboard/ProfileTab';
 export interface Gig {
   id: string;
   title: string;
-  location: string;
-  pay: string;
-  date: string;
   description: string;
+  location: string;
+  price: number;
+  currency: string;
+  category: string;
+  event_type?: string;
+  visibility: string;
+  status: string;
+  event_date?: string;
+  posted_by: string;
+  created_at: string;
+  users?: {
+    name: string;
+  };
 }
 
-const initialGigs: Gig[] = [
-  {
-    id: '1',
-    title: "Lead Guitarist for Afrobeats Tour",
-    location: "Lagos, Nigeria (Touring)",
-    pay: "₦500k - ₦800k",
-    date: "Oct 15 - Nov 20, 2026",
-    description: "Looking for an experienced lead guitarist comfortable with Afrobeats, Highlife, and contemporary pop for a 5-city tour."
-  },
-  {
-    id: '2',
-    title: "Jazz Pianist for Corporate Gala",
-    location: "Accra, Ghana",
-    pay: "$400 / night",
-    date: "Sept 12, 2026",
-    description: "Need a smooth jazz pianist to provide background music for a high-end corporate networking event. 3-hour set."
-  }
-];
+const initialGigs: Gig[] = [];
 
 const BackgroundSVGs = () => (
   <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden text-gray-900 opacity-[0.03]">
@@ -84,10 +77,14 @@ const Dashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('home');
   const [gigs, setGigs] = useState<Gig[]>(initialGigs);
 
-  const handleAddGig = (newGig: Omit<Gig, 'id'>) => {
+  const handleAddGig = (newGig: any) => {
     const gig: Gig = {
       ...newGig,
-      id: Math.random().toString(36).substr(2, 9)
+      id: Math.random().toString(36).substr(2, 9),
+      visibility: 'public',
+      status: 'open',
+      posted_by: 'me',
+      created_at: new Date().toISOString()
     };
     setGigs([gig, ...gigs]);
   };

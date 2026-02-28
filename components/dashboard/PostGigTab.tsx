@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { UploadCloud } from 'lucide-react';
 import { Gig } from '../../pages/Dashboard';
 
-const PostGigTab = ({ onAddGig, onGigPosted }: { onAddGig: (gig: Omit<Gig, 'id'>) => void, onGigPosted: () => void }) => {
+const PostGigTab = ({ onAddGig, onGigPosted }: { onAddGig: (gig: any) => void, onGigPosted: () => void }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
 
@@ -10,8 +10,11 @@ const PostGigTab = ({ onAddGig, onGigPosted }: { onAddGig: (gig: Omit<Gig, 'id'>
     title: '',
     description: '',
     location: '',
-    pay: '',
-    date: ''
+    price: '',
+    currency: 'USD',
+    category: 'Music',
+    event_type: 'Live Performance',
+    event_date: ''
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -26,7 +29,7 @@ const PostGigTab = ({ onAddGig, onGigPosted }: { onAddGig: (gig: Omit<Gig, 'id'>
     setTimeout(() => {
       onAddGig(formData);
       setSuccess(true);
-      setFormData({ title: '', description: '', location: '', pay: '', date: '' });
+      setFormData({ title: '', description: '', location: '', price: '', currency: 'USD', category: 'Music', event_type: 'Live Performance', event_date: '' });
       setIsSubmitting(false);
       
       // Redirect to home after showing success message
@@ -67,14 +70,14 @@ const PostGigTab = ({ onAddGig, onGigPosted }: { onAddGig: (gig: Omit<Gig, 'id'>
               <input required name="location" value={formData.location} onChange={handleChange} type="text" placeholder="City, Country or Remote" className="w-full p-3.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all bg-gray-50 focus:bg-white" />
             </div>
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">Pay Amount <span className="text-red-500">*</span></label>
-              <input required name="pay" value={formData.pay} onChange={handleChange} type="text" placeholder="e.g. $500 or ₦200k" className="w-full p-3.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all bg-gray-50 focus:bg-white" />
+              <label className="block text-sm font-bold text-gray-700 mb-2">Price <span className="text-red-500">*</span></label>
+              <input required name="price" value={formData.price} onChange={handleChange} type="number" placeholder="e.g. 500" className="w-full p-3.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all bg-gray-50 focus:bg-white" />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">Date & Time <span className="text-red-500">*</span></label>
-            <input required name="date" value={formData.date} onChange={handleChange} type="text" placeholder="e.g. Oct 15, 2026 at 6:00 PM" className="w-full p-3.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all bg-gray-50 focus:bg-white" />
+            <label className="block text-sm font-bold text-gray-700 mb-2">Event Date <span className="text-red-500">*</span></label>
+            <input required name="event_date" value={formData.event_date} onChange={handleChange} type="date" className="w-full p-3.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all bg-gray-50 focus:bg-white" />
           </div>
 
           <div>

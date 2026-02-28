@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, MapPin, Calendar, Loader2 } from 'lucide-react';
+import { Search, Filter, MapPin, Calendar, Loader2, AlertCircle, Music } from 'lucide-react';
 // Import framer-motion for smooth animations
 import { motion, AnimatePresence } from 'motion/react';
 // Import the Supabase client
@@ -9,8 +9,8 @@ import { supabase } from '../../src/supabaseClient';
 // In a real TS project, these would be in a separate types file
 interface User {
   id: string;
-  full_name: string;
-  profile_complete: boolean;
+  name: string;
+  profileComplete: boolean;
 }
 
 interface Gig {
@@ -18,12 +18,17 @@ interface Gig {
   title: string;
   description: string;
   location: string;
-  pay: string;
-  date: string;
+  price: number;
+  currency: string;
+  category: string;
+  event_type?: string;
+  visibility: string;
+  status: string;
+  event_date?: string;
   posted_by: string;
   created_at: string;
   users?: {
-    full_name: string;
+    name: string;
   };
 }
 
@@ -46,6 +51,13 @@ const StatCard = ({ title, value, trend }: { title: string, value: string | numb
 
 // GigCard component showing individual gig details
 const GigCard = ({ gig, onApply }: { gig: Gig, onApply: (id: string) => void }) => {
+  // Format price with currency
+  const formattedPrice = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: gig.currency || 'USD',
+    maximumFractionDigits: 0
+  }).format(gig.price);
+
   return (
     <motion.div 
       layout // Enables smooth layout animations when items are added/removed
@@ -60,27 +72,45 @@ const GigCard = ({ gig, onApply }: { gig: Gig, onApply: (id: string) => void }) 
           {gig.title}
         </h3>
         <span className="px-3 py-1 bg-green-50 text-green-700 text-xs sm:text-sm font-bold rounded-full whitespace-nowrap flex-shrink-0 border border-green-100">
-          {gig.pay}
+          {formattedPrice}
         </span>
       </div>
       
       <div className="flex flex-col gap-2 mb-4">
-        {gig.users?.full_name && (
-          <div className="flex items-center gap-2 text-gray-500 text-sm font-medium">
-            <div className="w-5 h-5 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[10px] font-bold flex-shrink-0">
-              {gig.users.full_name.charAt(0)}
-            </div>
-            <span className="truncate">Posted by {gig.users.full_name}</span>
+        <div className="flex items-center gap-2 mb-1">
+          {gig.category && (
+            <span className="inline-flex items-center gap-1 px-3 py-1 bg-purple-50 text-purple-700 text-xs sm:text-sm font-bold rounded-full whitespace-nowrap border border-purple-100">
+              <Music className="w-3 h-3" />
+              {gig.category}
+            </span>
+          )}
+          {gig.event_type ? (
+            <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-50 text-blue-700 text-xs sm:text-sm font-bold rounded-full whitespace-nowrap border border-blue-100">
+              {gig.event_type}
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 px-3 py-1 bg-gray-50 text-gray-700 text-xs sm:text-sm font-bold rounded-full whitespace-nowrap border border-gray-200">
+              General Event
+            </span>
+          )}
+        </div>
+        
+        <div className="flex items-center gap-2 text-gray-500 text-sm font-medium">
+          <div className="w-5 h-5 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[10px] font-bold flex-shrink-0">
+            {gig.users?.name ? gig.users.name.charAt(0) : 'U'}
           </div>
-        )}
+          <span className="truncate">Posted by {gig.users?.name || 'Unknown Poster'}</span>
+        </div>
         <div className="flex items-center gap-2 text-gray-500 text-sm font-medium">
           <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
           <span className="truncate">{gig.location}</span>
         </div>
-        <div className="flex items-center gap-2 text-gray-500 text-sm font-medium">
-          <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0" />
-          <span className="truncate">{gig.date}</span>
-        </div>
+        {gig.event_date && (
+          <div className="flex items-center gap-2 text-gray-500 text-sm font-medium">
+            <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0" />
+            <span className="truncate">{new Date(gig.event_date).toLocaleDateString()}</span>
+          </div>
+        )}
       </div>
       
       <p className="text-gray-600 text-sm leading-relaxed mb-6 flex-grow line-clamp-3">
@@ -105,11 +135,16 @@ const HomeScreen = () => {
   const [user, setUser] = useState<User | null>(null);
   const [gigs, setGigs] = useState<Gig[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // 1. Fetch initial data and setup subscriptions
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
+        setIsLoading(true);
+        setError(null);
+        
+        // Initial fetch for user profile
         // Get current authenticated user
         const { data: authData } = await supabase.auth.getUser();
         
@@ -124,15 +159,23 @@ const HomeScreen = () => {
           if (userData) setUser(userData);
         }
 
-        // Fetch initial gigs, sorted by newest first
-        const { data: gigsData } = await supabase
+        // Initial fetch for gigs
+        // Fetch all gigs where visibility = 'public' and status = 'open'.
+        // Join the users table on gigs.posted_by = users.id to get users.name.
+        // Order by created_at descending.
+        const { data: gigsData, error: fetchError } = await supabase
           .from('gigs')
-          .select('*, users(full_name)')
+          .select('id, title, description, price, currency, location, posted_by, visibility, status, created_at, category, event_type, event_date, users(name)')
+          .eq('visibility', 'public')
+          .eq('status', 'open')
           .order('created_at', { ascending: false });
           
-        if (gigsData) setGigs(gigsData);
-      } catch (error) {
-        console.error("Error fetching data:", error);
+        if (fetchError) throw fetchError;
+        if (gigsData) setGigs(gigsData as Gig[]);
+        
+      } catch (err: any) {
+        console.error("Error fetching data:", err);
+        setError(err.message || "Failed to load gigs. Please try again.");
       } finally {
         setIsLoading(false);
       }
@@ -140,21 +183,44 @@ const HomeScreen = () => {
 
     fetchInitialData();
 
-    // 2. Real-time Subscriptions
-    
-    // Subscribe to new gigs being inserted
+    // Realtime subscription for gigs
+    // Subscribe to real-time INSERT events on the gigs table so new gigs appear automatically.
     const gigsSubscription = supabase
-      .channel('public:gigs')
+      .channel('public:gigs:home')
       .on('postgres_changes', { 
         event: 'INSERT', 
         schema: 'public', 
         table: 'gigs' 
-      }, (payload) => {
-        // Add new gig to the beginning of the list (newest first)
-        setGigs((currentGigs) => [payload.new as Gig, ...currentGigs]);
+      }, async (payload) => {
+        const newGigRaw = payload.new as Gig;
+        
+        // Only add if it's public and open
+        if (newGigRaw.visibility === 'public' && newGigRaw.status === 'open') {
+          try {
+            // Fetch the user's full name to attach to the gig
+            const { data: userData } = await supabase
+              .from('users')
+              .select('name')
+              .eq('id', newGigRaw.posted_by)
+              .single();
+              
+            const newGigWithUser = {
+              ...newGigRaw,
+              users: userData || undefined
+            };
+            
+            // 3. React state updates:
+            // Update the state with the new gig, placing it at the top of the list.
+            setGigs((currentGigs) => [newGigWithUser, ...currentGigs]);
+          } catch (e) {
+            // Fallback if user fetch fails
+            setGigs((currentGigs) => [newGigRaw, ...currentGigs]);
+          }
+        }
       })
       .subscribe();
 
+    // Realtime subscription for user updates
     // Subscribe to user profile updates (e.g., completing profile)
     const userSubscription = supabase
       .channel('public:users')
@@ -197,22 +263,22 @@ const HomeScreen = () => {
   return (
     <div className="space-y-8 relative z-10">
       
-      {/* 1. New User Welcome (Conditional Rendering) */}
+      {/* Updating welcome message dynamically */}
       <section>
         <div className="h-[80px] sm:h-[88px] flex flex-col justify-center">
           <AnimatePresence mode="wait">
             <motion.div 
-              key={user?.profile_complete ? 'complete' : 'incomplete'}
+              key={user?.profileComplete ? 'complete' : 'incomplete'}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.3 }}
             >
               <h1 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">
-                {user?.profile_complete ? `Welcome back, ${user.full_name?.split(' ')[0] || 'User'}!` : 'Welcome, New User!'}
+                {user?.profileComplete ? `Welcome, ${user.name?.split(' ')[0] || 'User'}!` : 'Welcome, New User!'}
               </h1>
               <p className="text-gray-500 mt-1 text-base sm:text-lg">
-                {user?.profile_complete 
+                {user?.profileComplete 
                   ? 'Here are the latest gigs for you' 
                   : 'Complete your profile to unlock more opportunities'}
               </p>
@@ -229,10 +295,10 @@ const HomeScreen = () => {
           <h3 className="text-gray-500 text-sm font-medium mb-1">Profile Status</h3>
           <div className="flex items-center gap-3">
             <span className="text-2xl font-black text-gray-900 tracking-tight">
-              {user?.profile_complete ? 'Complete' : 'Incomplete'}
+              {user?.profileComplete ? 'Complete' : 'Incomplete'}
             </span>
-            <span className={`px-3 py-1 text-[10px] font-bold rounded-full uppercase tracking-wider border ${user?.profile_complete ? 'bg-green-50 text-green-700 border-green-100' : 'bg-orange-50 text-orange-700 border-orange-100'}`}>
-              {user?.profile_complete ? 'Verified' : 'Action Needed'}
+            <span className={`px-3 py-1 text-[10px] font-bold rounded-full uppercase tracking-wider border ${user?.profileComplete ? 'bg-green-50 text-green-700 border-green-100' : 'bg-orange-50 text-orange-700 border-orange-100'}`}>
+              {user?.profileComplete ? 'Verified' : 'Action Needed'}
             </span>
           </div>
         </div>
@@ -256,27 +322,48 @@ const HomeScreen = () => {
         </div>
 
         {/* Animated Feed Logic */}
-        <motion.div layout className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <AnimatePresence>
-            {gigs.length > 0 ? (
-              gigs.map((gig) => (
-                <GigCard 
-                  key={gig.id}
-                  gig={gig}
-                  onApply={handleApply}
-                />
-              ))
-            ) : (
-              <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="col-span-1 lg:col-span-2 text-center py-12 text-gray-500"
-              >
-                No gigs available right now. Be the first to post one!
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </motion.div>
+        {error ? (
+          <div className="bg-red-50 border border-red-100 rounded-2xl p-6 text-center flex flex-col items-center justify-center">
+            <AlertCircle className="w-10 h-10 text-red-500 mb-3" />
+            <h3 className="text-lg font-bold text-red-800 mb-1">Oops! Something went wrong</h3>
+            <p className="text-red-600 text-sm">{error}</p>
+            <button 
+              onClick={() => window.location.reload()}
+              className="mt-4 px-4 py-2 bg-red-100 text-red-700 rounded-lg font-semibold hover:bg-red-200 transition-colors text-sm"
+            >
+              Try Again
+            </button>
+          </div>
+        ) : (
+          <motion.div layout className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <AnimatePresence>
+              {/* Mapping gigs to cards */}
+              {/* Map over the gigs array and render a GigCard for each, passing the gig details 
+                  (poster name, category, and event details). */}
+              {gigs.length > 0 ? (
+                gigs.map((gig) => (
+                  <GigCard 
+                    key={gig.id}
+                    gig={gig}
+                    onApply={handleApply}
+                  />
+                ))
+              ) : (
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="col-span-1 lg:col-span-2 text-center py-16 bg-gray-50 rounded-2xl border border-gray-100 border-dashed"
+                >
+                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Search className="w-8 h-8 text-gray-400" />
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-1">No gigs posted yet</h3>
+                  <p className="text-gray-500 text-sm">Check back later for new opportunities!</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        )}
       </section>
     </div>
   );

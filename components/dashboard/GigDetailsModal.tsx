@@ -41,7 +41,7 @@ const GigDetailsModal: React.FC<GigDetailsModalProps> = ({ gig, isOpen, onClose 
               {gig.title}
             </h2>
             <span className="inline-block px-3 py-1 bg-green-50 text-green-700 text-sm font-bold rounded-full border border-green-100">
-              {gig.pay}
+              {new Intl.NumberFormat('en-US', { style: 'currency', currency: gig.currency || 'USD', maximumFractionDigits: 0 }).format(gig.price)}
             </span>
           </div>
           <button 
@@ -73,7 +73,7 @@ const GigDetailsModal: React.FC<GigDetailsModalProps> = ({ gig, isOpen, onClose 
               </div>
               <div>
                 <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Date & Time</p>
-                <p className="text-sm font-bold text-gray-900">{gig.date}</p>
+                <p className="text-sm font-bold text-gray-900">{gig.event_date ? new Date(gig.event_date).toLocaleDateString() : 'TBD'}</p>
               </div>
             </div>
           </div>
