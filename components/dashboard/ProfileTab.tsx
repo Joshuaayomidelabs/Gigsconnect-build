@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Camera, Edit2, Save, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Camera, Edit2, Save, Loader2, CheckCircle2, AlertCircle, Upload } from 'lucide-react';
 import { supabase } from '../../src/supabaseClient';
 import { motion } from 'motion/react';
 
@@ -7,13 +7,21 @@ const ProfileTab = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [formData, setFormData] = useState({
     id: '',
-    name: '',
-    stage_name: '',
+    full_name: '',
     email: '',
+    phone: '',
+    role: 'musician',
+    bio: '',
+    location: '',
+    genre: '',
+    experience_level: 'beginner',
+    avatar_url: '',
     profileComplete: false
   });
 
@@ -21,26 +29,36 @@ const ProfileTab = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const { data: authData, error: authError } = await supabase.auth.getUser();
+        const { data: authData, error: authError } = await supabase.auth.getSession();
         if (authError) throw authError;
 
-        if (authData.user) {
+        if (authData.session?.user) {
           const { data: userData, error: userError } = await supabase
             .from('users')
             .select('*')
-            .eq('id', authData.user.id)
+            .eq('id', authData.session.user.id)
             .single();
 
-          if (userError) {
+          if (userError && userError.code !== 'PGRST116') {
+            console.error('Error fetching profile:', userError);
+          }
+
+          if (!userData) {
             // If no user record exists yet, set the email and ID from auth
-            setFormData(prev => ({ ...prev, id: authData.user.id, email: authData.user.email || '' }));
+            setFormData(prev => ({ ...prev, id: authData.session.user.id, email: authData.session.user.email || '' }));
             setIsEditing(true);
-          } else if (userData) {
+          } else {
             setFormData({
               id: userData.id,
-              name: userData.name || '',
-              stage_name: userData.stage_name || '',
-              email: userData.email || authData.user.email || '',
+              full_name: userData.full_name || '',
+              email: userData.email || authData.session.user.email || '',
+              phone: userData.phone || '',
+              role: userData.role || 'musician',
+              bio: userData.bio || '',
+              location: userData.location || '',
+              genre: userData.genre || '',
+              experience_level: userData.experience_level || 'beginner',
+              avatar_url: userData.avatar_url || '',
               profileComplete: userData.profileComplete || false
             });
             // If profile is incomplete, automatically open edit mode
@@ -59,13 +77,60 @@ const ProfileTab = () => {
     fetchProfile();
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      setIsUploading(true);
+      setMessage(null);
+
+      if (!event.target.files || event.target.files.length === 0) {
+        throw new Error('You must select an image to upload.');
+      }
+
+      const file = event.target.files[0];
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${formData.id}-${Math.random()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      // Upload image to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      // Get public URL
+      const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
+      
+      // Update local state immediately
+      setFormData(prev => ({ ...prev, avatar_url: data.publicUrl }));
+      
+      // Also update the database if we are not in edit mode
+      if (!isEditing && formData.id) {
+        await supabase
+          .from('users')
+          .update({ avatar_url: data.publicUrl })
+          .eq('id', formData.id);
+      }
+
+      setMessage({ type: 'success', text: 'Avatar uploaded successfully!' });
+      setTimeout(() => setMessage(null), 3000);
+    } catch (error: any) {
+      console.error('Error uploading avatar:', error);
+      setMessage({ type: 'error', text: error.message || 'Error uploading avatar.' });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const handleSave = async () => {
-    if (!formData.name.trim()) {
-      setMessage({ type: 'error', text: 'Name is required.' });
+    if (!formData.full_name.trim()) {
+      setMessage({ type: 'error', text: 'Full Name is required.' });
       return;
     }
 
@@ -78,9 +143,15 @@ const ProfileTab = () => {
         .from('users')
         .upsert({
           id: formData.id,
-          name: formData.name,
-          stage_name: formData.stage_name,
+          full_name: formData.full_name,
           email: formData.email,
+          phone: formData.phone,
+          role: formData.role,
+          bio: formData.bio,
+          location: formData.location,
+          genre: formData.genre,
+          experience_level: formData.experience_level,
+          avatar_url: formData.avatar_url,
           profileComplete: true // Set to true upon saving
         });
 
@@ -149,17 +220,38 @@ const ProfileTab = () => {
         <div className="h-32 sm:h-48 bg-gradient-to-r from-blue-600 to-indigo-600 relative">
           <div className="absolute -bottom-12 sm:-bottom-16 left-6 sm:left-10 flex items-end gap-6">
             <div className="relative group">
-              <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-white bg-white overflow-hidden shadow-md">
-                <img 
-                  src={`https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name || 'User')}&background=random&size=150`} 
-                  alt="Profile" 
-                  className="w-full h-full object-cover" 
-                  referrerPolicy="no-referrer" 
-                />
+              <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-white bg-white overflow-hidden shadow-md flex items-center justify-center">
+                {formData.avatar_url ? (
+                  <img 
+                    src={formData.avatar_url} 
+                    alt="Profile" 
+                    className="w-full h-full object-cover" 
+                    referrerPolicy="no-referrer" 
+                  />
+                ) : (
+                  <img 
+                    src={`https://ui-avatars.com/api/?name=${encodeURIComponent(formData.full_name || 'User')}&background=random&size=150`} 
+                    alt="Profile Placeholder" 
+                    className="w-full h-full object-cover" 
+                    referrerPolicy="no-referrer" 
+                  />
+                )}
               </div>
+              <input 
+                type="file" 
+                accept="image/jpeg, image/png" 
+                className="hidden" 
+                ref={fileInputRef} 
+                onChange={handleAvatarUpload}
+                disabled={isUploading}
+              />
               {isEditing && (
-                <button className="absolute bottom-0 right-0 p-2 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-500 transition-colors active:scale-95">
-                  <Camera className="w-4 h-4" />
+                <button 
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading}
+                  className="absolute bottom-0 right-0 p-2 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-500 transition-colors active:scale-95 disabled:opacity-50"
+                >
+                  {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
                 </button>
               )}
             </div>
@@ -175,26 +267,16 @@ const ProfileTab = () => {
             >
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Name *</label>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Full Name *</label>
                   <input 
-                    name="name" 
-                    value={formData.name} 
+                    name="full_name" 
+                    value={formData.full_name} 
                     onChange={handleChange} 
                     placeholder="e.g. Alex Johnson"
                     className="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all" 
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Stage Name</label>
-                  <input 
-                    name="stage_name" 
-                    value={formData.stage_name} 
-                    onChange={handleChange} 
-                    placeholder="e.g. AJ Beats"
-                    className="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all" 
-                  />
-                </div>
-                <div className="sm:col-span-2">
                   <label className="block text-sm font-bold text-gray-700 mb-2">Email Address</label>
                   <input 
                     name="email" 
@@ -204,13 +286,79 @@ const ProfileTab = () => {
                   />
                   <p className="text-xs text-gray-400 mt-2">Email is tied to your authentication and cannot be changed here.</p>
                 </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Phone</label>
+                  <input 
+                    name="phone" 
+                    value={formData.phone} 
+                    onChange={handleChange} 
+                    placeholder="e.g. +1 555-123-4567"
+                    className="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all" 
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Role</label>
+                  <select 
+                    name="role" 
+                    value={formData.role} 
+                    onChange={handleChange} 
+                    className="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all bg-white"
+                  >
+                    <option value="musician">Musician</option>
+                    <option value="organizer">Organizer</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Genre (for musicians)</label>
+                  <input 
+                    name="genre" 
+                    value={formData.genre} 
+                    onChange={handleChange} 
+                    placeholder="e.g. Jazz, Rock, Classical"
+                    className="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all" 
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Experience Level</label>
+                  <select 
+                    name="experience_level" 
+                    value={formData.experience_level} 
+                    onChange={handleChange} 
+                    className="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all bg-white"
+                  >
+                    <option value="beginner">Beginner</option>
+                    <option value="intermediate">Intermediate</option>
+                    <option value="professional">Professional</option>
+                  </select>
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Location</label>
+                  <input 
+                    name="location" 
+                    value={formData.location} 
+                    onChange={handleChange} 
+                    placeholder="e.g. New York, NY"
+                    className="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all" 
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Bio</label>
+                  <textarea 
+                    name="bio" 
+                    value={formData.bio} 
+                    onChange={handleChange} 
+                    placeholder="Tell us a bit about yourself..."
+                    rows={4}
+                    className="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all resize-none" 
+                  />
+                </div>
               </div>
               
               <div className="flex justify-end gap-3 pt-6 border-t border-gray-100 mt-8">
                 {formData.profileComplete && (
                   <button 
                     onClick={() => setIsEditing(false)} 
-                    disabled={isSaving}
+                    disabled={isSaving || isUploading}
                     className="px-6 py-3 rounded-xl border border-gray-200 text-gray-700 font-bold hover:bg-gray-50 transition-colors active:scale-95 disabled:opacity-50"
                   >
                     Cancel
@@ -218,7 +366,7 @@ const ProfileTab = () => {
                 )}
                 <button 
                   onClick={handleSave} 
-                  disabled={isSaving}
+                  disabled={isSaving || isUploading}
                   className="px-8 py-3 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 transition-colors flex items-center gap-2 shadow-sm active:scale-95 disabled:opacity-70"
                 >
                   {isSaving ? (
@@ -238,13 +386,20 @@ const ProfileTab = () => {
             >
               <div>
                 <h2 className="text-2xl font-black text-gray-900 tracking-tight">
-                  {formData.name} 
-                  {formData.stage_name && <span className="text-gray-400 font-medium text-lg ml-2">({formData.stage_name})</span>}
+                  {formData.full_name} 
                 </h2>
                 <div className="flex items-center gap-2 mt-2">
                   <span className={`px-3 py-1 text-xs font-bold rounded-full uppercase tracking-wider border ${formData.profileComplete ? 'bg-green-50 text-green-700 border-green-100' : 'bg-orange-50 text-orange-700 border-orange-100'}`}>
                     {formData.profileComplete ? 'Verified Profile' : 'Incomplete Profile'}
                   </span>
+                  <span className="px-3 py-1 text-xs font-bold rounded-full uppercase tracking-wider border bg-blue-50 text-blue-700 border-blue-100">
+                    {formData.role}
+                  </span>
+                  {formData.experience_level && (
+                    <span className="px-3 py-1 text-xs font-bold rounded-full uppercase tracking-wider border bg-purple-50 text-purple-700 border-purple-100">
+                      {formData.experience_level}
+                    </span>
+                  )}
                 </div>
               </div>
               
@@ -252,6 +407,22 @@ const ProfileTab = () => {
                 <div>
                   <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Email Address</h3>
                   <p className="text-gray-900 font-medium text-lg">{formData.email}</p>
+                </div>
+                <div>
+                  <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Phone</h3>
+                  <p className="text-gray-900 font-medium text-lg">{formData.phone || 'Not provided'}</p>
+                </div>
+                <div>
+                  <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Location</h3>
+                  <p className="text-gray-900 font-medium text-lg">{formData.location || 'Not provided'}</p>
+                </div>
+                <div>
+                  <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Genre</h3>
+                  <p className="text-gray-900 font-medium text-lg">{formData.genre || 'Not provided'}</p>
+                </div>
+                <div className="sm:col-span-2">
+                  <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Bio</h3>
+                  <p className="text-gray-900 text-base leading-relaxed whitespace-pre-wrap">{formData.bio || 'No bio provided.'}</p>
                 </div>
               </div>
             </motion.div>
@@ -263,3 +434,4 @@ const ProfileTab = () => {
 };
 
 export default ProfileTab;
+

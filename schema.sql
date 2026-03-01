@@ -5,11 +5,35 @@ DROP TABLE IF EXISTS public.gigs;
 CREATE TABLE IF NOT EXISTS public.users (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   email TEXT UNIQUE NOT NULL,
-  name TEXT,
-  stage_name TEXT,
+  full_name TEXT,
+  phone TEXT,
+  role TEXT,
+  bio TEXT,
+  location TEXT,
+  genre TEXT,
+  experience_level TEXT,
+  avatar_url TEXT,
   profileComplete BOOLEAN DEFAULT false,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
+
+-- Create storage bucket for avatars if it doesn't exist
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('avatars', 'avatars', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- Set up storage policies for avatars
+CREATE POLICY "Avatar images are publicly accessible."
+  ON storage.objects FOR SELECT
+  USING ( bucket_id = 'avatars' );
+
+CREATE POLICY "Anyone can upload an avatar."
+  ON storage.objects FOR INSERT
+  WITH CHECK ( bucket_id = 'avatars' );
+
+CREATE POLICY "Anyone can update their own avatar."
+  ON storage.objects FOR UPDATE
+  USING ( bucket_id = 'avatars' );
 
 -- Create gigs table with new schema
 CREATE TABLE public.gigs (

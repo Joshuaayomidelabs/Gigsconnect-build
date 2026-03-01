@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, MapPin, Calendar, Bookmark, Loader2, AlertCircle, Music } from 'lucide-react';
+import { Search, MapPin, Calendar, Bookmark, Loader2, AlertCircle, Music, Mic, Star } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { supabase } from '../../src/supabaseClient';
 import GigDetailsModal from './GigDetailsModal';
@@ -44,64 +44,70 @@ const GigCardExplore = ({ gig, onViewDetails }: { gig: Gig, onViewDetails: (gig:
       className="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 flex flex-col h-full hover:-translate-y-1 relative group"
     >
       <button 
-        onClick={() => setBookmarked(!bookmarked)}
-        className="absolute top-5 sm:top-6 right-5 sm:right-6 text-gray-300 hover:text-blue-600 transition-colors active:scale-90"
+        onClick={(e) => { e.stopPropagation(); setBookmarked(!bookmarked); }}
+        className="absolute top-5 sm:top-6 right-5 sm:right-6 text-gray-300 hover:text-blue-600 transition-colors active:scale-90 z-10 bg-white/80 p-1 rounded-full backdrop-blur-sm"
       >
-        <Bookmark className={`w-6 h-6 ${bookmarked ? 'fill-blue-600 text-blue-600' : ''}`} />
+        <Bookmark className={`w-5 h-5 ${bookmarked ? 'fill-blue-600 text-blue-600' : ''}`} />
       </button>
       
-      <div className="flex justify-between items-start mb-4 gap-4 pr-10">
-        <h3 className="text-lg sm:text-xl font-bold text-gray-900 leading-tight group-hover:text-blue-600 transition-colors">
+      {/* Header: Title and Price */}
+      <div className="flex justify-between items-start mb-3 gap-4 pr-10">
+        <h3 className="text-lg sm:text-xl font-bold text-gray-900 leading-tight group-hover:text-blue-600 transition-colors line-clamp-2">
           {gig.title}
         </h3>
       </div>
       
-      <div className="flex flex-col gap-2 mb-4">
-        <div className="flex items-center gap-2">
-          <span className="inline-block px-3 py-1 bg-green-50 text-green-700 text-xs sm:text-sm font-bold rounded-full whitespace-nowrap border border-green-100">
-            {formattedPrice}
+      {/* Tags: Category and Event Type */}
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        <span className="inline-flex items-center px-2.5 py-1 bg-green-50 text-green-700 text-xs font-bold rounded-md border border-green-100 shadow-sm">
+          {formattedPrice}
+        </span>
+        {gig.category && (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-purple-50 text-purple-700 text-xs font-bold rounded-md border border-purple-100">
+            <Music className="w-3.5 h-3.5" />
+            {gig.category}
           </span>
-          {gig.category && (
-            <span className="inline-flex items-center gap-1 px-3 py-1 bg-purple-50 text-purple-700 text-xs sm:text-sm font-bold rounded-full whitespace-nowrap border border-purple-100">
-              <Music className="w-3 h-3" />
-              {gig.category}
-            </span>
-          )}
-          {gig.event_type ? (
-            <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-50 text-blue-700 text-xs sm:text-sm font-bold rounded-full whitespace-nowrap border border-blue-100">
-              {gig.event_type}
-            </span>
-          ) : (
-            <span className="inline-flex items-center gap-1 px-3 py-1 bg-gray-50 text-gray-700 text-xs sm:text-sm font-bold rounded-full whitespace-nowrap border border-gray-200">
-              General Event
-            </span>
-          )}
-        </div>
-        
-        <div className="flex items-center gap-2 text-gray-500 text-sm font-medium mt-1">
-          <div className="w-5 h-5 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[10px] font-bold flex-shrink-0">
-            {gig.users?.name ? gig.users.name.charAt(0) : 'U'}
-          </div>
-          <span className="truncate">Posted by {gig.users?.name || 'Unknown Poster'}</span>
-        </div>
-        
-        <div className="flex items-center gap-2 text-gray-500 text-sm font-medium">
+        )}
+        {gig.event_type ? (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 text-blue-700 text-xs font-bold rounded-md border border-blue-100">
+            <Mic className="w-3.5 h-3.5" />
+            {gig.event_type}
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-50 text-gray-700 text-xs font-bold rounded-md border border-gray-200">
+            <Star className="w-3.5 h-3.5" />
+            General Event
+          </span>
+        )}
+      </div>
+      
+      {/* Description */}
+      <p className="text-gray-600 text-sm leading-relaxed mb-5 flex-grow line-clamp-3">
+        {gig.description}
+      </p>
+      
+      {/* Details: Location, Date, Poster */}
+      <div className="space-y-2.5 mb-5 bg-gray-50 p-3.5 rounded-xl border border-gray-100/50">
+        <div className="flex items-center gap-2.5 text-gray-600 text-sm font-medium">
           <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
           <span className="truncate">{gig.location}</span>
         </div>
         {gig.event_date && (
-          <div className="flex items-center gap-2 text-gray-500 text-sm font-medium">
+          <div className="flex items-center gap-2.5 text-gray-600 text-sm font-medium">
             <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0" />
-            <span className="truncate">{new Date(gig.event_date).toLocaleDateString()}</span>
+            <span className="truncate">{new Date(gig.event_date).toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}</span>
           </div>
         )}
+        <div className="flex items-center gap-2.5 text-gray-600 text-sm font-medium">
+          <div className="w-4 h-4 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[8px] font-bold flex-shrink-0">
+            {gig.users?.name ? gig.users.name.charAt(0).toUpperCase() : 'U'}
+          </div>
+          <span className="truncate">Posted by <span className="text-gray-900 font-semibold">{gig.users?.name || 'Unknown Poster'}</span></span>
+        </div>
       </div>
       
-      <p className="text-gray-600 text-sm leading-relaxed mb-6 flex-grow line-clamp-3">
-        {gig.description}
-      </p>
-      
-      <div className="flex items-center gap-3 mt-auto pt-4 border-t border-gray-50">
+      {/* Footer: Apply Button */}
+      <div className="flex items-center gap-3 mt-auto pt-2">
         <button 
           onClick={() => onViewDetails(gig)}
           className="flex-1 py-3 px-4 rounded-xl border border-gray-200 text-gray-700 font-bold hover:bg-gray-50 transition-colors text-sm active:scale-95"
@@ -109,7 +115,7 @@ const GigCardExplore = ({ gig, onViewDetails }: { gig: Gig, onViewDetails: (gig:
           Details
         </button>
         <button 
-          className="flex-1 py-3 px-4 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 transition-colors text-sm shadow-sm flex justify-center items-center active:scale-95"
+          className="flex-1 py-3 px-4 rounded-xl bg-gray-900 text-white font-bold hover:bg-black transition-all text-sm shadow-sm flex justify-center items-center active:scale-95 hover:shadow-md"
         >
           Apply Now
         </button>

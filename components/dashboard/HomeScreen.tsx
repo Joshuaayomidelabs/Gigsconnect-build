@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, MapPin, Calendar, Loader2, AlertCircle, Music } from 'lucide-react';
+import { Search, Filter, MapPin, Calendar, Loader2, AlertCircle, Music, Mic, Star } from 'lucide-react';
 // Import framer-motion for smooth animations
 import { motion, AnimatePresence } from 'motion/react';
 // Import the Supabase client
@@ -67,60 +67,67 @@ const GigCard = ({ gig, onApply }: { gig: Gig, onApply: (id: string) => void }) 
       transition={{ duration: 0.3, type: "spring", bounce: 0.2 }}
       className="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 flex flex-col h-full hover:-translate-y-1 relative group"
     >
-      <div className="flex justify-between items-start mb-4 gap-4">
-        <h3 className="text-lg sm:text-xl font-bold text-gray-900 leading-tight pr-2 group-hover:text-blue-600 transition-colors">
+      {/* Header: Title and Price */}
+      <div className="flex justify-between items-start mb-3 gap-4">
+        <h3 className="text-lg sm:text-xl font-bold text-gray-900 leading-tight pr-2 group-hover:text-blue-600 transition-colors line-clamp-2">
           {gig.title}
         </h3>
-        <span className="px-3 py-1 bg-green-50 text-green-700 text-xs sm:text-sm font-bold rounded-full whitespace-nowrap flex-shrink-0 border border-green-100">
+        <span className="px-3 py-1 bg-green-50 text-green-700 text-xs sm:text-sm font-bold rounded-full whitespace-nowrap flex-shrink-0 border border-green-100 shadow-sm">
           {formattedPrice}
         </span>
       </div>
       
-      <div className="flex flex-col gap-2 mb-4">
-        <div className="flex items-center gap-2 mb-1">
-          {gig.category && (
-            <span className="inline-flex items-center gap-1 px-3 py-1 bg-purple-50 text-purple-700 text-xs sm:text-sm font-bold rounded-full whitespace-nowrap border border-purple-100">
-              <Music className="w-3 h-3" />
-              {gig.category}
-            </span>
-          )}
-          {gig.event_type ? (
-            <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-50 text-blue-700 text-xs sm:text-sm font-bold rounded-full whitespace-nowrap border border-blue-100">
-              {gig.event_type}
-            </span>
-          ) : (
-            <span className="inline-flex items-center gap-1 px-3 py-1 bg-gray-50 text-gray-700 text-xs sm:text-sm font-bold rounded-full whitespace-nowrap border border-gray-200">
-              General Event
-            </span>
-          )}
-        </div>
-        
-        <div className="flex items-center gap-2 text-gray-500 text-sm font-medium">
-          <div className="w-5 h-5 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[10px] font-bold flex-shrink-0">
-            {gig.users?.name ? gig.users.name.charAt(0) : 'U'}
-          </div>
-          <span className="truncate">Posted by {gig.users?.name || 'Unknown Poster'}</span>
-        </div>
-        <div className="flex items-center gap-2 text-gray-500 text-sm font-medium">
+      {/* Tags: Category and Event Type */}
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        {gig.category && (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-purple-50 text-purple-700 text-xs font-bold rounded-md border border-purple-100">
+            <Music className="w-3.5 h-3.5" />
+            {gig.category}
+          </span>
+        )}
+        {gig.event_type ? (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 text-blue-700 text-xs font-bold rounded-md border border-blue-100">
+            <Mic className="w-3.5 h-3.5" />
+            {gig.event_type}
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-50 text-gray-700 text-xs font-bold rounded-md border border-gray-200">
+            <Star className="w-3.5 h-3.5" />
+            General Event
+          </span>
+        )}
+      </div>
+      
+      {/* Description */}
+      <p className="text-gray-600 text-sm leading-relaxed mb-5 flex-grow line-clamp-3">
+        {gig.description}
+      </p>
+      
+      {/* Details: Location, Date, Poster */}
+      <div className="space-y-2.5 mb-5 bg-gray-50 p-3.5 rounded-xl border border-gray-100/50">
+        <div className="flex items-center gap-2.5 text-gray-600 text-sm font-medium">
           <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
           <span className="truncate">{gig.location}</span>
         </div>
         {gig.event_date && (
-          <div className="flex items-center gap-2 text-gray-500 text-sm font-medium">
+          <div className="flex items-center gap-2.5 text-gray-600 text-sm font-medium">
             <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0" />
-            <span className="truncate">{new Date(gig.event_date).toLocaleDateString()}</span>
+            <span className="truncate">{new Date(gig.event_date).toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}</span>
           </div>
         )}
+        <div className="flex items-center gap-2.5 text-gray-600 text-sm font-medium">
+          <div className="w-4 h-4 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[8px] font-bold flex-shrink-0">
+            {gig.users?.name ? gig.users.name.charAt(0).toUpperCase() : 'U'}
+          </div>
+          <span className="truncate">Posted by <span className="text-gray-900 font-semibold">{gig.users?.name || 'Unknown Poster'}</span></span>
+        </div>
       </div>
       
-      <p className="text-gray-600 text-sm leading-relaxed mb-6 flex-grow line-clamp-3">
-        {gig.description}
-      </p>
-      
-      <div className="flex items-center gap-3 mt-auto pt-4 border-t border-gray-50">
+      {/* Footer: Apply Button */}
+      <div className="flex items-center gap-3 mt-auto pt-2">
         <button 
           onClick={() => onApply(gig.id)}
-          className="flex-1 py-3 px-4 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 transition-colors text-sm shadow-sm flex justify-center items-center active:scale-95"
+          className="w-full py-3 px-4 rounded-xl bg-gray-900 text-white font-bold hover:bg-black transition-all text-sm shadow-sm flex justify-center items-center active:scale-95 hover:shadow-md"
         >
           Apply Now
         </button>
@@ -145,15 +152,15 @@ const HomeScreen = () => {
         setError(null);
         
         // Initial fetch for user profile
-        // Get current authenticated user
-        const { data: authData } = await supabase.auth.getUser();
+        // Get current authenticated user session
+        const { data: authData } = await supabase.auth.getSession();
         
-        if (authData.user) {
+        if (authData.session?.user) {
           // Fetch user profile data
           const { data: userData } = await supabase
             .from('users')
             .select('*')
-            .eq('id', authData.user.id)
+            .eq('id', authData.session.user.id)
             .single();
             
           if (userData) setUser(userData);
