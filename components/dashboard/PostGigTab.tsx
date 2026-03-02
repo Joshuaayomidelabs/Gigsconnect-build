@@ -56,34 +56,34 @@ const PostGigTab = ({ onAddGig, onGigPosted }: { onAddGig: (gig: any) => void, o
         <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-2">Gig Title <span className="text-red-500">*</span></label>
-            <input required name="title" value={formData.title} onChange={handleChange} type="text" placeholder="e.g. Lead Guitarist for Studio Session" className="w-full p-3.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all bg-gray-50 focus:bg-white" />
+            <input required name="title" value={formData.title} onChange={handleChange} type="text" placeholder="e.g. Lead Guitarist for Studio Session" className="w-full p-3.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-600 focus:border-transparent transition-all bg-gray-50 focus:bg-white" />
           </div>
           
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-2">Description <span className="text-red-500">*</span></label>
-            <textarea required name="description" value={formData.description} onChange={handleChange} rows={4} placeholder="Describe the gig, requirements, and expectations..." className="w-full p-3.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all resize-none bg-gray-50 focus:bg-white"></textarea>
+            <textarea required name="description" value={formData.description} onChange={handleChange} rows={4} placeholder="Describe the gig, requirements, and expectations..." className="w-full p-3.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-600 focus:border-transparent transition-all resize-none bg-gray-50 focus:bg-white"></textarea>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2">Location <span className="text-red-500">*</span></label>
-              <input required name="location" value={formData.location} onChange={handleChange} type="text" placeholder="City, Country or Remote" className="w-full p-3.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all bg-gray-50 focus:bg-white" />
+              <input required name="location" value={formData.location} onChange={handleChange} type="text" placeholder="City, Country or Remote" className="w-full p-3.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-600 focus:border-transparent transition-all bg-gray-50 focus:bg-white" />
             </div>
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2">Price <span className="text-red-500">*</span></label>
-              <input required name="price" value={formData.price} onChange={handleChange} type="number" placeholder="e.g. 500" className="w-full p-3.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all bg-gray-50 focus:bg-white" />
+              <input required name="price" value={formData.price} onChange={handleChange} type="number" placeholder="e.g. 500" className="w-full p-3.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-600 focus:border-transparent transition-all bg-gray-50 focus:bg-white" />
             </div>
           </div>
 
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-2">Event Date <span className="text-red-500">*</span></label>
-            <input required name="event_date" value={formData.event_date} onChange={handleChange} type="date" className="w-full p-3.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all bg-gray-50 focus:bg-white" />
+            <input required name="event_date" value={formData.event_date} onChange={handleChange} type="date" className="w-full p-3.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-600 focus:border-transparent transition-all bg-gray-50 focus:bg-white" />
           </div>
 
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-2">Reference File <span className="text-gray-400 font-normal">(Optional)</span></label>
-            <div className="border-2 border-dashed border-gray-200 rounded-2xl p-8 text-center hover:bg-gray-50 hover:border-blue-300 transition-colors cursor-pointer group">
-              <UploadCloud className="w-10 h-10 text-gray-400 mx-auto mb-3 group-hover:text-blue-500 transition-colors" />
+            <div className="border-2 border-dashed border-gray-200 rounded-2xl p-8 text-center hover:bg-gray-50 hover:border-brand-300 transition-colors cursor-pointer group">
+              <UploadCloud className="w-10 h-10 text-gray-400 mx-auto mb-3 group-hover:text-brand-500 transition-colors" />
               <p className="text-sm text-gray-700 font-medium">Click to upload or drag and drop</p>
               <p className="text-xs text-gray-500 mt-1">MP3, WAV, PDF, or Image (max 10MB)</p>
             </div>
@@ -92,7 +92,7 @@ const PostGigTab = ({ onAddGig, onGigPosted }: { onAddGig: (gig: any) => void, o
           <button 
             type="submit" 
             disabled={isSubmitting}
-            className="w-full py-4 rounded-xl bg-blue-600 text-white font-bold text-lg hover:bg-blue-700 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:scale-100 shadow-md mt-4"
+            className="w-full py-4 rounded-xl bg-brand-600 text-white font-bold text-lg hover:bg-brand-700 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:scale-100 shadow-md mt-4"
           >
             {isSubmitting ? 'Posting...' : 'Post Gig'}
           </button>

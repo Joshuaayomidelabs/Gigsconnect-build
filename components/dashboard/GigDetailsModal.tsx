@@ -59,7 +59,7 @@ const GigDetailsModal: React.FC<GigDetailsModalProps> = ({ gig, isOpen, onClose 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="flex items-center gap-3 p-4 rounded-2xl bg-gray-50 border border-gray-100">
               <div className="p-2 bg-white rounded-xl shadow-sm">
-                <MapPin className="w-5 h-5 text-blue-600" />
+                <MapPin className="w-5 h-5 text-brand-600" />
               </div>
               <div>
                 <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Location</p>
@@ -69,7 +69,7 @@ const GigDetailsModal: React.FC<GigDetailsModalProps> = ({ gig, isOpen, onClose 
             
             <div className="flex items-center gap-3 p-4 rounded-2xl bg-gray-50 border border-gray-100">
               <div className="p-2 bg-white rounded-xl shadow-sm">
-                <Calendar className="w-5 h-5 text-blue-600" />
+                <Calendar className="w-5 h-5 text-brand-600" />
               </div>
               <div>
                 <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Date & Time</p>
@@ -94,12 +94,12 @@ const GigDetailsModal: React.FC<GigDetailsModalProps> = ({ gig, isOpen, onClose 
           {/* Attachments (Mocked for now) */}
           <div>
             <h3 className="text-lg font-bold text-gray-900 mb-3">Reference Files</h3>
-            <div className="flex items-center gap-3 p-4 rounded-2xl border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-colors cursor-pointer group">
-              <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 group-hover:bg-blue-200 transition-colors">
+            <div className="flex items-center gap-3 p-4 rounded-2xl border border-gray-200 hover:border-brand-300 hover:bg-brand-50 transition-colors cursor-pointer group">
+              <div className="w-10 h-10 rounded-xl bg-brand-100 flex items-center justify-center text-brand-600 group-hover:bg-brand-200 transition-colors">
                 <FileText className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-sm font-bold text-gray-900 group-hover:text-blue-700 transition-colors">reference_track.mp3</p>
+                <p className="text-sm font-bold text-gray-900 group-hover:text-brand-700 transition-colors">reference_track.mp3</p>
                 <p className="text-xs text-gray-500">Audio • 4.2 MB</p>
               </div>
             </div>
@@ -120,7 +120,7 @@ const GigDetailsModal: React.FC<GigDetailsModalProps> = ({ gig, isOpen, onClose 
               Cancel
             </button>
             <button 
-              className="px-8 py-3 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 transition-colors text-sm shadow-md active:scale-95 w-full sm:w-auto"
+              className="px-8 py-3 rounded-xl bg-brand-600 text-white font-bold hover:bg-brand-700 transition-colors text-sm shadow-md active:scale-95 w-full sm:w-auto"
             >
               Apply Now
             </button>

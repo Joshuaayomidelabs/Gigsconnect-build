@@ -8,7 +8,7 @@ const StatCard = ({ title, value, trend }: { title: string, value: string, trend
     <h3 className="text-gray-500 text-sm font-medium mb-1">{title}</h3>
     <div className="flex items-baseline gap-3">
       <span className="text-3xl font-black text-gray-900 tracking-tight">{value}</span>
-      <span className="text-sm font-semibold text-blue-600">{trend}</span>
+      <span className="text-sm font-semibold text-brand-600">{trend}</span>
     </div>
   </div>
 );
@@ -17,7 +17,7 @@ export const GigCard = ({ gig, onViewDetails }: { gig: Gig, onViewDetails: (gig:
   return (
     <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 flex flex-col h-full hover:-translate-y-1 relative group">
       <div className="flex justify-between items-start mb-4 gap-4">
-        <h3 className="text-lg sm:text-xl font-bold text-gray-900 leading-tight pr-2 group-hover:text-blue-600 transition-colors">{gig.title}</h3>
+        <h3 className="text-lg sm:text-xl font-bold text-gray-900 leading-tight pr-2 group-hover:text-brand-600 transition-colors">{gig.title}</h3>
         <span className="px-3 py-1 bg-green-50 text-green-700 text-xs sm:text-sm font-bold rounded-full whitespace-nowrap flex-shrink-0 border border-green-100">{gig.pay}</span>
       </div>
       
@@ -42,7 +42,7 @@ export const GigCard = ({ gig, onViewDetails }: { gig: Gig, onViewDetails: (gig:
           Details
         </button>
         <button 
-          className="flex-1 py-3 px-4 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 transition-colors text-sm shadow-sm flex justify-center items-center active:scale-95"
+          className="flex-1 py-3 px-4 rounded-xl bg-brand-600 text-white font-bold hover:bg-brand-700 transition-colors text-sm shadow-sm flex justify-center items-center active:scale-95"
         >
           Apply Now
         </button>
@@ -68,7 +68,7 @@ const HomeTab = ({ gigs }: { gigs: Gig[] }) => {
           <h3 className="text-gray-500 text-sm font-medium mb-1">Subscription Status</h3>
           <div className="flex items-center gap-3">
             <span className="text-2xl font-black text-gray-900 tracking-tight">Free</span>
-            <span className="px-3 py-1 bg-blue-50 text-blue-700 text-[10px] font-bold rounded-full uppercase tracking-wider border border-blue-100">Basic</span>
+            <span className="px-3 py-1 bg-brand-50 text-brand-700 text-[10px] font-bold rounded-full uppercase tracking-wider border border-brand-100">Basic</span>
           </div>
         </div>
       </section>
@@ -79,7 +79,7 @@ const HomeTab = ({ gigs }: { gigs: Gig[] }) => {
           <div className="flex w-full sm:w-auto gap-3">
             <div className="relative flex-1 sm:w-72">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input type="text" placeholder="Search gigs..." className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all text-sm" />
+              <input type="text" placeholder="Search gigs..." className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-600 focus:border-transparent transition-all text-sm" />
             </div>
             <button className="p-3 border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50 transition-colors flex items-center justify-center active:scale-95">
               <Filter className="w-5 h-5" />

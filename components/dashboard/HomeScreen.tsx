@@ -44,7 +44,7 @@ const StatCard = ({ title, value, trend }: { title: string, value: string | numb
     <h3 className="text-gray-500 text-sm font-medium mb-1">{title}</h3>
     <div className="flex items-baseline gap-3">
       <span className="text-3xl font-black text-gray-900 tracking-tight">{value}</span>
-      <span className="text-sm font-semibold text-blue-600">{trend}</span>
+      <span className="text-sm font-semibold text-brand-600">{trend}</span>
     </div>
   </motion.div>
 );
@@ -69,7 +69,7 @@ const GigCard = ({ gig, onApply }: { gig: Gig, onApply: (id: string) => void }) 
     >
       {/* Header: Title and Price */}
       <div className="flex justify-between items-start mb-3 gap-4">
-        <h3 className="text-lg sm:text-xl font-bold text-gray-900 leading-tight pr-2 group-hover:text-blue-600 transition-colors line-clamp-2">
+        <h3 className="text-lg sm:text-xl font-bold text-gray-900 leading-tight pr-2 group-hover:text-brand-600 transition-colors line-clamp-2">
           {gig.title}
         </h3>
         <span className="px-3 py-1 bg-green-50 text-green-700 text-xs sm:text-sm font-bold rounded-full whitespace-nowrap flex-shrink-0 border border-green-100 shadow-sm">
@@ -80,13 +80,13 @@ const GigCard = ({ gig, onApply }: { gig: Gig, onApply: (id: string) => void }) 
       {/* Tags: Category and Event Type */}
       <div className="flex flex-wrap items-center gap-2 mb-4">
         {gig.category && (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-purple-50 text-purple-700 text-xs font-bold rounded-md border border-purple-100">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-brand-50 text-brand-700 text-xs font-bold rounded-md border border-brand-100">
             <Music className="w-3.5 h-3.5" />
             {gig.category}
           </span>
         )}
         {gig.event_type ? (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 text-blue-700 text-xs font-bold rounded-md border border-blue-100">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-brand-50 text-brand-700 text-xs font-bold rounded-md border border-brand-100">
             <Mic className="w-3.5 h-3.5" />
             {gig.event_type}
           </span>
@@ -116,7 +116,7 @@ const GigCard = ({ gig, onApply }: { gig: Gig, onApply: (id: string) => void }) 
           </div>
         )}
         <div className="flex items-center gap-2.5 text-gray-600 text-sm font-medium">
-          <div className="w-4 h-4 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[8px] font-bold flex-shrink-0">
+          <div className="w-4 h-4 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center text-[8px] font-bold flex-shrink-0">
             {gig.users?.name ? gig.users.name.charAt(0).toUpperCase() : 'U'}
           </div>
           <span className="truncate">Posted by <span className="text-gray-900 font-semibold">{gig.users?.name || 'Unknown Poster'}</span></span>
@@ -262,7 +262,7 @@ const HomeScreen = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-brand-600" />
       </div>
     );
   }
@@ -320,7 +320,7 @@ const HomeScreen = () => {
           <div className="flex w-full sm:w-auto gap-3">
             <div className="relative flex-1 sm:w-72">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input type="text" placeholder="Search gigs..." className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all text-sm" />
+              <input type="text" placeholder="Search gigs..." className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-600 focus:border-transparent transition-all text-sm" />
             </div>
             <button className="p-3 border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50 transition-colors flex items-center justify-center active:scale-95">
               <Filter className="w-5 h-5" />

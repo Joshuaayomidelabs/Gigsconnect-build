@@ -41,8 +41,8 @@ const SubscriptionTab = () => {
         </div>
 
         {/* PRO Plan */}
-        <div className="bg-white rounded-3xl p-8 shadow-lg border-2 border-blue-600 flex flex-col relative transform md:-translate-y-2 transition-all hover:shadow-xl">
-          <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-4 py-1 rounded-full text-xs font-bold tracking-wider uppercase shadow-sm">
+        <div className="bg-white rounded-3xl p-8 shadow-lg border-2 border-brand-600 flex flex-col relative transform md:-translate-y-2 transition-all hover:shadow-xl">
+          <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand-600 text-white px-4 py-1 rounded-full text-xs font-bold tracking-wider uppercase shadow-sm">
             Most Popular
           </div>
           <h3 className="text-2xl font-bold text-gray-900">Pro</h3>
@@ -56,27 +56,27 @@ const SubscriptionTab = () => {
           </div>
           <ul className="space-y-4 mb-8 flex-grow">
             <li className="flex items-start gap-3 text-gray-700 text-sm font-medium">
-              <Check className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+              <Check className="w-4 h-4 text-brand-600 mt-0.5 flex-shrink-0" />
               <span>Verified badge</span>
             </li>
             <li className="flex items-start gap-3 text-gray-700 text-sm font-medium">
-              <Check className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+              <Check className="w-4 h-4 text-brand-600 mt-0.5 flex-shrink-0" />
               <span>Increased visibility in search</span>
             </li>
             <li className="flex items-start gap-3 text-gray-700 text-sm font-medium">
-              <Check className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+              <Check className="w-4 h-4 text-brand-600 mt-0.5 flex-shrink-0" />
               <span>Optimized profile</span>
             </li>
             <li className="flex items-start gap-3 text-gray-700 text-sm font-medium">
-              <Check className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+              <Check className="w-4 h-4 text-brand-600 mt-0.5 flex-shrink-0" />
               <span>Higher gig application limits</span>
             </li>
             <li className="flex items-start gap-3 text-gray-700 text-sm font-medium">
-              <Check className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+              <Check className="w-4 h-4 text-brand-600 mt-0.5 flex-shrink-0" />
               <span>Priority listing</span>
             </li>
           </ul>
-          <button className="w-full py-3.5 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md">
+          <button className="w-full py-3.5 rounded-xl bg-brand-600 text-white font-bold hover:bg-brand-700 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md">
             Upgrade to Pro
           </button>
         </div>
@@ -94,27 +94,27 @@ const SubscriptionTab = () => {
           </div>
           <ul className="space-y-4 mb-8 flex-grow">
             <li className="flex items-start gap-3 text-gray-200 text-sm font-medium">
-              <Check className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
+              <Check className="w-4 h-4 text-brand-400 mt-0.5 flex-shrink-0" />
               <span>Verified badge & All Pro features</span>
             </li>
             <li className="flex items-start gap-3 text-gray-200 text-sm font-medium">
-              <Check className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
+              <Check className="w-4 h-4 text-brand-400 mt-0.5 flex-shrink-0" />
               <span>AI assistance</span>
             </li>
             <li className="flex items-start gap-3 text-gray-200 text-sm font-medium">
-              <Check className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
+              <Check className="w-4 h-4 text-brand-400 mt-0.5 flex-shrink-0" />
               <span>Maximum visibility</span>
             </li>
             <li className="flex items-start gap-3 text-gray-200 text-sm font-medium">
-              <Check className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
+              <Check className="w-4 h-4 text-brand-400 mt-0.5 flex-shrink-0" />
               <span>Unlimited gig applications</span>
             </li>
             <li className="flex items-start gap-3 text-gray-200 text-sm font-medium">
-              <Check className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
+              <Check className="w-4 h-4 text-brand-400 mt-0.5 flex-shrink-0" />
               <span>Advanced profile optimization</span>
             </li>
             <li className="flex items-start gap-3 text-gray-200 text-sm font-medium">
-              <Check className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
+              <Check className="w-4 h-4 text-brand-400 mt-0.5 flex-shrink-0" />
               <span>Early access to new features</span>
             </li>
           </ul>

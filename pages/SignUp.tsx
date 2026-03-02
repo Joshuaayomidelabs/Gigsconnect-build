@@ -64,7 +64,7 @@ const SignUp: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans relative overflow-hidden">
+    <div className="min-h-screen bg-white flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans relative overflow-hidden">
       {/* Background Decorative SVGs */}
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-32 h-32 text-gray-400 opacity-10 absolute top-10 left-10 -rotate-12 hidden md:block pointer-events-none">
         <path d="M9 18V5l12-2v13"></path>
@@ -112,7 +112,7 @@ const SignUp: React.FC = () => {
                   type="text"
                   value={formData.fullName}
                   onChange={handleChange}
-                  className={`block w-full rounded-xl border-0 py-3.5 px-4 text-gray-900 shadow-sm ring-1 ring-inset ${errors.fullName ? 'ring-red-300 focus:ring-red-500' : 'ring-gray-200 focus:ring-blue-600'} placeholder:text-gray-400 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 transition-all duration-200 bg-gray-50 focus:bg-white`}
+                  className={`block w-full rounded-xl border-0 py-3.5 px-4 text-gray-900 shadow-sm ring-1 ring-inset ${errors.fullName ? 'ring-red-300 focus:ring-red-500' : 'ring-gray-200 focus:ring-brand-600'} placeholder:text-gray-400 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 transition-all duration-200 bg-gray-50 focus:bg-white`}
                   placeholder="John Doe"
                 />
                 {errors.fullName && <p className="mt-2 text-sm text-red-600">{errors.fullName}</p>}
@@ -129,7 +129,7 @@ const SignUp: React.FC = () => {
                   type="text"
                   value={formData.stageName}
                   onChange={handleChange}
-                  className="block w-full rounded-xl border-0 py-3.5 px-4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-200 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 transition-all duration-200 bg-gray-50 focus:bg-white"
+                  className="block w-full rounded-xl border-0 py-3.5 px-4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-200 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-brand-600 sm:text-sm sm:leading-6 transition-all duration-200 bg-gray-50 focus:bg-white"
                   placeholder="DJ Apollo"
                 />
               </div>
@@ -145,7 +145,7 @@ const SignUp: React.FC = () => {
                   type="email"
                   value={formData.email}
                   onChange={handleChange}
-                  className={`block w-full rounded-xl border-0 py-3.5 px-4 text-gray-900 shadow-sm ring-1 ring-inset ${errors.email ? 'ring-red-300 focus:ring-red-500' : 'ring-gray-200 focus:ring-blue-600'} placeholder:text-gray-400 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 transition-all duration-200 bg-gray-50 focus:bg-white`}
+                  className={`block w-full rounded-xl border-0 py-3.5 px-4 text-gray-900 shadow-sm ring-1 ring-inset ${errors.email ? 'ring-red-300 focus:ring-red-500' : 'ring-gray-200 focus:ring-brand-600'} placeholder:text-gray-400 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 transition-all duration-200 bg-gray-50 focus:bg-white`}
                   placeholder="you@example.com"
                 />
                 {errors.email && <p className="mt-2 text-sm text-red-600">{errors.email}</p>}
@@ -162,7 +162,7 @@ const SignUp: React.FC = () => {
                   type="tel"
                   value={formData.phoneNumber}
                   onChange={handleChange}
-                  className={`block w-full rounded-xl border-0 py-3.5 px-4 text-gray-900 shadow-sm ring-1 ring-inset ${errors.phoneNumber ? 'ring-red-300 focus:ring-red-500' : 'ring-gray-200 focus:ring-blue-600'} placeholder:text-gray-400 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 transition-all duration-200 bg-gray-50 focus:bg-white`}
+                  className={`block w-full rounded-xl border-0 py-3.5 px-4 text-gray-900 shadow-sm ring-1 ring-inset ${errors.phoneNumber ? 'ring-red-300 focus:ring-red-500' : 'ring-gray-200 focus:ring-brand-600'} placeholder:text-gray-400 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 transition-all duration-200 bg-gray-50 focus:bg-white`}
                   placeholder="+1 (555) 000-0000"
                 />
                 {errors.phoneNumber && <p className="mt-2 text-sm text-red-600">{errors.phoneNumber}</p>}
@@ -178,7 +178,7 @@ const SignUp: React.FC = () => {
                   name="role"
                   value={formData.role}
                   onChange={handleChange}
-                  className="block w-full rounded-xl border-0 py-3.5 px-4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 transition-all duration-200 bg-gray-50 focus:bg-white appearance-none"
+                  className="block w-full rounded-xl border-0 py-3.5 px-4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-inset focus:ring-brand-600 sm:text-sm sm:leading-6 transition-all duration-200 bg-gray-50 focus:bg-white appearance-none"
                 >
                   <option value="Musician">Musician</option>
                   <option value="Organizer">Organizer</option>
@@ -197,7 +197,7 @@ const SignUp: React.FC = () => {
                     type="password"
                     value={formData.password}
                     onChange={handleChange}
-                    className={`block w-full rounded-xl border-0 py-3.5 px-4 text-gray-900 shadow-sm ring-1 ring-inset ${errors.password ? 'ring-red-300 focus:ring-red-500' : 'ring-gray-200 focus:ring-blue-600'} placeholder:text-gray-400 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 transition-all duration-200 bg-gray-50 focus:bg-white`}
+                    className={`block w-full rounded-xl border-0 py-3.5 px-4 text-gray-900 shadow-sm ring-1 ring-inset ${errors.password ? 'ring-red-300 focus:ring-red-500' : 'ring-gray-200 focus:ring-brand-600'} placeholder:text-gray-400 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 transition-all duration-200 bg-gray-50 focus:bg-white`}
                   />
                   {errors.password && <p className="mt-2 text-sm text-red-600">{errors.password}</p>}
                 </div>
@@ -213,7 +213,7 @@ const SignUp: React.FC = () => {
                     type="password"
                     value={formData.confirmPassword}
                     onChange={handleChange}
-                    className={`block w-full rounded-xl border-0 py-3.5 px-4 text-gray-900 shadow-sm ring-1 ring-inset ${errors.confirmPassword ? 'ring-red-300 focus:ring-red-500' : 'ring-gray-200 focus:ring-blue-600'} placeholder:text-gray-400 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 transition-all duration-200 bg-gray-50 focus:bg-white`}
+                    className={`block w-full rounded-xl border-0 py-3.5 px-4 text-gray-900 shadow-sm ring-1 ring-inset ${errors.confirmPassword ? 'ring-red-300 focus:ring-red-500' : 'ring-gray-200 focus:ring-brand-600'} placeholder:text-gray-400 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 transition-all duration-200 bg-gray-50 focus:bg-white`}
                   />
                   {errors.confirmPassword && <p className="mt-2 text-sm text-red-600">{errors.confirmPassword}</p>}
                 </div>
@@ -224,7 +224,7 @@ const SignUp: React.FC = () => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="flex w-full justify-center items-center rounded-xl bg-blue-600 px-3 py-4 text-sm font-bold leading-6 text-white shadow-md hover:bg-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
+                className="flex w-full justify-center items-center rounded-xl bg-brand-600 px-3 py-4 text-sm font-bold leading-6 text-white shadow-md hover:bg-brand-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
               >
                 {isLoading ? (
                   <>
@@ -246,7 +246,7 @@ const SignUp: React.FC = () => {
 
           <p className="mt-8 text-center text-sm text-gray-500">
             Already have an account?{' '}
-            <Link to="/login" className="font-semibold leading-6 text-blue-600 hover:text-blue-500 transition-colors">
+            <Link to="/login" className="font-semibold leading-6 text-brand-600 hover:text-brand-500 transition-colors">
               Login
             </Link>
           </p>

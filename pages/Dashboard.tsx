@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Bell, Home, Compass, PlusSquare, FileText, CreditCard, User } from 'lucide-react';
+import { Bell, Home, Compass, PlusSquare, FileText, CreditCard, User, Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import HomeScreen from '../components/dashboard/HomeScreen';
 import ExploreTab from '../components/dashboard/ExploreTab';
@@ -102,7 +102,7 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row font-sans relative">
+    <div className="min-h-screen bg-white flex flex-col md:flex-row font-sans relative">
       <BackgroundSVGs />
       
       {/* Sidebar (Desktop) */}
@@ -121,7 +121,7 @@ const Dashboard: React.FC = () => {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 md:ml-64 flex flex-col min-h-screen pb-24 md:pb-0 z-10 relative">
+      <main className="flex-1 md:ml-64 flex flex-col min-h-screen pb-32 md:pb-0 z-10 relative">
         {/* Top Navigation */}
         <header className="bg-white/80 backdrop-blur-xl border-b border-gray-100 sticky top-0 z-30 px-4 sm:px-6 py-4 flex items-center justify-between md:justify-end">
           <div className="md:hidden">
@@ -132,7 +132,7 @@ const Dashboard: React.FC = () => {
               <Bell className="w-6 h-6" />
               <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
             </button>
-            <div onClick={() => setActiveTab('profile')} className="w-10 h-10 rounded-full bg-blue-100 border-2 border-blue-600 overflow-hidden cursor-pointer hover:opacity-80 transition-opacity active:scale-95">
+            <div onClick={() => setActiveTab('profile')} className="w-10 h-10 rounded-full bg-brand-100 border-2 border-brand-600 overflow-hidden cursor-pointer hover:opacity-80 transition-opacity active:scale-95">
               <img src="https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&q=80&w=150" alt="Avatar" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
             </div>
           </div>
@@ -143,11 +143,21 @@ const Dashboard: React.FC = () => {
         </div>
       </main>
 
+      {/* Floating Action Button (Mobile) */}
+      <div className="md:hidden fixed bottom-24 right-5 z-50">
+        <button
+          onClick={() => setActiveTab('post')}
+          className="w-14 h-14 bg-brand-600 text-white rounded-full flex items-center justify-center shadow-[0_8px_30px_rgba(106,13,173,0.3)] hover:bg-brand-700 hover:shadow-[0_10px_40px_rgba(106,13,173,0.4)] active:scale-90 transition-all duration-300 ease-out"
+          aria-label="Post a Gig"
+        >
+          <Plus className="w-6 h-6" />
+        </button>
+      </div>
+
       {/* Bottom Navigation (Mobile) */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-t border-gray-100 flex justify-around p-2 z-40 pb-safe shadow-[0_-8px_30px_rgba(0,0,0,0.04)]">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-gray-100 flex justify-around p-2 z-40 pb-safe shadow-[0_-8px_30px_rgba(0,0,0,0.04)]">
         <MobileNavItem icon={<Home />} label="Home" active={activeTab === 'home'} onClick={() => setActiveTab('home')} />
         <MobileNavItem icon={<Compass />} label="Explore" active={activeTab === 'explore'} onClick={() => setActiveTab('explore')} />
-        <MobileNavItem icon={<PlusSquare />} label="Post" active={activeTab === 'post'} onClick={() => setActiveTab('post')} />
         <MobileNavItem icon={<FileText />} label="Apps" active={activeTab === 'applications'} onClick={() => setActiveTab('applications')} />
         <MobileNavItem icon={<User />} label="Profile" active={activeTab === 'profile'} onClick={() => setActiveTab('profile')} />
       </nav>
@@ -156,14 +166,14 @@ const Dashboard: React.FC = () => {
 };
 
 const NavItem = ({ icon, label, active = false, onClick }: { icon: React.ReactElement, label: string, active?: boolean, onClick: () => void }) => (
-  <button onClick={onClick} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${active ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}>
+  <button onClick={onClick} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${active ? 'bg-brand-50 text-brand-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}>
     {React.cloneElement(icon, { className: 'w-5 h-5' })}
     {label}
   </button>
 );
 
 const MobileNavItem = ({ icon, label, active = false, onClick }: { icon: React.ReactElement, label: string, active?: boolean, onClick: () => void }) => (
-  <button onClick={onClick} className={`flex flex-col items-center gap-1 p-2 flex-1 active:scale-95 transition-transform ${active ? 'text-blue-600' : 'text-gray-500 hover:text-gray-900'}`}>
+  <button onClick={onClick} className={`flex flex-col items-center gap-1 p-2 flex-1 active:scale-95 transition-transform ${active ? 'text-brand-600' : 'text-gray-500 hover:text-gray-900'}`}>
     {React.cloneElement(icon, { className: 'w-6 h-6' })}
     <span className="text-[10px] font-medium tracking-tight">{label}</span>
   </button>

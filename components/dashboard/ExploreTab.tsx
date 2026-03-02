@@ -45,14 +45,14 @@ const GigCardExplore = ({ gig, onViewDetails }: { gig: Gig, onViewDetails: (gig:
     >
       <button 
         onClick={(e) => { e.stopPropagation(); setBookmarked(!bookmarked); }}
-        className="absolute top-5 sm:top-6 right-5 sm:right-6 text-gray-300 hover:text-blue-600 transition-colors active:scale-90 z-10 bg-white/80 p-1 rounded-full backdrop-blur-sm"
+        className="absolute top-5 sm:top-6 right-5 sm:right-6 text-gray-300 hover:text-brand-600 transition-colors active:scale-90 z-10 bg-white/80 p-1 rounded-full backdrop-blur-sm"
       >
-        <Bookmark className={`w-5 h-5 ${bookmarked ? 'fill-blue-600 text-blue-600' : ''}`} />
+        <Bookmark className={`w-5 h-5 ${bookmarked ? 'fill-brand-600 text-brand-600' : ''}`} />
       </button>
       
       {/* Header: Title and Price */}
       <div className="flex justify-between items-start mb-3 gap-4 pr-10">
-        <h3 className="text-lg sm:text-xl font-bold text-gray-900 leading-tight group-hover:text-blue-600 transition-colors line-clamp-2">
+        <h3 className="text-lg sm:text-xl font-bold text-gray-900 leading-tight group-hover:text-brand-600 transition-colors line-clamp-2">
           {gig.title}
         </h3>
       </div>
@@ -63,13 +63,13 @@ const GigCardExplore = ({ gig, onViewDetails }: { gig: Gig, onViewDetails: (gig:
           {formattedPrice}
         </span>
         {gig.category && (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-purple-50 text-purple-700 text-xs font-bold rounded-md border border-purple-100">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-brand-50 text-brand-700 text-xs font-bold rounded-md border border-brand-100">
             <Music className="w-3.5 h-3.5" />
             {gig.category}
           </span>
         )}
         {gig.event_type ? (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 text-blue-700 text-xs font-bold rounded-md border border-blue-100">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-brand-50 text-brand-700 text-xs font-bold rounded-md border border-brand-100">
             <Mic className="w-3.5 h-3.5" />
             {gig.event_type}
           </span>
@@ -99,7 +99,7 @@ const GigCardExplore = ({ gig, onViewDetails }: { gig: Gig, onViewDetails: (gig:
           </div>
         )}
         <div className="flex items-center gap-2.5 text-gray-600 text-sm font-medium">
-          <div className="w-4 h-4 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[8px] font-bold flex-shrink-0">
+          <div className="w-4 h-4 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center text-[8px] font-bold flex-shrink-0">
             {gig.users?.name ? gig.users.name.charAt(0).toUpperCase() : 'U'}
           </div>
           <span className="truncate">Posted by <span className="text-gray-900 font-semibold">{gig.users?.name || 'Unknown Poster'}</span></span>
@@ -215,25 +215,25 @@ const ExploreTab = () => {
       <section className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100 space-y-4">
         <div className="relative w-full">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-          <input type="text" placeholder="Search by keyword, genre, or artist..." className="w-full pl-12 pr-4 py-3 sm:py-4 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all text-base" />
+          <input type="text" placeholder="Search by keyword, genre, or artist..." className="w-full pl-12 pr-4 py-3 sm:py-4 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-600 focus:border-transparent transition-all text-base" />
         </div>
         
         <div className="flex overflow-x-auto hide-scrollbar gap-3 pb-2 sm:pb-0 sm:grid sm:grid-cols-3 sm:gap-4">
-          <select className="flex-shrink-0 w-auto sm:w-full p-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-600 bg-white text-gray-700 text-sm appearance-none">
+          <select className="flex-shrink-0 w-auto sm:w-full p-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-600 bg-white text-gray-700 text-sm appearance-none">
             <option value="">All Genres</option>
             <option value="afrobeats">Afrobeats</option>
             <option value="jazz">Jazz</option>
             <option value="pop">Pop</option>
             <option value="rock">Rock</option>
           </select>
-          <select className="flex-shrink-0 w-auto sm:w-full p-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-600 bg-white text-gray-700 text-sm appearance-none">
+          <select className="flex-shrink-0 w-auto sm:w-full p-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-600 bg-white text-gray-700 text-sm appearance-none">
             <option value="">Any Location</option>
             <option value="lagos">Lagos, Nigeria</option>
             <option value="accra">Accra, Ghana</option>
             <option value="nairobi">Nairobi, Kenya</option>
             <option value="remote">Remote</option>
           </select>
-          <select className="flex-shrink-0 w-auto sm:w-full p-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-600 bg-white text-gray-700 text-sm appearance-none">
+          <select className="flex-shrink-0 w-auto sm:w-full p-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-600 bg-white text-gray-700 text-sm appearance-none">
             <option value="">Any Pay Range</option>
             <option value="0-100">$0 - $100</option>
             <option value="100-500">$100 - $500</option>
@@ -245,7 +245,7 @@ const ExploreTab = () => {
       <section>
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+            <Loader2 className="w-8 h-8 animate-spin text-brand-600" />
           </div>
         ) : error ? (
           <div className="bg-red-50 border border-red-100 rounded-2xl p-6 text-center flex flex-col items-center justify-center">

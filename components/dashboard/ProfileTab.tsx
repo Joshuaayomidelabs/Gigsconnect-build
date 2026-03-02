@@ -176,7 +176,7 @@ const ProfileTab = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-brand-600" />
       </div>
     );
   }
@@ -217,7 +217,7 @@ const ProfileTab = () => {
       {/* Profile Card */}
       <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
         {/* Cover Photo Area */}
-        <div className="h-32 sm:h-48 bg-gradient-to-r from-blue-600 to-indigo-600 relative">
+        <div className="h-32 sm:h-48 bg-gradient-to-r from-brand-600 to-brand-800 relative">
           <div className="absolute -bottom-12 sm:-bottom-16 left-6 sm:left-10 flex items-end gap-6">
             <div className="relative group">
               <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-white bg-white overflow-hidden shadow-md flex items-center justify-center">
@@ -249,7 +249,7 @@ const ProfileTab = () => {
                 <button 
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isUploading}
-                  className="absolute bottom-0 right-0 p-2 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-500 transition-colors active:scale-95 disabled:opacity-50"
+                  className="absolute bottom-0 right-0 p-2 bg-brand-600 text-white rounded-full shadow-lg hover:bg-brand-500 transition-colors active:scale-95 disabled:opacity-50"
                 >
                   {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
                 </button>
@@ -273,7 +273,7 @@ const ProfileTab = () => {
                     value={formData.full_name} 
                     onChange={handleChange} 
                     placeholder="e.g. Alex Johnson"
-                    className="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all" 
+                    className="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-600 focus:border-transparent transition-all" 
                   />
                 </div>
                 <div>
@@ -293,7 +293,7 @@ const ProfileTab = () => {
                     value={formData.phone} 
                     onChange={handleChange} 
                     placeholder="e.g. +1 555-123-4567"
-                    className="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all" 
+                    className="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-600 focus:border-transparent transition-all" 
                   />
                 </div>
                 <div>
@@ -302,7 +302,7 @@ const ProfileTab = () => {
                     name="role" 
                     value={formData.role} 
                     onChange={handleChange} 
-                    className="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all bg-white"
+                    className="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-600 focus:border-transparent transition-all bg-white"
                   >
                     <option value="musician">Musician</option>
                     <option value="organizer">Organizer</option>
@@ -315,7 +315,7 @@ const ProfileTab = () => {
                     value={formData.genre} 
                     onChange={handleChange} 
                     placeholder="e.g. Jazz, Rock, Classical"
-                    className="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all" 
+                    className="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-600 focus:border-transparent transition-all" 
                   />
                 </div>
                 <div>
@@ -324,7 +324,7 @@ const ProfileTab = () => {
                     name="experience_level" 
                     value={formData.experience_level} 
                     onChange={handleChange} 
-                    className="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all bg-white"
+                    className="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-600 focus:border-transparent transition-all bg-white"
                   >
                     <option value="beginner">Beginner</option>
                     <option value="intermediate">Intermediate</option>
@@ -338,7 +338,7 @@ const ProfileTab = () => {
                     value={formData.location} 
                     onChange={handleChange} 
                     placeholder="e.g. New York, NY"
-                    className="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all" 
+                    className="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-600 focus:border-transparent transition-all" 
                   />
                 </div>
                 <div className="sm:col-span-2">
@@ -349,7 +349,7 @@ const ProfileTab = () => {
                     onChange={handleChange} 
                     placeholder="Tell us a bit about yourself..."
                     rows={4}
-                    className="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all resize-none" 
+                    className="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-600 focus:border-transparent transition-all resize-none" 
                   />
                 </div>
               </div>
@@ -367,7 +367,7 @@ const ProfileTab = () => {
                 <button 
                   onClick={handleSave} 
                   disabled={isSaving || isUploading}
-                  className="px-8 py-3 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 transition-colors flex items-center gap-2 shadow-sm active:scale-95 disabled:opacity-70"
+                  className="px-8 py-3 rounded-xl bg-brand-600 text-white font-bold hover:bg-brand-700 transition-colors flex items-center gap-2 shadow-sm active:scale-95 disabled:opacity-70"
                 >
                   {isSaving ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
@@ -392,11 +392,11 @@ const ProfileTab = () => {
                   <span className={`px-3 py-1 text-xs font-bold rounded-full uppercase tracking-wider border ${formData.profileComplete ? 'bg-green-50 text-green-700 border-green-100' : 'bg-orange-50 text-orange-700 border-orange-100'}`}>
                     {formData.profileComplete ? 'Verified Profile' : 'Incomplete Profile'}
                   </span>
-                  <span className="px-3 py-1 text-xs font-bold rounded-full uppercase tracking-wider border bg-blue-50 text-blue-700 border-blue-100">
+                  <span className="px-3 py-1 text-xs font-bold rounded-full uppercase tracking-wider border bg-brand-50 text-brand-700 border-brand-100">
                     {formData.role}
                   </span>
                   {formData.experience_level && (
-                    <span className="px-3 py-1 text-xs font-bold rounded-full uppercase tracking-wider border bg-purple-50 text-purple-700 border-purple-100">
+                    <span className="px-3 py-1 text-xs font-bold rounded-full uppercase tracking-wider border bg-brand-50 text-brand-700 border-brand-100">
                       {formData.experience_level}
                     </span>
                   )}

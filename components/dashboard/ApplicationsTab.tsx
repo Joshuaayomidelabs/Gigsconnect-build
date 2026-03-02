@@ -42,7 +42,7 @@ const ApplicationsTab = () => {
                   <td className="p-4 text-gray-500 text-sm">{app.date}</td>
                   <td className="p-4">{getStatusBadge(app.status)}</td>
                   <td className="p-4 text-right">
-                    <button className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-white hover:text-blue-600 hover:border-blue-200 transition-colors text-sm font-medium">
+                    <button className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-white hover:text-brand-600 hover:border-brand-200 transition-colors text-sm font-medium">
                       <Eye className="w-4 h-4" />
                       View
                     </button>
