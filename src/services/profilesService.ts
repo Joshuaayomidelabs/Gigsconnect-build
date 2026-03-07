@@ -10,31 +10,11 @@ export const profilesService = {
     return { data, error };
   },
 
-  async updateProfile(profileData: {
-    full_name?: string;
-    country?: string;
-    city?: string;
-    phone?: string;
-    bio?: string;
-    profile_photo?: string;
-    [key: string]: any;
-  }) {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not logged in');
-
-      const { data, error } = await supabase
-        .from('profiles')
-        .update(profileData)
-        .eq('id', user.id)
-        .select();
-
-      if (error) throw error;
-      return { data, error: null };
-    } catch (error: any) {
-      console.error('Error updating profile:', error.message);
-      return { data: null, error };
-    }
+  async updateProfile(userId: string, profileData: any) {
+    const { data, error } = await supabase
+      .from('profiles')
+      .upsert({ id: userId, ...profileData });
+    return { data, error };
   },
 
   async uploadAvatar(userId: string, file: File) {
