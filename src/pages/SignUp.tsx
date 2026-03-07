@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Loader2, Check } from 'lucide-react';
+import { Loader2, Check, Eye, EyeOff, Music, MapPin, User, ShieldCheck } from 'lucide-react';
 import { supabase } from '../services/supabaseClient';
 import { africanCountries, getStatesForCountry, musicProfessions, experienceLevels } from '../utils/locations';
 
@@ -25,6 +25,8 @@ const SignUp: React.FC = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [supabaseError, setSupabaseError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
     if (formData.country) {
@@ -175,8 +177,13 @@ const SignUp: React.FC = () => {
           <form className="space-y-8" onSubmit={handleSubmit}>
             
             {/* 1. Account Information */}
-            <div>
-              <h3 className="text-lg font-bold text-gray-900 border-b border-gray-100 pb-2 mb-4">1. Account Information</h3>
+            <div className="bg-gray-50/50 p-6 rounded-2xl border border-gray-100">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="p-2 bg-brand-100 rounded-lg text-brand-600">
+                  <ShieldCheck className="w-5 h-5" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-900">1. Account Information</h3>
+              </div>
               <div className="grid grid-cols-1 gap-y-5 gap-x-6 sm:grid-cols-2">
                 <div className="sm:col-span-2">
                   <label className="block text-sm font-bold leading-6 text-gray-700">
@@ -199,14 +206,21 @@ const SignUp: React.FC = () => {
                   <label className="block text-sm font-bold leading-6 text-gray-700">
                     Password <span className="text-red-500">*</span>
                   </label>
-                  <div className="mt-2">
+                  <div className="mt-2 relative">
                     <input
                       name="password"
-                      type="password"
+                      type={showPassword ? 'text' : 'password'}
                       value={formData.password}
                       onChange={handleChange}
-                      className={`block w-full rounded-xl border-0 py-3 px-4 text-gray-900 shadow-sm ring-1 ring-inset ${errors.password ? 'ring-red-300 focus:ring-red-500' : 'ring-gray-200 focus:ring-brand-600'} placeholder:text-gray-400 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 bg-gray-50 focus:bg-white transition-colors`}
+                      className={`block w-full rounded-xl border-0 py-3 pl-4 pr-12 text-gray-900 shadow-sm ring-1 ring-inset ${errors.password ? 'ring-red-300 focus:ring-red-500' : 'ring-gray-200 focus:ring-brand-600'} placeholder:text-gray-400 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 bg-gray-50 focus:bg-white transition-all`}
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
                     {errors.password && <p className="mt-1 text-xs text-red-600">{errors.password}</p>}
                   </div>
                 </div>
@@ -215,14 +229,21 @@ const SignUp: React.FC = () => {
                   <label className="block text-sm font-bold leading-6 text-gray-700">
                     Confirm Password <span className="text-red-500">*</span>
                   </label>
-                  <div className="mt-2">
+                  <div className="mt-2 relative">
                     <input
                       name="confirmPassword"
-                      type="password"
+                      type={showConfirmPassword ? 'text' : 'password'}
                       value={formData.confirmPassword}
                       onChange={handleChange}
-                      className={`block w-full rounded-xl border-0 py-3 px-4 text-gray-900 shadow-sm ring-1 ring-inset ${errors.confirmPassword ? 'ring-red-300 focus:ring-red-500' : 'ring-gray-200 focus:ring-brand-600'} placeholder:text-gray-400 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 bg-gray-50 focus:bg-white transition-colors`}
+                      className={`block w-full rounded-xl border-0 py-3 pl-4 pr-12 text-gray-900 shadow-sm ring-1 ring-inset ${errors.confirmPassword ? 'ring-red-300 focus:ring-red-500' : 'ring-gray-200 focus:ring-brand-600'} placeholder:text-gray-400 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 bg-gray-50 focus:bg-white transition-all`}
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                      {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
                     {errors.confirmPassword && <p className="mt-1 text-xs text-red-600">{errors.confirmPassword}</p>}
                   </div>
                 </div>
@@ -230,8 +251,13 @@ const SignUp: React.FC = () => {
             </div>
 
             {/* 2. Personal Information */}
-            <div>
-              <h3 className="text-lg font-bold text-gray-900 border-b border-gray-100 pb-2 mb-4">2. Personal Information</h3>
+            <div className="bg-gray-50/50 p-6 rounded-2xl border border-gray-100">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="p-2 bg-brand-100 rounded-lg text-brand-600">
+                  <User className="w-5 h-5" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-900">2. Personal Information</h3>
+              </div>
               <div className="grid grid-cols-1 gap-y-5 gap-x-6 sm:grid-cols-2">
                 <div>
                   <label className="block text-sm font-bold leading-6 text-gray-700">
@@ -286,8 +312,13 @@ const SignUp: React.FC = () => {
             </div>
 
             {/* 3. Location */}
-            <div>
-              <h3 className="text-lg font-bold text-gray-900 border-b border-gray-100 pb-2 mb-4">3. Location</h3>
+            <div className="bg-gray-50/50 p-6 rounded-2xl border border-gray-100">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="p-2 bg-brand-100 rounded-lg text-brand-600">
+                  <MapPin className="w-5 h-5" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-900">3. Location</h3>
+              </div>
               <div className="grid grid-cols-1 gap-y-5 gap-x-6 sm:grid-cols-2">
                 <div>
                   <label className="block text-sm font-bold leading-6 text-gray-700">
@@ -350,8 +381,13 @@ const SignUp: React.FC = () => {
             </div>
 
             {/* 4. Professional Details */}
-            <div>
-              <h3 className="text-lg font-bold text-gray-900 border-b border-gray-100 pb-2 mb-4">4. Professional Details</h3>
+            <div className="bg-gray-50/50 p-6 rounded-2xl border border-gray-100">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="p-2 bg-brand-100 rounded-lg text-brand-600">
+                  <Music className="w-5 h-5" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-900">4. Professional Details</h3>
+              </div>
               
               <div className="mb-5">
                 <label className="block text-sm font-bold leading-6 text-gray-700 mb-2">
