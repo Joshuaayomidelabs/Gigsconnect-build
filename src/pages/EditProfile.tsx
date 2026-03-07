@@ -72,10 +72,7 @@ const EditProfile: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('Login required');
-
-      const { error } = await profilesService.updateProfile(session.user.id, formData);
+      const { error } = await profilesService.updateProfile(formData);
       if (error) throw error;
       alert('Profile updated successfully!');
     } catch (err: any) {
