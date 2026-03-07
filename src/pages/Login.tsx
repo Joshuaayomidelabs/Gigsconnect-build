@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
-import { supabase } from '../src/supabaseClient';
+import { supabase } from '../services/supabaseClient';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -49,11 +49,26 @@ const Login: React.FC = () => {
     setIsLoading(true);
     setSupabaseError(null);
 
-    // Simulate API call to avoid "Failed to fetch" with invalid Supabase URL
-    setTimeout(() => {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (error) {
+        setSupabaseError(error.message);
+        setIsLoading(false);
+        return;
+      }
+
+      if (data.user) {
+        console.log('Logged in user:', data.user);
+        navigate('/dashboard');
+      }
+    } catch (err: any) {
+      setSupabaseError(err.message || 'An unexpected error occurred');
       setIsLoading(false);
-      navigate('/dashboard');
-    }, 1000);
+    }
   };
 
   return (

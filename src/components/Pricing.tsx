@@ -1,8 +1,17 @@
 import React, { useState } from 'react';
 import { Check } from 'lucide-react';
-import { PRICING_DATA } from '../constants';
 import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
+import { PRICING_DATA } from '../utils/constants';
+
+interface PricingTier {
+  name: string;
+  price: string;
+  subPrice?: string;
+  description: string;
+  features: string[];
+  recommended: boolean;
+}
 
 const Pricing: React.FC = () => {
   const [region, setRegion] = useState<'nigeria' | 'international'>('nigeria');
@@ -51,7 +60,7 @@ const Pricing: React.FC = () => {
         </motion.div>
 
         <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {data.tiers.map((tier, index) => (
+          {data.tiers.map((tier: PricingTier, index: number) => (
             <motion.div 
               key={index} 
               initial={{ opacity: 0, y: 50 }}
@@ -83,7 +92,7 @@ const Pricing: React.FC = () => {
               </div>
 
               <ul className="space-y-5 mb-10 flex-grow">
-                {tier.features.map((feature, i) => (
+                {tier.features.map((feature: string, i: number) => (
                   <li key={i} className="flex items-start">
                     <Check className={`w-6 h-6 mr-3 flex-shrink-0 ${tier.recommended ? 'text-linktree-lime' : 'text-linktree-dark'}`} />
                     <span className={`text-base font-medium ${tier.recommended ? 'text-white/90' : 'text-linktree-dark/80'}`}>{feature}</span>

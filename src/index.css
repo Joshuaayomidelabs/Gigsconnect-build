@@ -1,0 +1,25 @@
+/* Custom styles for GigsConnect */
+
+:root {
+  --color-brand-50: #f4e8fa;
+  --color-brand-100: #ead1f5;
+  --color-brand-200: #d5a3ea;
+  --color-brand-300: #bf75df;
+  --color-brand-400: #aa47d4;
+  --color-brand-500: #8010d0;
+  --color-brand-600: #6A0DAD;
+  --color-brand-700: #550a8a;
+  --color-brand-800: #400867;
+  --color-brand-900: #2b0545;
+}
+
+body {
+  background-color: white;
+  color: #333333;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Inter', sans-serif;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+}

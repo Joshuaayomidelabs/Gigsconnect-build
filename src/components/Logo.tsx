@@ -1,5 +1,5 @@
 import React from 'react';
-import { LOGO_URL } from '../constants';
+import { LOGO_URL } from '../utils/constants';
 
 interface LogoProps {
   className?: string;

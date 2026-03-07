@@ -7,6 +7,10 @@ CREATE TABLE profiles (
   stage_name TEXT,
   email TEXT,
   phone TEXT,
+  country TEXT,
+  state_region TEXT,
+  city_town TEXT,
+  experience_level TEXT,
   genres TEXT,
   bio TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
@@ -20,6 +24,24 @@ ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Public profiles are viewable by everyone." ON profiles FOR SELECT USING (true);
 CREATE POLICY "Users can insert their own profile." ON profiles FOR INSERT WITH CHECK (auth.uid() = id);
 CREATE POLICY "Users can update their own profile." ON profiles FOR UPDATE USING (auth.uid() = id);
+
+-- 1.5 Create the 'user_professions' table
+CREATE TABLE user_professions (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  profession TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+  UNIQUE(user_id, profession)
+);
+
+-- Enable RLS for user_professions
+ALTER TABLE user_professions ENABLE ROW LEVEL SECURITY;
+
+-- Policies for user_professions
+CREATE POLICY "Public user_professions are viewable by everyone." ON user_professions FOR SELECT USING (true);
+CREATE POLICY "Users can insert their own professions." ON user_professions FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update their own professions." ON user_professions FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users can delete their own professions." ON user_professions FOR DELETE USING (auth.uid() = user_id);
 
 -- 2. Create the 'gigs' table
 CREATE TABLE gigs (
