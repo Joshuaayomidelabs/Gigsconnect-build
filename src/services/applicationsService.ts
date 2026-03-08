@@ -9,6 +9,19 @@ export const applicationsService = {
     return { data, error };
   },
 
+  async getApplicationsCountThisMonth(userId: string) {
+    const now = new Date();
+    const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+    
+    const { count, error } = await supabase
+      .from('applications')
+      .select('*', { count: 'exact', head: true })
+      .eq('applicant_id', userId)
+      .gte('created_at', firstDayOfMonth);
+      
+    return { count: count || 0, error };
+  },
+
   async getMyApplications(userId: string) {
     const { data, error } = await supabase
       .from('applications')

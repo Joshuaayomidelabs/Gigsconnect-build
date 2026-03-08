@@ -14,6 +14,8 @@ import EditProfile from './pages/EditProfile';
 import SubscriptionPage from './pages/SubscriptionPage';
 import GigDetails from './pages/GigDetails';
 
+import ProtectedRoute from './components/ProtectedRoute';
+
 const App: React.FC = () => {
   return (
     <div className="flex flex-col min-h-screen">
@@ -23,14 +25,17 @@ const App: React.FC = () => {
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/browse" element={<BrowseGigs />} />
-          <Route path="/gig/:id" element={<GigDetails />} />
-          <Route path="/post" element={<PostGig />} />
-          <Route path="/applications" element={<MyApplications />} />
-          <Route path="/my-gigs" element={<MyPostedGigs />} />
-          <Route path="/profile" element={<EditProfile />} />
-          <Route path="/subscription" element={<SubscriptionPage />} />
+          
+          {/* Protected Routes */}
+          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/browse" element={<ProtectedRoute><BrowseGigs /></ProtectedRoute>} />
+          <Route path="/gig/:id" element={<ProtectedRoute><GigDetails /></ProtectedRoute>} />
+          <Route path="/post" element={<ProtectedRoute><PostGig /></ProtectedRoute>} />
+          <Route path="/applications" element={<ProtectedRoute><MyApplications /></ProtectedRoute>} />
+          <Route path="/my-gigs" element={<ProtectedRoute><MyPostedGigs /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
+          <Route path="/subscription" element={<ProtectedRoute><SubscriptionPage /></ProtectedRoute>} />
+          
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </main>

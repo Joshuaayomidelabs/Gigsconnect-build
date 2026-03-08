@@ -1,7 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Replace these variables with your actual Supabase project URL and public API key
-const SUPABASE_URL = "https://ibihzanlmutcpdduewqs.supabase.co";
-const SUPABASE_PUBLIC_KEY = "sb_publishable_t77cfsaJYIlemT7ZwFa17g_mtPttcpt";
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLIC_KEY);
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.warn('Supabase URL or Anon Key is missing. Please check your environment variables.');
+}
+
+export const supabase = createClient(
+  supabaseUrl || '',
+  supabaseAnonKey || ''
+);

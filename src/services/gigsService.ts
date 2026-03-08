@@ -4,7 +4,7 @@ export const gigsService = {
   async getAllGigs() {
     const { data, error } = await supabase
       .from('gigs')
-      .select('*, profiles(full_name, profile_photo)')
+      .select('*, profiles(full_name, profile_photo, subscription_plan)')
       .order('created_at', { ascending: false });
     return { data, error };
   },
@@ -12,7 +12,7 @@ export const gigsService = {
   async getGigById(id: string) {
     const { data, error } = await supabase
       .from('gigs')
-      .select('*, profiles(full_name, profile_photo)')
+      .select('*, profiles(full_name, profile_photo, subscription_plan)')
       .eq('id', id)
       .single();
     return { data, error };

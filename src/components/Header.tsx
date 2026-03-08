@@ -49,22 +49,22 @@ const Header: React.FC = () => {
       >
         <Link to="/" className="flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity flex items-center gap-2">
           <Logo variant="color" />
-          <span className="font-bold text-2xl tracking-tighter text-gray-900 hidden sm:block">GigsConnect</span>
+          <span className="font-bold text-2xl tracking-tighter text-brand-black hidden sm:block">GigsConnect</span>
         </Link>
         
         <div className="hidden lg:flex items-center space-x-1 ml-8">
-          <Link to="/browse" className="text-gray-600 hover:text-brand-600 hover:bg-gray-50 px-4 py-2 rounded-lg font-semibold text-base transition-colors">Browse Gigs</Link>
-          <Link to="/post" className="text-gray-600 hover:text-brand-600 hover:bg-gray-50 px-4 py-2 rounded-lg font-semibold text-base transition-colors">Post a Gig</Link>
+          <Link to="/browse" className="text-brand-gray-dark hover:text-brand-purple hover:bg-brand-purple-soft px-4 py-2 rounded-lg font-semibold text-base transition-colors">Browse Gigs</Link>
+          <Link to="/post" className="text-brand-gray-dark hover:text-brand-purple hover:bg-brand-purple-soft px-4 py-2 rounded-lg font-semibold text-base transition-colors">Post a Gig</Link>
         </div>
 
         <div className="hidden lg:flex items-center gap-3 ml-auto">
           {user ? (
             <>
-              <Link to="/dashboard" className="py-3 px-6 text-base font-semibold text-gray-900 bg-brand-50 hover:bg-brand-100 rounded-full transition-colors flex items-center gap-2">
+              <Link to="/dashboard" className="py-3 px-6 text-base font-semibold text-brand-purple bg-brand-purple-soft hover:bg-brand-purple-light rounded-full transition-colors flex items-center gap-2">
                 <LayoutDashboard className="w-4 h-4" />
                 Dashboard
               </Link>
-              <Link to="/profile" className="p-3 text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
+              <Link to="/profile" className="p-3 text-brand-gray-dark hover:bg-brand-gray rounded-full transition-colors">
                 <User className="w-5 h-5" />
               </Link>
               <button onClick={handleSignOut} className="p-3 text-red-600 hover:bg-red-50 rounded-full transition-colors">
@@ -73,10 +73,10 @@ const Header: React.FC = () => {
             </>
           ) : (
             <>
-              <Link to="/login" className="py-3 px-6 text-base font-semibold text-gray-600 hover:text-brand-600 transition-colors">
+              <Link to="/login" className="py-3 px-6 text-base font-semibold text-brand-gray-dark hover:text-brand-purple transition-colors">
                 Log in
               </Link>
-              <Link to="/signup" className="py-3 px-8 text-base font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-full transition-colors shadow-md">
+              <Link to="/signup" className="py-3 px-8 text-base font-semibold text-white bg-brand-purple hover:bg-brand-purple-dark rounded-full transition-colors shadow-md hover:shadow-lg hover:shadow-purple-500/20">
                 Sign up free
               </Link>
             </>
@@ -86,7 +86,7 @@ const Header: React.FC = () => {
         <div className="lg:hidden flex items-center ml-auto">
           <button 
             onClick={() => setIsOpen(!isOpen)} 
-            className="text-gray-600 hover:text-gray-900 p-2 bg-gray-100 rounded-full transition-colors"
+            className="text-brand-gray-dark hover:text-brand-black p-2 bg-brand-gray rounded-full transition-colors"
           >
             {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
@@ -101,27 +101,27 @@ const Header: React.FC = () => {
           <div className="flex items-center justify-between mb-4 px-2">
             <div className="flex items-center gap-2">
               <Logo variant="color" />
-              <span className="font-bold text-xl tracking-tighter text-gray-900">GigsConnect</span>
+              <span className="font-bold text-xl tracking-tighter text-brand-black">GigsConnect</span>
             </div>
             <button 
               onClick={() => setIsOpen(false)} 
-              className="text-gray-600 hover:text-gray-900 p-2 bg-gray-100 rounded-full transition-colors"
+              className="text-brand-gray-dark hover:text-brand-black p-2 bg-brand-gray rounded-full transition-colors"
             >
               <X className="h-6 w-6" />
             </button>
           </div>
           <div className="flex flex-col space-y-2">
-            <Link to="/browse" className="block px-6 py-4 text-lg font-semibold text-gray-900 hover:bg-gray-50 rounded-2xl transition-colors" onClick={() => setIsOpen(false)}>Browse Gigs</Link>
-            <Link to="/post" className="block px-6 py-4 text-lg font-semibold text-gray-900 hover:bg-gray-50 rounded-2xl transition-colors" onClick={() => setIsOpen(false)}>Post a Gig</Link>
+            <Link to="/browse" className="block px-6 py-4 text-lg font-semibold text-brand-black hover:bg-brand-purple-soft rounded-2xl transition-colors" onClick={() => setIsOpen(false)}>Browse Gigs</Link>
+            <Link to="/post" className="block px-6 py-4 text-lg font-semibold text-brand-black hover:bg-brand-purple-soft rounded-2xl transition-colors" onClick={() => setIsOpen(false)}>Post a Gig</Link>
             
             <div className="pt-4 pb-2 px-2 flex flex-col gap-3">
               {user ? (
                 <>
-                  <Link to="/dashboard" className="w-full flex justify-center items-center gap-2 py-4 rounded-full font-semibold text-lg text-gray-900 bg-brand-50 hover:bg-brand-100 transition-colors" onClick={() => setIsOpen(false)}>
+                  <Link to="/dashboard" className="w-full flex justify-center items-center gap-2 py-4 rounded-full font-semibold text-lg text-brand-purple bg-brand-purple-soft hover:bg-brand-purple-light transition-colors" onClick={() => setIsOpen(false)}>
                     <LayoutDashboard className="w-5 h-5" />
                     Dashboard
                   </Link>
-                  <Link to="/profile" className="w-full flex justify-center items-center gap-2 py-4 rounded-xl font-semibold text-lg text-gray-900 bg-gray-50 hover:bg-gray-100 transition-colors" onClick={() => setIsOpen(false)}>
+                  <Link to="/profile" className="w-full flex justify-center items-center gap-2 py-4 rounded-xl font-semibold text-lg text-brand-black bg-brand-gray hover:bg-gray-100 transition-colors" onClick={() => setIsOpen(false)}>
                     <User className="w-5 h-5" />
                     Profile
                   </Link>
@@ -132,10 +132,10 @@ const Header: React.FC = () => {
                 </>
               ) : (
                 <>
-                  <Link to="/login" className="w-full flex justify-center py-4 rounded-xl font-semibold text-lg text-gray-900 bg-gray-100 hover:bg-gray-200 transition-colors" onClick={() => setIsOpen(false)}>
+                  <Link to="/login" className="w-full flex justify-center py-4 rounded-xl font-semibold text-lg text-brand-black bg-brand-gray hover:bg-gray-200 transition-colors" onClick={() => setIsOpen(false)}>
                     Log in
                   </Link>
-                  <Link to="/signup" className="w-full flex justify-center py-4 rounded-full font-semibold text-lg text-white bg-brand-600 hover:bg-brand-700 transition-colors shadow-md" onClick={() => setIsOpen(false)}>
+                  <Link to="/signup" className="w-full flex justify-center py-4 rounded-full font-semibold text-lg text-white bg-brand-purple hover:bg-brand-purple-dark transition-colors shadow-md" onClick={() => setIsOpen(false)}>
                     Sign up free
                   </Link>
                 </>

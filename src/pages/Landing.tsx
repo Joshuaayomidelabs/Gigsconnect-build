@@ -9,7 +9,7 @@ import FAQ from '../components/FAQ';
 
 const Landing: React.FC = () => {
   return (
-    <div className="min-h-screen font-sans selection:bg-brand-100 selection:text-brand-900">
+    <div className="min-h-screen font-sans selection:bg-brand-purple-soft selection:text-brand-purple">
       <main>
         <Hero />
         <About />

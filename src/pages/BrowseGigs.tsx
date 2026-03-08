@@ -29,31 +29,42 @@ const BrowseGigs: React.FC = () => {
     fetchGigs();
   }, []);
 
-  const filteredGigs = gigs.filter(gig => 
-    gig.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    gig.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    gig.location.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredGigs = gigs
+    .filter(gig => 
+      gig.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      gig.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      gig.location.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort((a, b) => {
+      const planA = a.profiles?.subscription_plan || 'starter';
+      const planB = b.profiles?.subscription_plan || 'starter';
+      
+      if (planA === 'premium' && planB !== 'premium') return -1;
+      if (planA !== 'premium' && planB === 'premium') return 1;
+      if (planA === 'pro' && planB === 'starter') return -1;
+      if (planA === 'starter' && planB === 'pro') return 1;
+      return 0;
+    });
 
   return (
-    <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto min-h-screen">
+    <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto min-h-screen bg-white">
       <section className="mb-12">
-        <h1 className="text-4xl font-black text-gray-900 tracking-tight mb-4">Browse Gigs</h1>
-        <p className="text-gray-500 text-lg">Find your next big opportunity across the continent.</p>
+        <h1 className="text-4xl font-black text-brand-black tracking-tight mb-4">Browse <span className="text-brand-purple">Gigs</span></h1>
+        <p className="text-brand-gray-dark text-lg">Find your next big opportunity across the continent.</p>
       </section>
 
       <div className="flex flex-col sm:flex-row gap-4 mb-8">
         <div className="relative flex-grow">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-gray-dark/50 w-5 h-5" />
           <input 
             type="text" 
             placeholder="Search by title, description, or location..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-12 pr-4 py-4 rounded-2xl border border-gray-200 focus:ring-2 focus:ring-brand-600 focus:border-transparent transition-all outline-none shadow-sm"
+            className="w-full pl-12 pr-4 py-4 rounded-2xl border border-brand-purple-light/20 focus:ring-2 focus:ring-brand-purple focus:border-transparent transition-all outline-none shadow-sm bg-brand-gray focus:bg-white text-brand-black"
           />
         </div>
-        <button className="flex items-center justify-center gap-2 px-6 py-4 rounded-2xl border border-gray-200 text-gray-600 font-bold hover:bg-gray-50 transition-all shadow-sm">
+        <button className="flex items-center justify-center gap-2 px-6 py-4 rounded-2xl border border-brand-purple-light/20 text-brand-black font-bold hover:bg-brand-purple-soft hover:text-brand-purple transition-all shadow-sm bg-white">
           <Filter className="w-5 h-5" />
           Filters
         </button>
@@ -61,7 +72,7 @@ const BrowseGigs: React.FC = () => {
 
       {isLoading ? (
         <div className="flex items-center justify-center py-20">
-          <Loader2 className="w-10 h-10 animate-spin text-brand-600" />
+          <Loader2 className="w-10 h-10 animate-spin text-brand-purple" />
         </div>
       ) : error ? (
         <div className="bg-red-50 border border-red-100 rounded-2xl p-8 text-center">
@@ -82,8 +93,8 @@ const BrowseGigs: React.FC = () => {
                 />
               ))
             ) : (
-              <div className="col-span-full text-center py-20 bg-gray-50 rounded-3xl border border-gray-100 border-dashed">
-                <p className="text-gray-500 text-lg">No gigs found matching your search.</p>
+              <div className="col-span-full text-center py-20 bg-brand-gray rounded-3xl border border-brand-purple-light/20 border-dashed">
+                <p className="text-brand-gray-dark text-lg">No gigs found matching your search.</p>
               </div>
             )}
           </AnimatePresence>

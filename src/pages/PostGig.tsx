@@ -46,16 +46,16 @@ const PostGig: React.FC = () => {
   };
 
   return (
-    <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8 max-w-3xl mx-auto min-h-screen">
+    <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8 max-w-3xl mx-auto min-h-screen bg-brand-gray">
       <section className="mb-10">
-        <h1 className="text-4xl font-black text-gray-900 tracking-tight mb-4">Post a New Gig</h1>
-        <p className="text-gray-500 text-lg">Find the perfect talent for your musical project.</p>
+        <h1 className="text-4xl font-black text-brand-black tracking-tight mb-4">Post a New <span className="text-brand-purple">Gig</span></h1>
+        <p className="text-brand-gray-dark text-lg">Find the perfect talent for your musical project.</p>
       </section>
 
-      <form onSubmit={handleSubmit} className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 space-y-6">
+      <form onSubmit={handleSubmit} className="bg-white rounded-3xl shadow-xl border border-brand-purple-light/20 p-8 space-y-6">
         <div>
-          <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-            <Music className="w-4 h-4 text-brand-600" />
+          <label className="block text-sm font-bold text-brand-black mb-2 flex items-center gap-2">
+            <Music className="w-4 h-4 text-brand-purple" />
             Gig Title *
           </label>
           <input 
@@ -64,14 +64,14 @@ const PostGig: React.FC = () => {
             value={formData.title}
             onChange={handleChange}
             placeholder="e.g. Lead Guitarist for Afrobeats Tour"
-            className="w-full p-4 rounded-2xl border border-gray-200 focus:ring-2 focus:ring-brand-600 focus:border-transparent transition-all outline-none bg-gray-50 focus:bg-white"
+            className="w-full p-4 rounded-2xl border border-brand-purple-light/20 focus:ring-2 focus:ring-brand-purple focus:border-transparent transition-all outline-none bg-brand-gray focus:bg-white text-brand-black"
           />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-              <DollarSign className="w-4 h-4 text-brand-600" />
+            <label className="block text-sm font-bold text-brand-black mb-2 flex items-center gap-2">
+              <DollarSign className="w-4 h-4 text-brand-purple" />
               Budget (USD) *
             </label>
             <input 
@@ -81,12 +81,12 @@ const PostGig: React.FC = () => {
               value={formData.budget}
               onChange={handleChange}
               placeholder="e.g. 500"
-              className="w-full p-4 rounded-2xl border border-gray-200 focus:ring-2 focus:ring-brand-600 focus:border-transparent transition-all outline-none bg-gray-50 focus:bg-white"
+              className="w-full p-4 rounded-2xl border border-brand-purple-light/20 focus:ring-2 focus:ring-brand-purple focus:border-transparent transition-all outline-none bg-brand-gray focus:bg-white text-brand-black"
             />
           </div>
           <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-brand-600" />
+            <label className="block text-sm font-bold text-brand-black mb-2 flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-brand-purple" />
               Location *
             </label>
             <input 
@@ -95,22 +95,22 @@ const PostGig: React.FC = () => {
               value={formData.location}
               onChange={handleChange}
               placeholder="e.g. Lagos, Nigeria / Remote"
-              className="w-full p-4 rounded-2xl border border-gray-200 focus:ring-2 focus:ring-brand-600 focus:border-transparent transition-all outline-none bg-gray-50 focus:bg-white"
+              className="w-full p-4 rounded-2xl border border-brand-purple-light/20 focus:ring-2 focus:ring-brand-purple focus:border-transparent transition-all outline-none bg-brand-gray focus:bg-white text-brand-black"
             />
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-              <Music className="w-4 h-4 text-brand-600" />
+            <label className="block text-sm font-bold text-brand-black mb-2 flex items-center gap-2">
+              <Music className="w-4 h-4 text-brand-purple" />
               Category *
             </label>
             <select 
               name="gig_category"
               value={formData.gig_category}
               onChange={handleChange}
-              className="w-full p-4 rounded-2xl border border-gray-200 focus:ring-2 focus:ring-brand-600 focus:border-transparent transition-all outline-none bg-gray-50 focus:bg-white"
+              className="w-full p-4 rounded-2xl border border-brand-purple-light/20 focus:ring-2 focus:ring-brand-purple focus:border-transparent transition-all outline-none bg-brand-gray focus:bg-white text-brand-black"
             >
               {GIG_CATEGORIES.map(cat => (
                 <option key={cat} value={cat}>{cat}</option>
@@ -118,8 +118,8 @@ const PostGig: React.FC = () => {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-brand-600" />
+            <label className="block text-sm font-bold text-brand-black mb-2 flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-brand-purple" />
               Deadline *
             </label>
             <input 
@@ -128,14 +128,14 @@ const PostGig: React.FC = () => {
               name="deadline"
               value={formData.deadline}
               onChange={handleChange}
-              className="w-full p-4 rounded-2xl border border-gray-200 focus:ring-2 focus:ring-brand-600 focus:border-transparent transition-all outline-none bg-gray-50 focus:bg-white"
+              className="w-full p-4 rounded-2xl border border-brand-purple-light/20 focus:ring-2 focus:ring-brand-purple focus:border-transparent transition-all outline-none bg-brand-gray focus:bg-white text-brand-black"
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-            <FileText className="w-4 h-4 text-brand-600" />
+          <label className="block text-sm font-bold text-brand-black mb-2 flex items-center gap-2">
+            <FileText className="w-4 h-4 text-brand-purple" />
             Description *
           </label>
           <textarea 
@@ -145,7 +145,7 @@ const PostGig: React.FC = () => {
             onChange={handleChange}
             rows={6}
             placeholder="Describe the gig requirements, expectations, and any other relevant details..."
-            className="w-full p-4 rounded-2xl border border-gray-200 focus:ring-2 focus:ring-brand-600 focus:border-transparent transition-all outline-none bg-gray-50 focus:bg-white resize-none"
+            className="w-full p-4 rounded-2xl border border-brand-purple-light/20 focus:ring-2 focus:ring-brand-purple focus:border-transparent transition-all outline-none bg-brand-gray focus:bg-white resize-none text-brand-black"
           />
         </div>
 
@@ -153,7 +153,7 @@ const PostGig: React.FC = () => {
           <button 
             type="submit"
             disabled={isLoading}
-            className="w-full py-4 rounded-2xl bg-brand-600 text-white font-bold hover:bg-brand-700 transition-all shadow-md flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-70"
+            className="w-full py-4 rounded-2xl bg-brand-purple text-white font-bold hover:bg-brand-purple-dark transition-all shadow-md flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-70 purple-glow"
           >
             {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Post Gig Now'}
           </button>

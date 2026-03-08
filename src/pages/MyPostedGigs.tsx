@@ -31,13 +31,13 @@ const MyPostedGigs: React.FC = () => {
   }, []);
 
   return (
-    <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto min-h-screen">
+    <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto min-h-screen bg-brand-gray">
       <div className="flex justify-between items-center mb-10">
         <div>
-          <h1 className="text-4xl font-black text-gray-900 tracking-tight mb-2">My Posted Gigs</h1>
-          <p className="text-gray-500 text-lg">Manage the gigs you've created.</p>
+          <h1 className="text-4xl font-black text-brand-black tracking-tight mb-2">My Posted <span className="text-brand-purple">Gigs</span></h1>
+          <p className="text-brand-gray-dark text-lg">Manage the gigs you've created.</p>
         </div>
-        <Link to="/post" className="hidden sm:flex items-center gap-2 bg-brand-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-brand-700 transition-all shadow-md active:scale-95">
+        <Link to="/post" className="hidden sm:flex items-center gap-2 bg-brand-purple text-white px-6 py-3 rounded-xl font-bold hover:bg-brand-purple-dark transition-all shadow-md active:scale-95 purple-glow">
           <Plus className="w-5 h-5" />
           Post New Gig
         </Link>
@@ -45,7 +45,7 @@ const MyPostedGigs: React.FC = () => {
 
       {isLoading ? (
         <div className="flex items-center justify-center py-20">
-          <Loader2 className="w-10 h-10 animate-spin text-brand-600" />
+          <Loader2 className="w-10 h-10 animate-spin text-brand-purple" />
         </div>
       ) : error ? (
         <div className="bg-red-50 border border-red-100 rounded-2xl p-8 text-center">
@@ -60,9 +60,9 @@ const MyPostedGigs: React.FC = () => {
               <GigCard key={gig.id} gig={gig} showApply={false} />
             ))
           ) : (
-            <div className="col-span-full text-center py-20 bg-gray-50 rounded-3xl border border-gray-100 border-dashed">
-              <p className="text-gray-500 text-lg mb-6">You haven't posted any gigs yet.</p>
-              <Link to="/post" className="inline-flex items-center gap-2 bg-brand-600 text-white px-8 py-4 rounded-2xl font-bold hover:bg-brand-700 transition-all shadow-md">
+            <div className="col-span-full text-center py-20 bg-white rounded-3xl border border-brand-purple-light/20 border-dashed">
+              <p className="text-brand-gray-dark text-lg mb-6">You haven't posted any gigs yet.</p>
+              <Link to="/post" className="inline-flex items-center gap-2 bg-brand-purple text-white px-8 py-4 rounded-2xl font-bold hover:bg-brand-purple-dark transition-all shadow-lg purple-glow">
                 Post Your First Gig
               </Link>
             </div>

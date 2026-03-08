@@ -30,15 +30,15 @@ const MyApplications: React.FC = () => {
   }, []);
 
   return (
-    <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto min-h-screen">
+    <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto min-h-screen bg-brand-gray">
       <section className="mb-10">
-        <h1 className="text-4xl font-black text-gray-900 tracking-tight mb-4">My Applications</h1>
-        <p className="text-gray-500 text-lg">Track the status of gigs you've applied for.</p>
+        <h1 className="text-4xl font-black text-brand-black tracking-tight mb-4">My <span className="text-brand-purple">Applications</span></h1>
+        <p className="text-brand-gray-dark text-lg">Track the status of gigs you've applied for.</p>
       </section>
 
       {isLoading ? (
         <div className="flex items-center justify-center py-20">
-          <Loader2 className="w-10 h-10 animate-spin text-brand-600" />
+          <Loader2 className="w-10 h-10 animate-spin text-brand-purple" />
         </div>
       ) : error ? (
         <div className="bg-red-50 border border-red-100 rounded-2xl p-8 text-center">
@@ -53,8 +53,8 @@ const MyApplications: React.FC = () => {
               <ApplicationCard key={app.id} application={app} />
             ))
           ) : (
-            <div className="col-span-full text-center py-20 bg-gray-50 rounded-3xl border border-gray-100 border-dashed">
-              <p className="text-gray-500 text-lg">You haven't applied to any gigs yet.</p>
+            <div className="col-span-full text-center py-20 bg-white rounded-3xl border border-brand-purple-light/20 border-dashed">
+              <p className="text-brand-gray-dark text-lg">You haven't applied to any gigs yet.</p>
             </div>
           )}
         </div>

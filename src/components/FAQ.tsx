@@ -11,22 +11,22 @@ interface FAQItemProps {
 
 const FAQItem: React.FC<FAQItemProps> = ({ question, answer, isOpen, toggle }) => {
   return (
-    <div className="border-b border-gray-200 last:border-0">
+    <div className="border-b border-brand-purple-light/20 last:border-0">
       <button
         className="w-full py-8 text-left flex justify-between items-center focus:outline-none group"
         onClick={toggle}
       >
-        <span className="text-2xl font-bold text-linktree-dark pr-8">
+        <span className="text-xl md:text-2xl font-bold text-brand-black pr-8 group-hover:text-brand-purple transition-colors">
           {question}
         </span>
-        <span className={`flex-shrink-0 text-linktree-dark transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}>
+        <span className={`flex-shrink-0 text-brand-purple transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}>
           {isOpen ? <Minus className="w-6 h-6" /> : <Plus className="w-6 h-6" />}
         </span>
       </button>
       <div 
         className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-96 opacity-100 pb-8' : 'max-h-0 opacity-0'}`}
       >
-        <p className="text-linktree-dark/80 text-lg font-medium leading-relaxed pr-8">{answer}</p>
+        <p className="text-brand-gray-dark text-lg leading-relaxed pr-8">{answer}</p>
       </div>
     </div>
   );
@@ -63,17 +63,25 @@ const FAQ: React.FC = () => {
   };
 
   return (
-    <section id="faq" className="py-24 lg:py-32 bg-white">
-      <div className="max-w-[1000px] mx-auto px-6">
-        <motion.h2 
+    <section id="faq" className="py-24 lg:py-32 bg-white relative overflow-hidden">
+      {/* Decorative background element */}
+      <div className="absolute top-0 left-0 -translate-y-1/2 -translate-x-1/4 w-[500px] h-[500px] bg-brand-purple/5 rounded-full blur-3xl pointer-events-none"></div>
+
+      <div className="max-w-[1000px] mx-auto px-6 relative z-10">
+        <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="text-4xl md:text-5xl lg:text-6xl font-black text-linktree-dark mb-16 tracking-tighter leading-[1.1] text-center"
+          className="text-center mb-16"
         >
-          Got questions?
-        </motion.h2>
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-brand-black mb-6 tracking-tighter leading-[1.1]">
+            Got <span className="text-brand-purple">questions?</span>
+          </h2>
+          <p className="text-xl text-brand-gray-dark max-w-2xl mx-auto">
+            Everything you need to know about the platform and how to get started.
+          </p>
+        </motion.div>
         
         <div className="bg-white">
           {faqs.map((faq, index) => (
