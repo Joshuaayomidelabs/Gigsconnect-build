@@ -57,17 +57,12 @@ const GigCard: React.FC<GigCardProps> = ({ gig, onApply, onViewDetails, showAppl
         <div className="flex items-center gap-3 text-brand-gray-dark text-sm font-medium">
           <div className="w-6 h-6 rounded-full bg-brand-purple-soft text-brand-purple flex items-center justify-center text-[10px] font-bold flex-shrink-0 overflow-hidden border border-brand-purple-light/30">
             {creator?.profile_photo ? (
-              <img src={creator.profile_photo} alt="" className="w-full h-full object-cover" />
+              <img src={creator.profile_photo} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
             ) : (
               <span>{creator?.full_name?.charAt(0).toUpperCase() || 'U'}</span>
             )}
           </div>
           <span className="truncate">By <span className="text-brand-black font-semibold">{creator?.full_name || 'Unknown Poster'}</span></span>
-          {creator?.subscription_plan === 'premium' && (
-            <span className="ml-1 px-1.5 py-0.5 bg-brand-purple text-white text-[8px] font-black rounded-md uppercase tracking-tighter shadow-sm">
-              Premium
-            </span>
-          )}
         </div>
       </div>
       

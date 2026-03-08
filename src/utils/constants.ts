@@ -55,7 +55,7 @@ export const PRICING_DATA = {
   }
 };
 
-export const LOGO_URL = 'https://picsum.photos/seed/music/200/200';
+export const LOGO_URL = '/logo.svg';
 
 export const APP_NAME = 'GigsConnect';
 
