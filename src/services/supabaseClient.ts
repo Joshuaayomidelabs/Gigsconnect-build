@@ -1,13 +1,31 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+let supabaseInstance: SupabaseClient | null = null;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn('Supabase URL or Anon Key is missing. Please check your environment variables.');
-}
+export const getSupabase = (): SupabaseClient => {
+  if (!supabaseInstance) {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-export const supabase = createClient(
-  supabaseUrl || '',
-  supabaseAnonKey || ''
-);
+    if (!supabaseUrl || !supabaseAnonKey) {
+      throw new Error(
+        'Supabase URL or Anon Key is missing. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your environment variables (Settings > Secrets).'
+      );
+    }
+
+    supabaseInstance = createClient(supabaseUrl, supabaseAnonKey);
+  }
+  return supabaseInstance;
+};
+
+/**
+ * Exported supabase client using a Proxy to handle lazy initialization.
+ * This prevents the app from crashing on load if environment variables are missing,
+ * while maintaining compatibility with existing imports.
+ */
+export const supabase = new Proxy({} as SupabaseClient, {
+  get: (_target, prop) => {
+    const client = getSupabase();
+    return (client as any)[prop];
+  },
+});
