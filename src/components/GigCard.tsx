@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, Calendar } from 'lucide-react';
+import { MapPin, Calendar, ArrowRight } from 'lucide-react';
 import { motion } from 'motion/react';
 import { formatCurrency, formatDate } from '../utils/helpers';
 
@@ -16,73 +16,69 @@ const GigCard: React.FC<GigCardProps> = ({ gig, onApply, onViewDetails, showAppl
   return (
     <motion.div 
       layout
-      initial={{ opacity: 0, y: 20, scale: 0.95 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.9 }}
-      transition={{ duration: 0.3, type: "spring", bounce: 0.2 }}
-      className="bg-white rounded-3xl p-6 shadow-sm border border-brand-purple-light/20 hover:shadow-xl transition-all duration-300 flex flex-col h-full hover:-translate-y-1 relative group overflow-hidden"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-white rounded-[2rem] p-5 shadow-sm border border-brand-purple-light/10 hover:shadow-md transition-all duration-300 flex flex-col h-full group"
     >
-      <div className="absolute top-0 right-0 w-24 h-24 bg-brand-purple/5 rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-700"></div>
-
-      <div className="flex justify-between items-start mb-4 gap-4 relative z-10">
-        <h3 className="text-xl font-bold text-brand-black leading-tight pr-2 group-hover:text-brand-purple transition-colors line-clamp-2">
-          {gig.title}
-        </h3>
-        <span className="px-3 py-1 bg-green-50 text-green-700 text-sm font-bold rounded-full whitespace-nowrap flex-shrink-0 border border-green-100 shadow-sm">
-          {formatCurrency(gig.budget || 0)}
-        </span>
-      </div>
-      
-      <div className="flex flex-wrap items-center gap-2 mb-4 relative z-10">
-        <span className="inline-flex items-center px-2.5 py-1 bg-brand-purple-soft text-brand-purple text-xs font-bold rounded-lg border border-brand-purple-light/30">
-          {gig.gig_category}
-        </span>
-      </div>
-      
-      <p className="text-brand-gray-dark text-sm leading-relaxed mb-6 flex-grow line-clamp-3 relative z-10">
-        {gig.description}
-      </p>
-      
-      <div className="space-y-3 mb-6 bg-brand-gray p-4 rounded-2xl border border-brand-purple-light/10 relative z-10">
-        <div className="flex items-center gap-3 text-brand-gray-dark text-sm font-medium">
-          <MapPin className="w-4 h-4 text-brand-purple flex-shrink-0" />
-          <span className="truncate">{gig.location}</span>
-        </div>
-        {gig.deadline && (
-          <div className="flex items-center gap-3 text-brand-gray-dark text-sm font-medium">
-            <Calendar className="w-4 h-4 text-brand-purple flex-shrink-0" />
-            <span className="truncate">{formatDate(gig.deadline)}</span>
-          </div>
-        )}
-        <div className="flex items-center gap-3 text-brand-gray-dark text-sm font-medium">
-          <div className="w-6 h-6 rounded-full bg-brand-purple-soft text-brand-purple flex items-center justify-center text-[10px] font-bold flex-shrink-0 overflow-hidden border border-brand-purple-light/30">
+      {/* Card Header: Creator Info */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-brand-purple-soft text-brand-purple flex items-center justify-center text-xs font-bold overflow-hidden border border-brand-purple-light/20">
             {creator?.profile_photo ? (
               <img src={creator.profile_photo} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
             ) : (
               <span>{creator?.full_name?.charAt(0).toUpperCase() || 'U'}</span>
             )}
           </div>
-          <span className="truncate">By <span className="text-brand-black font-semibold">{creator?.full_name || 'Unknown Poster'}</span></span>
+          <div>
+            <h4 className="text-sm font-bold text-brand-black leading-none mb-1">{creator?.full_name || 'Anonymous'}</h4>
+            <div className="flex items-center gap-1 text-[10px] text-brand-gray-dark font-medium">
+              <MapPin className="w-3 h-3" />
+              <span>{gig.location}</span>
+            </div>
+          </div>
         </div>
+        <span className="text-[10px] font-black text-brand-purple bg-brand-purple-soft px-2 py-1 rounded-lg uppercase tracking-wider">
+          {gig.gig_category}
+        </span>
       </div>
-      
-      <div className="flex items-center gap-3 mt-auto pt-2 relative z-10">
-        {onViewDetails && (
-          <button 
-            onClick={() => onViewDetails(gig)}
-            className="flex-1 py-3.5 px-4 rounded-xl border border-brand-purple-light/30 text-brand-black font-bold hover:bg-brand-purple-soft hover:text-brand-purple transition-all text-sm active:scale-95 bg-white"
-          >
-            Details
-          </button>
-        )}
-        {showApply && onApply && (
-          <button 
-            onClick={() => onApply(gig.id)}
-            className={`flex-1 py-3.5 px-4 rounded-xl bg-brand-purple text-white font-bold hover:bg-brand-purple-dark transition-all text-sm shadow-md flex justify-center items-center active:scale-95 hover:shadow-purple-500/20 ${!onViewDetails ? 'w-full' : ''}`}
-          >
-            Apply Now
-          </button>
-        )}
+
+      {/* Card Body: Content */}
+      <div className="mb-4">
+        <h3 className="text-lg font-black text-brand-black leading-tight mb-2 group-hover:text-brand-purple transition-colors">
+          {gig.title}
+        </h3>
+        <p className="text-brand-gray-dark text-sm leading-relaxed line-clamp-3">
+          {gig.description}
+        </p>
+      </div>
+
+      {/* Card Footer: Meta & Actions */}
+      <div className="mt-auto pt-4 border-t border-brand-gray flex items-center justify-between">
+        <div className="flex flex-col">
+          <span className="text-[10px] text-brand-gray-dark font-bold uppercase tracking-widest mb-0.5">Budget</span>
+          <span className="text-base font-black text-brand-black">{formatCurrency(gig.budget || 0)}</span>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          {onViewDetails && (
+            <button 
+              onClick={() => onViewDetails(gig)}
+              className="p-2.5 rounded-xl bg-brand-gray text-brand-gray-dark hover:bg-brand-purple-soft hover:text-brand-purple transition-all active:scale-90"
+              title="View Details"
+            >
+              <ArrowRight className="w-5 h-5" />
+            </button>
+          )}
+          {showApply && onApply && (
+            <button 
+              onClick={() => onApply(gig.id)}
+              className="px-5 py-2.5 rounded-xl bg-brand-purple text-white font-bold text-sm hover:bg-brand-purple-dark transition-all shadow-sm active:scale-95 hover:shadow-purple-500/20"
+            >
+              Apply
+            </button>
+          )}
+        </div>
       </div>
     </motion.div>
   );

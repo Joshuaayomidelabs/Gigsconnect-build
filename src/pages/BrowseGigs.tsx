@@ -47,54 +47,61 @@ const BrowseGigs: React.FC = () => {
     });
 
   return (
-    <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto min-h-screen bg-white">
-      <section className="mb-12">
-        <h1 className="text-4xl font-black text-brand-black tracking-tight mb-4">Browse <span className="text-brand-purple">Gigs</span></h1>
-        <p className="text-brand-gray-dark text-lg">Find your next big opportunity across the continent.</p>
+    <div className="pt-24 pb-24 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto min-h-screen bg-brand-gray">
+      <section className="mb-8 px-2">
+        <h1 className="text-3xl lg:text-4xl font-black text-brand-black tracking-tight mb-2">Discover <span className="text-brand-purple">Gigs</span></h1>
+        <p className="text-brand-gray-dark text-sm lg:text-base font-medium">Find your next big opportunity across the continent.</p>
       </section>
 
-      <div className="flex flex-col sm:flex-row gap-4 mb-8">
+      <div className="flex flex-col sm:flex-row gap-3 mb-8 px-2">
         <div className="relative flex-grow">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-gray-dark/50 w-5 h-5" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-gray-dark/40 w-5 h-5" />
           <input 
             type="text" 
-            placeholder="Search by title, description, or location..." 
+            placeholder="Search by title, skills, or location..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-12 pr-4 py-4 rounded-2xl border border-brand-purple-light/20 focus:ring-2 focus:ring-brand-purple focus:border-transparent transition-all outline-none shadow-sm bg-brand-gray focus:bg-white text-brand-black"
+            className="w-full pl-12 pr-4 py-3.5 rounded-2xl border border-brand-purple-light/10 focus:ring-2 focus:ring-brand-purple/20 focus:border-brand-purple/30 transition-all outline-none shadow-sm bg-white text-brand-black text-sm font-medium"
           />
         </div>
-        <button className="flex items-center justify-center gap-2 px-6 py-4 rounded-2xl border border-brand-purple-light/20 text-brand-black font-bold hover:bg-brand-purple-soft hover:text-brand-purple transition-all shadow-sm bg-white">
-          <Filter className="w-5 h-5" />
+        <button className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl border border-brand-purple-light/10 text-brand-black font-bold hover:bg-brand-purple-soft hover:text-brand-purple transition-all shadow-sm bg-white text-sm active:scale-95">
+          <Filter className="w-4 h-4" />
           Filters
         </button>
       </div>
 
       {isLoading ? (
         <div className="flex items-center justify-center py-20">
-          <Loader2 className="w-10 h-10 animate-spin text-brand-purple" />
+          <Loader2 className="w-10 h-10 animate-spin text-brand-purple opacity-50" />
         </div>
       ) : error ? (
-        <div className="bg-red-50 border border-red-100 rounded-2xl p-8 text-center">
+        <div className="bg-red-50 border border-red-100 rounded-[2rem] p-8 text-center mx-2">
           <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
           <h3 className="text-xl font-bold text-red-900 mb-2">Failed to load gigs</h3>
-          <p className="text-red-600">{error}</p>
+          <p className="text-red-600 text-sm">{error}</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <AnimatePresence>
             {filteredGigs.length > 0 ? (
-              filteredGigs.map((gig) => (
-                <GigCard 
-                  key={gig.id} 
-                  gig={gig} 
-                  onViewDetails={(g) => navigate(`/gig/${g.id}`)}
-                  onApply={(id) => navigate(`/gig/${id}`)}
-                />
+              filteredGigs.map((gig, i) => (
+                <motion.div
+                  key={gig.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.05 }}
+                >
+                  <GigCard 
+                    gig={gig} 
+                    onViewDetails={(g) => navigate(`/gig/${g.id}`)}
+                    onApply={(id) => navigate(`/gig/${id}`)}
+                  />
+                </motion.div>
               ))
             ) : (
-              <div className="col-span-full text-center py-20 bg-brand-gray rounded-3xl border border-brand-purple-light/20 border-dashed">
-                <p className="text-brand-gray-dark text-lg">No gigs found matching your search.</p>
+              <div className="col-span-full text-center py-20 bg-white rounded-[2.5rem] border border-brand-purple-light/10 border-dashed mx-2">
+                <p className="text-brand-gray-dark text-lg font-medium">No gigs found matching your search.</p>
+                <button onClick={() => setSearchTerm('')} className="mt-4 text-brand-purple font-bold hover:underline">Clear search</button>
               </div>
             )}
           </AnimatePresence>

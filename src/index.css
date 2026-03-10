@@ -18,14 +18,15 @@
   --color-brand-white: #FFFFFF;
 
   /* Shadows */
-  --shadow-premium: 0 10px 30px -10px rgba(124, 58, 237, 0.15);
-  --shadow-glow: 0 0 20px rgba(124, 58, 237, 0.3);
+  --shadow-premium: 0 10px 30px -10px rgba(124, 58, 237, 0.1);
+  --shadow-glow: 0 0 20px rgba(124, 58, 237, 0.2);
+  --shadow-soft: 0 2px 10px rgba(0, 0, 0, 0.02);
 }
 
 /* Custom styles for GigsConnect */
 
 body {
-  background-color: var(--color-brand-white);
+  background-color: var(--color-brand-gray);
   color: var(--color-brand-black);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
@@ -59,12 +60,28 @@ h1, h2, h3, h4, h5, h6 {
 
 .premium-card {
   background: var(--color-brand-white);
-  border: 1px solid rgba(124, 58, 237, 0.1);
-  box-shadow: var(--shadow-premium);
-  transition: all 0.3s ease;
+  border: 1px solid rgba(124, 58, 237, 0.05);
+  box-shadow: var(--shadow-soft);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .premium-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 20px 40px -15px rgba(124, 58, 237, 0.2);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-premium);
+}
+
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
