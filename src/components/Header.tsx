@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, X, LogOut, LayoutDashboard, User, MessageCircle, Bell } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { supabase } from '../services/supabaseClient';
+import { useAuth } from '../context/AuthContext';
 import { profilesService } from '../services/profilesService';
 import Logo from './Logo';
 import NotificationDropdown from './NotificationDropdown';
@@ -9,7 +9,7 @@ import NotificationDropdown from './NotificationDropdown';
 const Header: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [user, setUser] = useState<any>(null);
+  const { user, signOut } = useAuth();
   const [profile, setProfile] = useState<any>(null);
   const navigate = useNavigate();
   const location = useLocation();
@@ -21,32 +21,20 @@ const Header: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setUser(session?.user || null);
-      if (session?.user) {
-        const { data } = await profilesService.getProfile(session.user.id);
-        setProfile(data);
-      }
-    };
-
-    checkUser();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event: any, session: any) => {
-      setUser(session?.user || null);
-      if (session?.user) {
-        const { data } = await profilesService.getProfile(session.user.id);
+    const fetchProfile = async () => {
+      if (user) {
+        const { data } = await profilesService.getProfile(user.id);
         setProfile(data);
       } else {
         setProfile(null);
       }
-    });
+    };
 
-    return () => subscription.unsubscribe();
-  }, []);
+    fetchProfile();
+  }, [user]);
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
+    await signOut();
     navigate('/');
   };
 

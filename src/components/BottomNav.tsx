@@ -2,35 +2,26 @@ import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { Home, Search, PlusCircle, MessageCircle, User } from 'lucide-react';
 import { motion } from 'motion/react';
-import { supabase } from '../services/supabaseClient';
+import { useAuth } from '../context/AuthContext';
 import { profilesService } from '../services/profilesService';
 
 const BottomNav: React.FC = () => {
   const location = useLocation();
+  const { user } = useAuth();
   const [profile, setProfile] = useState<any>(null);
 
   useEffect(() => {
     const fetchProfile = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        const { data } = await profilesService.getProfile(session.user.id);
-        setProfile(data);
-      }
-    };
-
-    fetchProfile();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (session) {
-        const { data } = await profilesService.getProfile(session.user.id);
+      if (user) {
+        const { data } = await profilesService.getProfile(user.id);
         setProfile(data);
       } else {
         setProfile(null);
       }
-    });
+    };
 
-    return () => subscription.unsubscribe();
-  }, []);
+    fetchProfile();
+  }, [user]);
 
   const navItems = [
     { icon: <Home />, label: 'Home', path: '/dashboard' },
