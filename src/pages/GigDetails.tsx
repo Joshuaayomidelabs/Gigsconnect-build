@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { MapPin, Calendar, DollarSign, FileText, Loader2, CheckCircle, ArrowLeft } from 'lucide-react';
+import { MapPin, Calendar, DollarSign, FileText, Loader2, CheckCircle, ArrowLeft, Music } from 'lucide-react';
 import { gigsService } from '../services/gigsService';
 import { applicationsService } from '../services/applicationsService';
 import { supabase } from '../services/supabaseClient';
@@ -99,8 +99,8 @@ const GigDetails: React.FC = () => {
             </div>
             <div className="flex items-center gap-4 bg-brand-gray p-4 rounded-2xl border border-brand-purple-light/10">
               <div className="w-12 h-12 rounded-full bg-brand-purple-soft border-2 border-brand-purple overflow-hidden">
-                {gig.profiles?.profile_photo ? (
-                  <img src={gig.profiles.profile_photo} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
+                {gig.profiles?.avatar_url ? (
+                  <img src={gig.profiles.avatar_url} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-brand-purple font-bold">
                     {gig.profiles?.full_name?.charAt(0).toUpperCase() || 'U'}
@@ -146,6 +146,22 @@ const GigDetails: React.FC = () => {
               {gig.description}
             </div>
           </div>
+
+          {gig.skills && (
+            <div>
+              <h3 className="text-2xl font-black text-brand-black mb-6 flex items-center gap-3">
+                <Music className="w-6 h-6 text-brand-purple" />
+                Required Skills
+              </h3>
+              <div className="flex flex-wrap gap-2 bg-brand-gray p-8 rounded-[2rem] border border-brand-purple-light/10">
+                {gig.skills.split(',').map((skill: string) => (
+                  <span key={skill} className="px-4 py-2 bg-white text-brand-purple text-sm font-bold rounded-xl border border-brand-purple-light/20 shadow-sm">
+                    {skill.trim()}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
 
           {!showApplyForm ? (
             <>

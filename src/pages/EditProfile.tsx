@@ -16,7 +16,7 @@ const EditProfile: React.FC = () => {
     city: '',
     country: '',
     skills: [] as string[],
-    profile_photo: ''
+    avatar_url: ''
   });
 
   useEffect(() => {
@@ -34,7 +34,7 @@ const EditProfile: React.FC = () => {
             city: data.city || '',
             country: data.country || '',
             skills: data.skills || [],
-            profile_photo: data.profile_photo || ''
+            avatar_url: data.avatar_url || ''
           });
         }
       }
@@ -62,7 +62,7 @@ const EditProfile: React.FC = () => {
       if (!session) throw new Error('Login required');
 
       const publicUrl = await profilesService.uploadAvatar(session.user.id, file);
-      setFormData(prev => ({ ...prev, profile_photo: publicUrl }));
+      setFormData(prev => ({ ...prev, avatar_url: publicUrl }));
     } catch (err: any) {
       alert(err.message);
     }
@@ -109,8 +109,8 @@ const EditProfile: React.FC = () => {
         <div className="bg-white rounded-3xl p-8 shadow-sm border border-brand-purple-light/10 flex flex-col items-center sm:flex-row gap-8">
           <div className="relative group">
             <div className="w-32 h-32 rounded-full bg-brand-gray border-4 border-white shadow-md overflow-hidden flex items-center justify-center">
-              {formData.profile_photo ? (
-                <img src={formData.profile_photo} alt="Profile" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
+              {formData.avatar_url ? (
+                <img src={formData.avatar_url} alt="Profile" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
               ) : (
                 <User className="w-12 h-12 text-brand-gray-dark/30" />
               )}
@@ -122,7 +122,7 @@ const EditProfile: React.FC = () => {
           </div>
           <div className="text-center sm:text-left">
             <h3 className="text-xl font-bold text-brand-black mb-1">Profile Photo</h3>
-            <p className="text-sm text-brand-gray-dark">Upload a clear photo of yourself. Max size 2MB.</p>
+            <p className="text-sm text-brand-gray-dark">Upload a clear photo of yourself. Max size 1MB.</p>
           </div>
         </div>
 

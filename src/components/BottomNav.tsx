@@ -1,17 +1,52 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { Home, Search, PlusCircle, MessageCircle, User } from 'lucide-react';
 import { motion } from 'motion/react';
+import { supabase } from '../services/supabaseClient';
+import { profilesService } from '../services/profilesService';
 
 const BottomNav: React.FC = () => {
   const location = useLocation();
+  const [profile, setProfile] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const { data } = await profilesService.getProfile(session.user.id);
+        setProfile(data);
+      }
+    };
+
+    fetchProfile();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (session) {
+        const { data } = await profilesService.getProfile(session.user.id);
+        setProfile(data);
+      } else {
+        setProfile(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const navItems = [
     { icon: <Home />, label: 'Home', path: '/dashboard' },
     { icon: <Search />, label: 'Search', path: '/browse' },
     { icon: <PlusCircle />, label: 'Post', path: '/post', isAction: true },
     { icon: <MessageCircle />, label: 'Messages', path: '/messages' },
-    { icon: <User />, label: 'Profile', path: '/profile' },
+    { 
+      icon: profile?.avatar_url ? (
+        <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+      ) : (
+        <User />
+      ), 
+      label: 'Profile', 
+      path: '/profile',
+      isProfile: true
+    },
   ];
 
   return (
@@ -40,14 +75,20 @@ const BottomNav: React.FC = () => {
               to={item.path}
               className="flex flex-col items-center justify-center gap-1 group relative flex-1"
             >
-              <div className={`p-2.5 rounded-2xl transition-all duration-300 ${
+              <div className={`p-2.5 rounded-2xl transition-all duration-300 overflow-hidden ${
                 isActive 
                   ? 'text-brand-purple bg-brand-purple-soft/50' 
                   : 'text-brand-gray-dark group-hover:text-brand-purple group-hover:bg-brand-purple-soft/30'
-              }`}>
-                {React.cloneElement(item.icon as React.ReactElement, { 
-                  className: `w-5 h-5 transition-all duration-300 ${isActive ? 'scale-110 stroke-[2.5px]' : 'group-active:scale-90'}` 
-                })}
+              } ${item.isProfile ? 'w-10 h-10 flex items-center justify-center' : ''}`}>
+                {item.isProfile ? (
+                  <div className={`w-full h-full rounded-full overflow-hidden flex items-center justify-center ${isActive ? 'ring-2 ring-brand-purple' : ''}`}>
+                    {item.icon}
+                  </div>
+                ) : (
+                  React.cloneElement(item.icon as React.ReactElement, { 
+                    className: `w-5 h-5 transition-all duration-300 ${isActive ? 'scale-110 stroke-[2.5px]' : 'group-active:scale-90'}` 
+                  })
+                )}
               </div>
               {isActive && (
                 <motion.div 

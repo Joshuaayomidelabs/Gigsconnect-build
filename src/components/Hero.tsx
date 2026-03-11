@@ -90,7 +90,7 @@ const Hero: React.FC = () => {
                transition={{ duration: 0.7, delay: 0.5, ease: "easeOut" }}
                className="absolute left-0 top-1/4 w-64 rounded-2xl overflow-hidden shadow-xl transform z-20 border-4 border-brand-white"
              >
-                <img src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&q=80&w=400" alt="Music" referrerPolicy="no-referrer" className="w-full h-auto" />
+                <img src="https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?auto=format&fit=crop&q=80&w=600" alt="African musician playing djembe" referrerPolicy="no-referrer" className="w-full h-auto" />
                 <div className="absolute inset-0 bg-brand-purple/20"></div>
                 <h4 className="absolute bottom-4 left-4 text-white font-black text-3xl tracking-tighter">My Journey</h4>
              </motion.div>

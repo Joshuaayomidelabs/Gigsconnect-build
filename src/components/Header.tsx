@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, LogOut, LayoutDashboard, User, MessageCircle } from 'lucide-react';
+import { Menu, X, LogOut, LayoutDashboard, User, MessageCircle, Bell } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../services/supabaseClient';
+import { profilesService } from '../services/profilesService';
 import Logo from './Logo';
+import NotificationDropdown from './NotificationDropdown';
 
 const Header: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [profile, setProfile] = useState<any>(null);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -21,12 +24,22 @@ const Header: React.FC = () => {
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       setUser(session?.user || null);
+      if (session?.user) {
+        const { data } = await profilesService.getProfile(session.user.id);
+        setProfile(data);
+      }
     };
 
     checkUser();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: any, session: any) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event: any, session: any) => {
       setUser(session?.user || null);
+      if (session?.user) {
+        const { data } = await profilesService.getProfile(session.user.id);
+        setProfile(data);
+      } else {
+        setProfile(null);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -64,11 +77,16 @@ const Header: React.FC = () => {
           {user ? (
             <>
               <div className="hidden lg:flex items-center gap-2">
+                <NotificationDropdown />
                 <Link to="/messages" className="p-2 text-brand-gray-dark hover:bg-brand-purple-soft hover:text-brand-purple rounded-full transition-all">
                   <MessageCircle className="w-5 h-5" />
                 </Link>
-                <Link to="/profile" className="p-2 text-brand-gray-dark hover:bg-brand-purple-soft hover:text-brand-purple rounded-full transition-all">
-                  <User className="w-5 h-5" />
+                <Link to="/profile" className="w-10 h-10 rounded-full bg-brand-purple-soft flex items-center justify-center overflow-hidden border-2 border-white shadow-sm hover:scale-110 transition-transform">
+                  {profile?.avatar_url ? (
+                    <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                  ) : (
+                    <User className="w-5 h-5 text-brand-purple" />
+                  )}
                 </Link>
                 <button onClick={handleSignOut} className="p-2 text-red-500 hover:bg-red-50 rounded-full transition-all">
                   <LogOut className="w-5 h-5" />
@@ -77,11 +95,13 @@ const Header: React.FC = () => {
               
               {/* Mobile Notification/Action */}
               <div className="lg:hidden flex items-center gap-2">
-                <button className="p-2 text-brand-gray-dark hover:bg-brand-purple-soft hover:text-brand-purple rounded-full transition-all">
-                  <MessageCircle className="w-5 h-5" />
-                </button>
-                <Link to="/profile" className="w-8 h-8 rounded-full bg-brand-purple-light flex items-center justify-center overflow-hidden border-2 border-white shadow-sm">
-                  <User className="w-5 h-5 text-brand-purple" />
+                <NotificationDropdown />
+                <Link to="/profile" className="w-10 h-10 rounded-full bg-brand-purple-soft flex items-center justify-center overflow-hidden border-2 border-white shadow-sm">
+                  {profile?.avatar_url ? (
+                    <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                  ) : (
+                    <User className="w-5 h-5 text-brand-purple" />
+                  )}
                 </Link>
               </div>
             </>

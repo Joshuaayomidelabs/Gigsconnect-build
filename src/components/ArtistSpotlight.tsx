@@ -64,8 +64,8 @@ const ArtistSpotlight: React.FC = () => {
               <div className="absolute inset-0 bg-brand-purple rounded-[3rem] transform rotate-6 opacity-20 blur-xl"></div>
               <div className="absolute inset-0 bg-gradient-to-br from-brand-purple to-brand-purple-dark rounded-[3rem] transform rotate-3"></div>
               <img 
-                src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&q=80&w=800" 
-                alt="Content Sharing" 
+                src="https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?auto=format&fit=crop&q=80&w=800" 
+                alt="African musician playing djembe" 
                 referrerPolicy="no-referrer"
                 className="absolute inset-0 w-full h-full object-cover rounded-[3rem] shadow-2xl transform -rotate-3 hover:rotate-0 transition-transform duration-500"
               />

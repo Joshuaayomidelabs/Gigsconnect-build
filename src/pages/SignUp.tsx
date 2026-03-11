@@ -134,9 +134,8 @@ const SignUp: React.FC = () => {
         throw new Error(`Profile update failed: ${profileError.message}`);
       }
 
-      // Success! Redirect back to original page or dashboard
-      const from = state?.from || '/dashboard';
-      navigate(from, { replace: true });
+      // Success! Redirect to onboarding
+      navigate('/create-profile', { replace: true });
       
     } catch (error: any) {
       console.error('Signup error:', error);

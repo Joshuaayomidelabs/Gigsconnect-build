@@ -24,8 +24,8 @@ const GigCard: React.FC<GigCardProps> = ({ gig, onApply, onViewDetails, showAppl
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-brand-purple-soft text-brand-purple flex items-center justify-center text-xs font-bold overflow-hidden border border-brand-purple-light/20">
-            {creator?.profile_photo ? (
-              <img src={creator.profile_photo} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
+            {creator?.avatar_url ? (
+              <img src={creator.avatar_url} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
             ) : (
               <span>{creator?.full_name?.charAt(0).toUpperCase() || 'U'}</span>
             )}
@@ -52,6 +52,19 @@ const GigCard: React.FC<GigCardProps> = ({ gig, onApply, onViewDetails, showAppl
           {gig.description}
         </p>
       </div>
+
+      {gig.skills && (
+        <div className="flex flex-wrap gap-1 mb-4">
+          {gig.skills.split(',').slice(0, 3).map((skill: string) => (
+            <span key={skill} className="text-[9px] font-bold text-brand-purple bg-brand-purple-soft/50 px-2 py-0.5 rounded-md">
+              {skill.trim()}
+            </span>
+          ))}
+          {gig.skills.split(',').length > 3 && (
+            <span className="text-[9px] font-bold text-brand-gray-dark px-1">+ {gig.skills.split(',').length - 3} more</span>
+          )}
+        </div>
+      )}
 
       {/* Card Footer: Meta & Actions */}
       <div className="mt-auto pt-4 border-t border-brand-gray flex items-center justify-between">

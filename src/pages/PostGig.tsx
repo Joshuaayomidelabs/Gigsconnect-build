@@ -14,7 +14,8 @@ const PostGig: React.FC = () => {
     budget: '',
     location: '',
     gig_category: GIG_CATEGORIES[0],
-    deadline: ''
+    deadline: '',
+    skills: ''
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -131,6 +132,20 @@ const PostGig: React.FC = () => {
               className="w-full p-4 rounded-2xl border border-brand-purple-light/20 focus:ring-2 focus:ring-brand-purple focus:border-transparent transition-all outline-none bg-brand-gray focus:bg-white text-brand-black"
             />
           </div>
+        </div>
+        
+        <div>
+          <label className="block text-sm font-bold text-brand-black mb-2 flex items-center gap-2">
+            <Music className="w-4 h-4 text-brand-purple" />
+            Required Skills (comma separated)
+          </label>
+          <input 
+            name="skills"
+            value={formData.skills}
+            onChange={handleChange}
+            placeholder="e.g. Guitar, Vocals, Logic Pro"
+            className="w-full p-4 rounded-2xl border border-brand-purple-light/20 focus:ring-2 focus:ring-brand-purple focus:border-transparent transition-all outline-none bg-brand-gray focus:bg-white text-brand-black"
+          />
         </div>
 
         <div>

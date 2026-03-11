@@ -13,6 +13,8 @@ import PostGig from './pages/PostGig';
 import MyApplications from './pages/MyApplications';
 import MyPostedGigs from './pages/MyPostedGigs';
 import EditProfile from './pages/EditProfile';
+import CreateProfile from './pages/CreateProfile';
+import Notifications from './pages/Notifications';
 import SubscriptionPage from './pages/SubscriptionPage';
 import GigDetails from './pages/GigDetails';
 
@@ -59,7 +61,9 @@ const App: React.FC = () => {
           <Route path="/applications" element={<ProtectedRoute><MyApplications /></ProtectedRoute>} />
           <Route path="/my-gigs" element={<ProtectedRoute><MyPostedGigs /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
+          <Route path="/create-profile" element={<ProtectedRoute><CreateProfile /></ProtectedRoute>} />
           <Route path="/subscription" element={<ProtectedRoute><SubscriptionPage /></ProtectedRoute>} />
+          <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
           <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
           
           <Route path="*" element={<Navigate to="/" />} />
