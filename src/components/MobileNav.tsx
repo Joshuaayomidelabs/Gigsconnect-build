@@ -11,7 +11,7 @@ const MobileNav: React.FC = () => {
     { icon: Search, label: 'Browse', path: '/browse' },
     { icon: PlusSquare, label: 'Post', path: '/post', isCenter: true },
     { icon: Briefcase, label: 'Gigs', path: '/applications' },
-    { icon: User, label: 'Profile', path: '/profile' },
+    { icon: User, label: 'Profile', path: '/edit-profile' },
   ];
 
   const isActive = (path: string) => {

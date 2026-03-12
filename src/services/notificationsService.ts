@@ -4,10 +4,10 @@ export type NotificationType = 'gig_new' | 'application_update' | 'message_new' 
 
 export interface Notification {
   id: string;
-  user_id: string;
+  recipient_id: string;
   type: NotificationType;
   title: string;
-  content: string;
+  message: string;
   link?: string;
   is_read: boolean;
   created_at: string;
@@ -18,7 +18,7 @@ export const notificationsService = {
     const { data, error } = await supabase
       .from('notifications')
       .select('*')
-      .eq('user_id', userId)
+      .eq('recipient_id', userId)
       .order('created_at', { ascending: false });
     
     return { data: data as Notification[] | null, error };
@@ -37,7 +37,7 @@ export const notificationsService = {
     const { data, error } = await supabase
       .from('notifications')
       .update({ is_read: true })
-      .eq('user_id', userId)
+      .eq('recipient_id', userId)
       .eq('is_read', false);
     
     return { data, error };
@@ -61,7 +61,7 @@ export const notificationsService = {
           event: 'INSERT',
           schema: 'public',
           table: 'notifications',
-          filter: `user_id=eq.${userId}`,
+          filter: `recipient_id=eq.${userId}`,
         },
         (payload) => {
           onNewNotification(payload.new as Notification);

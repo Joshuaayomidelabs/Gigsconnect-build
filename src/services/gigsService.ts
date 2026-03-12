@@ -29,10 +29,10 @@ export const gigsService = {
     if (!error && data) {
       // Notify creator
       await notificationsService.createNotification({
-        user_id: data.creator_id,
+        recipient_id: data.user_id,
         type: 'gig_new',
         title: 'Gig Posted Successfully',
-        content: `Your gig "${data.title}" is now live!`,
+        message: `Your gig "${data.title}" is now live!`,
         link: `/gig/${data.id}`
       });
     }
@@ -44,7 +44,7 @@ export const gigsService = {
     const { data, error } = await supabase
       .from('gigs')
       .select('*')
-      .eq('creator_id', userId)
+      .eq('user_id', userId)
       .order('created_at', { ascending: false });
     return { data, error };
   }

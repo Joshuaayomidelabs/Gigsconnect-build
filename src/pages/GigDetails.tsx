@@ -16,48 +16,112 @@ const GigDetails: React.FC = () => {
   const [message, setMessage] = useState('');
   const [portfolioLink, setPortfolioLink] = useState('');
   const [showApplyForm, setShowApplyForm] = useState(false);
+  const [hasAlreadyApplied, setHasAlreadyApplied] = useState(false);
 
   useEffect(() => {
-    const fetchGig = async () => {
+    const fetchGigAndStatus = async () => {
       if (!id) return;
       try {
+        console.log('Fetching gig details for ID:', id);
         const { data, error } = await gigsService.getGigById(id);
         if (error) throw error;
         setGig(data);
+
+        // Check if current user has already applied
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          console.log('Checking application status for user:', session.user.id);
+          const { hasApplied } = await applicationsService.checkIfApplied(id, session.user.id);
+          setHasAlreadyApplied(hasApplied);
+          if (hasApplied) {
+            console.log('User has already applied to this gig');
+          }
+        }
       } catch (err: any) {
+        console.error('Error in fetchGigAndStatus:', err);
         alert(err.message);
         navigate('/browse');
       } finally {
         setIsLoading(false);
       }
     };
-    fetchGig();
+    fetchGigAndStatus();
   }, [id, navigate]);
 
   const handleApply = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!gig) return;
+    console.log('Apply button clicked');
     
     setIsSubmitting(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('Login required to apply');
+      const applicantId = session?.user?.id;
 
-      const { error } = await applicationsService.applyToGig({
-        gig_id: gig.id,
-        applicant_id: session.user.id,
-        message,
-        portfolio_link: portfolioLink
-      });
-
-      if (error) {
-        if (error.code === '23505') throw new Error('You have already applied to this gig.');
-        throw error;
+      if (!applicantId) {
+        alert("Please log in first");
+        return;
       }
 
+      // Ensure gig object exists
+      if (!gig?.id) {
+        alert("Gig details not loaded");
+        return;
+      }
+
+      // Use gig.user_id as owner_id (matches our schema)
+      const gigOwnerId = gig?.user_id || null;
+      const applicationMessage = message;
+      const userPortfolioLink = portfolioLink;
+
+      // Submit gig application
+      const { data: appData, error: appError } = await supabase
+        .from("gig_applications")
+        .insert([
+          {
+            gig_id: gig.id,
+            applicant_id: applicantId,
+            gig_owner_id: gigOwnerId,
+            message: applicationMessage || "",
+            portfolio_link: userPortfolioLink || null,
+          },
+        ])
+        .select();
+
+      if (appError) {
+        console.error("Supabase error:", appError);
+        if (appError.code === '23505') {
+          alert("You have already applied to this gig.");
+        } else {
+          alert("Application failed: " + appError.message);
+        }
+        return;
+      }
+
+      // Only send notification if gigOwnerId exists
+      if (gigOwnerId) {
+        const { error: notifError } = await supabase
+          .from("notifications")
+          .insert([
+            {
+              recipient_id: gigOwnerId,  // the gig owner, not the applicant
+              message: `New application from user ${applicantId} for gig ${gig.title}`,
+            },
+          ]);
+
+        if (notifError) {
+          console.error("Notification error:", notifError);
+          // Don’t block the user — they still applied successfully
+        }
+      }
+
+      console.log("Application data:", appData);
       setSuccess(true);
-    } catch (err: any) {
-      alert(err.message);
+      setHasAlreadyApplied(true);
+      alert("Application submitted successfully!");
+
+    } catch (err) {
+      console.error("Unexpected error:", err);
+      alert("Something went wrong. Try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -168,28 +232,37 @@ const GigDetails: React.FC = () => {
               <div className="pt-8 flex flex-col items-center gap-4">
                 <button 
                   id="main-apply-btn"
-                  onClick={() => setShowApplyForm(true)}
-                  className="w-full sm:w-auto px-12 py-5 rounded-2xl bg-brand-purple text-white font-black hover:bg-brand-purple-dark transition-all shadow-xl shadow-brand-purple/20 active:scale-95 text-xl flex items-center justify-center gap-3 group"
+                  onClick={() => !hasAlreadyApplied && setShowApplyForm(true)}
+                  disabled={hasAlreadyApplied}
+                  className={`w-full sm:w-auto px-12 py-5 rounded-2xl font-black transition-all shadow-xl active:scale-95 text-xl flex items-center justify-center gap-3 group ${
+                    hasAlreadyApplied 
+                      ? 'bg-brand-gray text-brand-gray-dark cursor-not-allowed' 
+                      : 'bg-brand-purple text-white hover:bg-brand-purple-dark shadow-brand-purple/20'
+                  }`}
                 >
-                  Apply for this Gig
-                  <ArrowLeft className="w-6 h-6 rotate-180 group-hover:translate-x-1 transition-transform" />
+                  {hasAlreadyApplied ? 'Already Applied' : 'Apply for this Gig'}
+                  {!hasAlreadyApplied && <ArrowLeft className="w-6 h-6 rotate-180 group-hover:translate-x-1 transition-transform" />}
                 </button>
-                <p className="text-sm font-bold text-brand-gray-dark">Fast response expected • Secure payment</p>
+                <p className="text-sm font-bold text-brand-gray-dark">
+                  {hasAlreadyApplied ? 'You have already submitted an application for this gig.' : 'Fast response expected • Secure payment'}
+                </p>
               </div>
 
               {/* Mobile Sticky Apply Button */}
-              <div className="fixed bottom-24 left-4 right-4 z-40 sm:hidden animate-in fade-in slide-in-from-bottom-10 duration-500">
-                <button 
-                  onClick={() => {
-                    setShowApplyForm(true);
-                    window.scrollTo({ top: document.getElementById('main-apply-btn')?.offsetTop ? document.getElementById('main-apply-btn')!.offsetTop - 100 : 0, behavior: 'smooth' });
-                  }}
-                  className="w-full py-4 rounded-2xl bg-brand-purple text-white font-black shadow-2xl shadow-brand-purple/40 flex items-center justify-center gap-2 active:scale-95 border-2 border-white/20 backdrop-blur-md"
-                >
-                  Apply Now
-                  <ArrowLeft className="w-5 h-5 rotate-180" />
-                </button>
-              </div>
+              {!hasAlreadyApplied && (
+                <div className="fixed bottom-24 left-4 right-4 z-40 sm:hidden animate-in fade-in slide-in-from-bottom-10 duration-500">
+                  <button 
+                    onClick={() => {
+                      setShowApplyForm(true);
+                      window.scrollTo({ top: document.getElementById('main-apply-btn')?.offsetTop ? document.getElementById('main-apply-btn')!.offsetTop - 100 : 0, behavior: 'smooth' });
+                    }}
+                    className="w-full py-4 rounded-2xl bg-brand-purple text-white font-black shadow-2xl shadow-brand-purple/40 flex items-center justify-center gap-2 active:scale-95 border-2 border-white/20 backdrop-blur-md"
+                  >
+                    Apply Now
+                    <ArrowLeft className="w-5 h-5 rotate-180" />
+                  </button>
+                </div>
+              )}
             </>
           ) : (
             <div className="bg-brand-purple-soft p-8 rounded-[2.5rem] border border-brand-purple-light/30 space-y-6 animate-in fade-in slide-in-from-bottom-4">
@@ -200,10 +273,10 @@ const GigDetails: React.FC = () => {
                   <p className="text-green-700 text-xl font-black mb-2">Application Sent!</p>
                   <p className="text-green-600">The creator has been notified. You can track this in your dashboard.</p>
                   <button 
-                    onClick={() => navigate('/dashboard')}
+                    onClick={() => navigate('/overview')}
                     className="mt-8 px-8 py-3 bg-green-600 text-white rounded-xl font-bold"
                   >
-                    Go to Dashboard
+                    Go to Overview
                   </button>
                 </div>
               ) : (
@@ -242,7 +315,12 @@ const GigDetails: React.FC = () => {
                       disabled={isSubmitting}
                       className="flex-[2] py-4 rounded-2xl bg-brand-purple text-white font-black hover:bg-brand-purple-dark transition-all shadow-lg flex items-center justify-center gap-2 active:scale-95 disabled:opacity-70"
                     >
-                      {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Submit Application'}
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                          Submitting...
+                        </>
+                      ) : 'Submit Application'}
                     </button>
                   </div>
                 </form>

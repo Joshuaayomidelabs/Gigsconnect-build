@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import Header from './components/Header';
+import TopNav from './components/TopNav';
 import Footer from './components/Footer';
 import BottomNav from './components/BottomNav';
 import Landing from './pages/Landing';
@@ -64,7 +64,7 @@ const App: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-brand-gray">
-      <Header />
+      <TopNav />
       <main className={`flex-grow ${showBottomNav ? 'pb-20 lg:pb-0' : ''}`}>
         <Routes>
           <Route path="/" element={<Landing />} />
@@ -72,13 +72,13 @@ const App: React.FC = () => {
           <Route path="/signup" element={<SignUp />} />
           
           {/* Protected Routes */}
-          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/overview" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/browse" element={<ProtectedRoute><BrowseGigs /></ProtectedRoute>} />
           <Route path="/gig/:id" element={<ProtectedRoute><GigDetails /></ProtectedRoute>} />
           <Route path="/post" element={<ProtectedRoute><PostGig /></ProtectedRoute>} />
           <Route path="/applications" element={<ProtectedRoute><MyApplications /></ProtectedRoute>} />
-          <Route path="/my-gigs" element={<ProtectedRoute><MyPostedGigs /></ProtectedRoute>} />
-          <Route path="/profile" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
+          <Route path="/posted-gigs" element={<ProtectedRoute><MyPostedGigs /></ProtectedRoute>} />
+          <Route path="/edit-profile" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
           <Route path="/create-profile" element={<ProtectedRoute><CreateProfile /></ProtectedRoute>} />
           <Route path="/subscription" element={<ProtectedRoute><SubscriptionPage /></ProtectedRoute>} />
           <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />

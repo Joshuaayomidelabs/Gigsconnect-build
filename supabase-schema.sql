@@ -73,11 +73,12 @@ CREATE POLICY "Users can insert their own gigs." ON gigs FOR INSERT WITH CHECK (
 CREATE POLICY "Users can update their own gigs." ON gigs FOR UPDATE USING (auth.uid() = user_id);
 CREATE POLICY "Users can delete their own gigs." ON gigs FOR DELETE USING (auth.uid() = user_id);
 
--- 3. Create the 'applications' table
-CREATE TABLE applications (
+-- 3. Create the 'gig_applications' table
+CREATE TABLE gig_applications (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   gig_id UUID REFERENCES gigs(id) ON DELETE CASCADE NOT NULL,
   applicant_id UUID REFERENCES auth.users(id) NOT NULL,
+  gig_owner_id UUID REFERENCES auth.users(id) NOT NULL,
   status TEXT DEFAULT 'Pending' NOT NULL,
   message TEXT,
   portfolio_link TEXT,
@@ -85,24 +86,16 @@ CREATE TABLE applications (
   UNIQUE(gig_id, applicant_id) -- Prevent multiple applications to the same gig by the same user
 );
 
--- Enable RLS for applications
-ALTER TABLE applications ENABLE ROW LEVEL SECURITY;
+-- Enable RLS for gig_applications
+ALTER TABLE gig_applications ENABLE ROW LEVEL SECURITY;
 
--- Policies for applications
-CREATE POLICY "Users can view their own applications." ON applications FOR SELECT USING (auth.uid() = applicant_id);
+-- Policies for gig_applications
+CREATE POLICY "Users can view their own applications." ON gig_applications FOR SELECT USING (auth.uid() = applicant_id);
 -- Allow gig owners to view applications for their gigs
-CREATE POLICY "Gig owners can view applications for their gigs." ON applications FOR SELECT USING (
-  EXISTS (
-    SELECT 1 FROM gigs WHERE gigs.id = applications.gig_id AND gigs.user_id = auth.uid()
-  )
-);
-CREATE POLICY "Users can insert their own applications." ON applications FOR INSERT WITH CHECK (auth.uid() = applicant_id);
+CREATE POLICY "Gig owners can view applications for their gigs." ON gig_applications FOR SELECT USING (auth.uid() = gig_owner_id);
+CREATE POLICY "Users can insert their own applications." ON gig_applications FOR INSERT WITH CHECK (auth.uid() = applicant_id);
 -- Allow gig owners to update application status
-CREATE POLICY "Gig owners can update application status." ON applications FOR UPDATE USING (
-  EXISTS (
-    SELECT 1 FROM gigs WHERE gigs.id = applications.gig_id AND gigs.user_id = auth.uid()
-  )
-);
+CREATE POLICY "Gig owners can update application status." ON gig_applications FOR UPDATE USING (auth.uid() = gig_owner_id);
 
 -- 4. Create the 'bookmarks' table (optional, for ExploreTab)
 CREATE TABLE bookmarks (
@@ -124,10 +117,10 @@ CREATE POLICY "Users can delete their own bookmarks." ON bookmarks FOR DELETE US
 -- 4.5 Create the 'notifications' table
 CREATE TABLE notifications (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
-  type TEXT NOT NULL, -- 'gig_new', 'application_update', 'message_new', 'system'
-  title TEXT NOT NULL,
-  content TEXT NOT NULL,
+  recipient_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  type TEXT DEFAULT 'system', -- 'gig_new', 'application_update', 'message_new', 'system'
+  title TEXT DEFAULT 'Notification',
+  message TEXT NOT NULL,
   link TEXT,
   is_read BOOLEAN DEFAULT false NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
@@ -137,13 +130,13 @@ CREATE TABLE notifications (
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 
 -- Policies for notifications
-CREATE POLICY "Users can view their own notifications." ON notifications FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Users can update their own notifications." ON notifications FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users can view their own notifications." ON notifications FOR SELECT USING (auth.uid() = recipient_id);
+CREATE POLICY "Users can update their own notifications." ON notifications FOR UPDATE USING (auth.uid() = recipient_id);
 CREATE POLICY "Anyone can insert notifications." ON notifications FOR INSERT WITH CHECK (true);
 
 -- Enable Realtime
 ALTER PUBLICATION supabase_realtime ADD TABLE notifications;
-ALTER PUBLICATION supabase_realtime ADD TABLE applications;
+ALTER PUBLICATION supabase_realtime ADD TABLE gig_applications;
 
 -- 5. Storage Buckets
 -- Note: These are usually created via the Supabase Dashboard, but here is the SQL for reference.

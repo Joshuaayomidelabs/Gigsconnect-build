@@ -35,12 +35,22 @@ const Header: React.FC = () => {
 
   const handleSignOut = async () => {
     await signOut();
+    setIsOpen(false);
     navigate('/');
   };
 
   const isAuthPage = location.pathname === '/login' || location.pathname === '/signup';
   const isLandingPage = location.pathname === '/';
   if (isAuthPage) return null;
+
+  const authLinks = [
+    { name: 'Home', path: '/' },
+    { name: 'Overview', path: '/overview' },
+    { name: 'My Applications', path: '/applications' },
+    { name: 'My Posted Gigs', path: '/posted-gigs' },
+    { name: 'Edit Profile', path: '/edit-profile' },
+    { name: 'Subscription', path: '/subscription' },
+  ];
 
   return (
     <div className={`fixed top-0 left-0 right-0 z-50 flex justify-center px-4 pt-4 sm:pt-6 transition-all duration-500 pointer-events-none ${scrolled ? 'translate-y-[-10px]' : ''}`}>
@@ -56,9 +66,23 @@ const Header: React.FC = () => {
         
         {/* Desktop Navigation */}
         <div className="hidden lg:flex items-center space-x-1 ml-8">
-          <Link to="/dashboard" className={`px-4 py-2 rounded-xl font-bold text-sm transition-all ${location.pathname === '/dashboard' ? 'bg-brand-purple text-white' : 'text-brand-gray-dark hover:text-brand-purple hover:bg-brand-purple-soft'}`}>Home</Link>
-          <Link to="/browse" className={`px-4 py-2 rounded-xl font-bold text-sm transition-all ${location.pathname === '/browse' ? 'bg-brand-purple text-white' : 'text-brand-gray-dark hover:text-brand-purple hover:bg-brand-purple-soft'}`}>Discover</Link>
-          <Link to="/post" className={`px-4 py-2 rounded-xl font-bold text-sm transition-all ${location.pathname === '/post' ? 'bg-brand-purple text-white' : 'text-brand-gray-dark hover:text-brand-purple hover:bg-brand-purple-soft'}`}>Post Gig</Link>
+          {!user ? (
+            <>
+              <Link to="/" className={`px-4 py-2 rounded-xl font-bold text-sm transition-all ${location.pathname === '/' ? 'bg-brand-purple text-white' : 'text-brand-gray-dark hover:text-brand-purple hover:bg-brand-purple-soft'}`}>Home</Link>
+              <Link to="/browse" className={`px-4 py-2 rounded-xl font-bold text-sm transition-all ${location.pathname === '/browse' ? 'bg-brand-purple text-white' : 'text-brand-gray-dark hover:text-brand-purple hover:bg-brand-purple-soft'}`}>Discover</Link>
+              <Link to="/post" className={`px-4 py-2 rounded-xl font-bold text-sm transition-all ${location.pathname === '/post' ? 'bg-brand-purple text-white' : 'text-brand-gray-dark hover:text-brand-purple hover:bg-brand-purple-soft'}`}>Post Gig</Link>
+            </>
+          ) : (
+            authLinks.map(link => (
+              <Link 
+                key={link.path} 
+                to={link.path} 
+                className={`px-4 py-2 rounded-xl font-bold text-sm transition-all ${location.pathname === link.path ? 'bg-brand-purple text-white' : 'text-brand-gray-dark hover:text-brand-purple hover:bg-brand-purple-soft'}`}
+              >
+                {link.name}
+              </Link>
+            ))
+          )}
         </div>
 
         <div className="flex items-center gap-2 ml-auto">
@@ -69,7 +93,7 @@ const Header: React.FC = () => {
                 <Link to="/messages" className="p-2 text-brand-gray-dark hover:bg-brand-purple-soft hover:text-brand-purple rounded-full transition-all">
                   <MessageCircle className="w-5 h-5" />
                 </Link>
-                <Link to="/profile" className="w-10 h-10 rounded-full bg-brand-purple-soft flex items-center justify-center overflow-hidden border-2 border-white shadow-sm hover:scale-110 transition-transform">
+                <Link to="/edit-profile" className="w-10 h-10 rounded-full bg-brand-purple-soft flex items-center justify-center overflow-hidden border-2 border-white shadow-sm hover:scale-110 transition-transform">
                   {profile?.avatar_url ? (
                     <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                   ) : (
@@ -84,13 +108,16 @@ const Header: React.FC = () => {
               {/* Mobile Notification/Action */}
               <div className="lg:hidden flex items-center gap-2">
                 <NotificationDropdown />
-                <Link to="/profile" className="w-10 h-10 rounded-full bg-brand-purple-soft flex items-center justify-center overflow-hidden border-2 border-white shadow-sm">
+                <button 
+                  onClick={() => setIsOpen(!isOpen)} 
+                  className="w-10 h-10 rounded-full bg-brand-purple-soft flex items-center justify-center overflow-hidden border-2 border-white shadow-sm"
+                >
                   {profile?.avatar_url ? (
                     <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                   ) : (
                     <User className="w-5 h-5 text-brand-purple" />
                   )}
-                </Link>
+                </button>
               </div>
             </>
           ) : (
@@ -105,51 +132,72 @@ const Header: React.FC = () => {
           )}
         </div>
 
-        {/* Mobile menu toggle - only show if NOT logged in */}
-        {!user && (
-          <div className="lg:hidden flex items-center ml-2">
+        {/* Mobile menu toggle */}
+        <div className="lg:hidden flex items-center ml-2">
+          <button 
+            onClick={() => setIsOpen(!isOpen)} 
+            className="text-brand-gray-dark hover:text-brand-black p-2 bg-brand-gray rounded-full transition-colors"
+          >
+            {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
+
+        {/* Mobile menu panel */}
+        <div 
+          className={`fixed top-4 left-4 right-4 z-50 bg-white rounded-[2rem] shadow-xl p-4 transition-all duration-300 ease-out lg:hidden origin-top pointer-events-auto ${
+            isOpen ? 'opacity-100 scale-100 visible' : 'opacity-0 scale-95 invisible'
+          }`}
+        >
+          <div className="flex items-center justify-between mb-4 px-2">
+            <div className="flex items-center gap-2">
+              <Logo variant="color" />
+              <span className="font-bold text-xl tracking-tighter text-brand-black">GigsConnect</span>
+            </div>
             <button 
-              onClick={() => setIsOpen(!isOpen)} 
+              onClick={() => setIsOpen(false)} 
               className="text-brand-gray-dark hover:text-brand-black p-2 bg-brand-gray rounded-full transition-colors"
             >
-              {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              <X className="h-6 w-6" />
             </button>
           </div>
-        )}
-
-        {/* Mobile menu panel for guests */}
-        {!user && (
-          <div 
-            className={`fixed top-4 left-4 right-4 z-50 bg-white rounded-[2rem] shadow-xl p-4 transition-all duration-300 ease-out lg:hidden origin-top pointer-events-auto ${
-              isOpen ? 'opacity-100 scale-100 visible' : 'opacity-0 scale-95 invisible'
-            }`}
-          >
-            <div className="flex items-center justify-between mb-4 px-2">
-              <div className="flex items-center gap-2">
-                <Logo variant="color" />
-                <span className="font-bold text-xl tracking-tighter text-brand-black">GigsConnect</span>
-              </div>
-              <button 
-                onClick={() => setIsOpen(false)} 
-                className="text-brand-gray-dark hover:text-brand-black p-2 bg-brand-gray rounded-full transition-colors"
-              >
-                <X className="h-6 w-6" />
-              </button>
-            </div>
-            <div className="flex flex-col space-y-2">
-              <Link to="/browse" className="block px-6 py-4 text-lg font-semibold text-brand-black hover:bg-brand-purple-soft rounded-2xl transition-colors" onClick={() => setIsOpen(false)}>Browse Gigs</Link>
-              <Link to="/post" className="block px-6 py-4 text-lg font-semibold text-brand-black hover:bg-brand-purple-soft rounded-2xl transition-colors" onClick={() => setIsOpen(false)}>Post a Gig</Link>
-              <div className="pt-4 pb-2 px-2 flex flex-col gap-3">
-                <Link to="/login" className="w-full flex justify-center py-4 rounded-xl font-semibold text-lg text-brand-black bg-brand-gray hover:bg-gray-200 transition-colors" onClick={() => setIsOpen(false)}>
-                  Log in
-                </Link>
-                <Link to="/signup" className="w-full flex justify-center py-4 rounded-full font-semibold text-lg text-white bg-brand-purple hover:bg-brand-purple-dark transition-colors shadow-md" onClick={() => setIsOpen(false)}>
-                  Sign up free
-                </Link>
-              </div>
-            </div>
+          <div className="flex flex-col space-y-2">
+            {!user ? (
+              <>
+                <Link to="/" className="block px-6 py-4 text-lg font-semibold text-brand-black hover:bg-brand-purple-soft rounded-2xl transition-colors" onClick={() => setIsOpen(false)}>Home</Link>
+                <Link to="/browse" className="block px-6 py-4 text-lg font-semibold text-brand-black hover:bg-brand-purple-soft rounded-2xl transition-colors" onClick={() => setIsOpen(false)}>Browse Gigs</Link>
+                <Link to="/post" className="block px-6 py-4 text-lg font-semibold text-brand-black hover:bg-brand-purple-soft rounded-2xl transition-colors" onClick={() => setIsOpen(false)}>Post a Gig</Link>
+                <div className="pt-4 pb-2 px-2 flex flex-col gap-3">
+                  <Link to="/login" className="w-full flex justify-center py-4 rounded-xl font-semibold text-lg text-brand-black bg-brand-gray hover:bg-gray-200 transition-colors" onClick={() => setIsOpen(false)}>
+                    Log in
+                  </Link>
+                  <Link to="/signup" className="w-full flex justify-center py-4 rounded-full font-semibold text-lg text-white bg-brand-purple hover:bg-brand-purple-dark transition-colors shadow-md" onClick={() => setIsOpen(false)}>
+                    Sign up free
+                  </Link>
+                </div>
+              </>
+            ) : (
+              <>
+                {authLinks.map(link => (
+                  <Link 
+                    key={link.path} 
+                    to={link.path} 
+                    className="block px-6 py-4 text-lg font-semibold text-brand-black hover:bg-brand-purple-soft rounded-2xl transition-colors" 
+                    onClick={() => setIsOpen(false)}
+                  >
+                    {link.name}
+                  </Link>
+                ))}
+                <button 
+                  onClick={handleSignOut} 
+                  className="w-full flex items-center gap-3 px-6 py-4 text-lg font-semibold text-red-500 hover:bg-red-50 rounded-2xl transition-colors"
+                >
+                  <LogOut className="w-5 h-5" />
+                  Sign Out
+                </button>
+              </>
+            )}
           </div>
-        )}
+        </div>
       </nav>
     </div>
   );

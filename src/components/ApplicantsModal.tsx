@@ -85,9 +85,6 @@ const ApplicantsModal: React.FC<ApplicantsModalProps> = ({ gig, onClose }) => {
                     <div>
                       <h4 className="text-lg font-black text-brand-black flex items-center gap-2">
                         {app.profiles?.full_name}
-                        <Link to={`/profile/${app.applicant_id}`} className="text-brand-purple hover:scale-110 transition-transform">
-                          <ExternalLink className="w-4 h-4" />
-                        </Link>
                       </h4>
                       <p className="text-xs font-bold text-brand-purple-dark uppercase tracking-widest mb-2">{app.profiles?.role || 'Talent'}</p>
                       <p className="text-sm text-brand-gray-dark line-clamp-2 italic">"{app.message}"</p>

@@ -24,7 +24,7 @@ const BottomNav: React.FC = () => {
   }, [user]);
 
   const navItems = [
-    { icon: <Home />, label: 'Home', path: '/dashboard' },
+    { icon: <Home />, label: 'Home', path: '/overview' },
     { icon: <Search />, label: 'Search', path: '/browse' },
     { icon: <PlusCircle />, label: 'Post', path: '/post', isAction: true },
     { icon: <MessageCircle />, label: 'Messages', path: '/messages' },
@@ -35,7 +35,7 @@ const BottomNav: React.FC = () => {
         <User />
       ), 
       label: 'Profile', 
-      path: '/profile',
+      path: '/edit-profile',
       isProfile: true
     },
   ];

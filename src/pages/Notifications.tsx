@@ -118,7 +118,7 @@ const Notifications: React.FC = () => {
                   </div>
                   
                   <p className="text-brand-gray-dark mb-4 leading-relaxed">
-                    {notif.content}
+                    {notif.message}
                   </p>
 
                   {notif.link && (

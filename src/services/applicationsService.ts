@@ -2,21 +2,27 @@ import { supabase } from './supabaseClient';
 import { notificationsService } from './notificationsService';
 
 export const applicationsService = {
-  async applyToGig(applicationData: any) {
+  async applyToGig(applicationData: {
+    gig_id: string;
+    applicant_id: string;
+    gig_owner_id: string;
+    message?: string;
+    portfolio_link?: string;
+  }) {
     const { data, error } = await supabase
-      .from('applications')
+      .from('gig_applications')
       .insert([applicationData])
-      .select('*, gigs(title, user_id)')
+      .select('*, gigs(title)')
       .single();
 
     if (!error && data) {
       // Notify gig creator
       await notificationsService.createNotification({
-        user_id: data.gigs.user_id,
+        recipient_id: applicationData.gig_owner_id,
         type: 'application_update',
         title: 'New Application',
-        content: `Someone applied to your gig: ${data.gigs.title}`,
-        link: `/my-gigs`
+        message: `Someone applied to your gig: ${data.gigs.title}`,
+        link: `/posted-gigs`
       });
     }
 
@@ -25,7 +31,7 @@ export const applicationsService = {
 
   async updateApplicationStatus(applicationId: string, status: string) {
     const { data, error } = await supabase
-      .from('applications')
+      .from('gig_applications')
       .update({ status })
       .eq('id', applicationId)
       .select('*, gigs(title), applicant_id')
@@ -34,10 +40,10 @@ export const applicationsService = {
     if (!error && data) {
       // Notify applicant
       await notificationsService.createNotification({
-        user_id: data.applicant_id,
+        recipient_id: data.applicant_id,
         type: 'application_update',
         title: 'Application Update',
-        content: `Your application for "${data.gigs.title}" has been ${status}.`,
+        message: `Your application for "${data.gigs.title}" has been ${status}.`,
         link: '/applications'
       });
     }
@@ -50,7 +56,7 @@ export const applicationsService = {
     const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
     
     const { count, error } = await supabase
-      .from('applications')
+      .from('gig_applications')
       .select('*', { count: 'exact', head: true })
       .eq('applicant_id', userId)
       .gte('created_at', firstDayOfMonth);
@@ -60,7 +66,7 @@ export const applicationsService = {
 
   async getMyApplications(userId: string) {
     const { data, error } = await supabase
-      .from('applications')
+      .from('gig_applications')
       .select('*, gigs(title, budget, location)')
       .eq('applicant_id', userId)
       .order('created_at', { ascending: false });
@@ -69,10 +75,21 @@ export const applicationsService = {
 
   async getApplicationsForGig(gigId: string) {
     const { data, error } = await supabase
-      .from('applications')
+      .from('gig_applications')
       .select('*, profiles(full_name, avatar_url, role)')
       .eq('gig_id', gigId)
       .order('created_at', { ascending: false });
     return { data, error };
+  },
+
+  async checkIfApplied(gigId: string, userId: string) {
+    const { data, error } = await supabase
+      .from('gig_applications')
+      .select('id')
+      .eq('gig_id', gigId)
+      .eq('applicant_id', userId)
+      .maybeSingle();
+    
+    return { hasApplied: !!data, error };
   }
 };

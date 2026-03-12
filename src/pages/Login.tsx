@@ -63,7 +63,7 @@ const Login: React.FC = () => {
       if (error) throw error;
 
       // Redirect back to original page or dashboard
-      const from = state?.from || '/dashboard';
+      const from = state?.from || '/overview';
       navigate(from, { replace: true });
     } catch (error: any) {
       console.error('Login error:', error);

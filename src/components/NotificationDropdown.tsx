@@ -133,7 +133,7 @@ const NotificationDropdown: React.FC = () => {
                         </span>
                       </div>
                       <p className="text-xs text-brand-gray-dark line-clamp-2 mb-2">
-                        {notif.content}
+                        {notif.message}
                       </p>
                       
                       <div className="flex items-center gap-3">

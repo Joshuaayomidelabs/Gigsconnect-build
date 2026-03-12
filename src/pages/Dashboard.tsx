@@ -56,10 +56,10 @@ const Dashboard: React.FC = () => {
           
           <div className="bg-white rounded-[2rem] p-4 shadow-sm border border-brand-purple-light/10 space-y-1">
             <h3 className="px-4 pt-2 pb-4 text-[10px] font-black text-brand-gray-dark uppercase tracking-[0.2em]">Quick Access</h3>
-            <DashLink to="/dashboard" icon={<LayoutDashboard />} label="Overview" active />
+            <DashLink to="/overview" icon={<LayoutDashboard />} label="Overview" active />
             <DashLink to="/applications" icon={<FileText />} label="My Applications" />
-            <DashLink to="/my-gigs" icon={<PlusSquare />} label="My Posted Gigs" />
-            <DashLink to="/profile" icon={<User />} label="Edit Profile" />
+            <DashLink to="/posted-gigs" icon={<PlusSquare />} label="My Posted Gigs" />
+            <DashLink to="/edit-profile" icon={<User />} label="Edit Profile" />
           </div>
 
           {profile?.subscription_plan !== 'premium' && (

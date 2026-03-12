@@ -118,7 +118,7 @@ const CreateProfile: React.FC = () => {
     try {
       const { error } = await profilesService.updateProfile(formData);
       if (error) throw error;
-      navigate('/dashboard');
+      navigate('/overview');
     } catch (err: any) {
       alert(err.message);
     } finally {
@@ -339,7 +339,7 @@ const CreateProfile: React.FC = () => {
         {/* Skip Option */}
         <div className="mt-8 text-center">
           <button 
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate('/overview')}
             className="text-brand-gray-dark font-bold hover:text-brand-purple transition-colors"
           >
             Skip for now, I'll do this later

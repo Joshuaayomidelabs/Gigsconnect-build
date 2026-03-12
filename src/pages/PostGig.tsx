@@ -34,11 +34,11 @@ const PostGig: React.FC = () => {
       const { error } = await gigsService.createGig({
         ...formData,
         budget: parseFloat(formData.budget),
-        creator_id: session.user.id
+        user_id: session.user.id
       });
 
       if (error) throw error;
-      navigate('/dashboard');
+      navigate('/overview');
     } catch (err: any) {
       alert(err.message);
     } finally {
