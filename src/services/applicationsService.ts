@@ -6,13 +6,13 @@ export const applicationsService = {
     const { data, error } = await supabase
       .from('applications')
       .insert([applicationData])
-      .select('*, gigs(title, creator_id)')
+      .select('*, gigs(title, user_id)')
       .single();
 
     if (!error && data) {
       // Notify gig creator
       await notificationsService.createNotification({
-        user_id: data.gigs.creator_id,
+        user_id: data.gigs.user_id,
         type: 'application_update',
         title: 'New Application',
         content: `Someone applied to your gig: ${data.gigs.title}`,

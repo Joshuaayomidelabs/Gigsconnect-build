@@ -13,6 +13,14 @@ CREATE TABLE profiles (
   experience_level TEXT,
   genres TEXT,
   bio TEXT,
+  avatar_url TEXT,
+  username TEXT,
+  role TEXT,
+  skills TEXT[],
+  facebook_url TEXT,
+  instagram_url TEXT,
+  tiktok_url TEXT,
+  portfolio_media JSONB DEFAULT '[]'::jsonb,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
@@ -71,6 +79,8 @@ CREATE TABLE applications (
   gig_id UUID REFERENCES gigs(id) ON DELETE CASCADE NOT NULL,
   applicant_id UUID REFERENCES auth.users(id) NOT NULL,
   status TEXT DEFAULT 'Pending' NOT NULL,
+  message TEXT,
+  portfolio_link TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
   UNIQUE(gig_id, applicant_id) -- Prevent multiple applications to the same gig by the same user
 );
@@ -110,3 +120,42 @@ ALTER TABLE bookmarks ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can view their own bookmarks." ON bookmarks FOR SELECT USING (auth.uid() = user_id);
 CREATE POLICY "Users can insert their own bookmarks." ON bookmarks FOR INSERT WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "Users can delete their own bookmarks." ON bookmarks FOR DELETE USING (auth.uid() = user_id);
+
+-- 4.5 Create the 'notifications' table
+CREATE TABLE notifications (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  type TEXT NOT NULL, -- 'gig_new', 'application_update', 'message_new', 'system'
+  title TEXT NOT NULL,
+  content TEXT NOT NULL,
+  link TEXT,
+  is_read BOOLEAN DEFAULT false NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Enable RLS for notifications
+ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+
+-- Policies for notifications
+CREATE POLICY "Users can view their own notifications." ON notifications FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can update their own notifications." ON notifications FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Anyone can insert notifications." ON notifications FOR INSERT WITH CHECK (true);
+
+-- Enable Realtime
+ALTER PUBLICATION supabase_realtime ADD TABLE notifications;
+ALTER PUBLICATION supabase_realtime ADD TABLE applications;
+
+-- 5. Storage Buckets
+-- Note: These are usually created via the Supabase Dashboard, but here is the SQL for reference.
+-- INSERT INTO storage.buckets (id, name, public) VALUES ('avatars', 'avatars', true);
+-- INSERT INTO storage.buckets (id, name, public) VALUES ('portfolio', 'portfolio', true);
+
+-- Storage Policies for 'avatars'
+-- CREATE POLICY "Avatar images are publicly accessible." ON storage.objects FOR SELECT USING (bucket_id = 'avatars');
+-- CREATE POLICY "Users can upload their own avatar." ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'avatars' AND auth.uid()::text = (storage.foldername(name))[1]);
+-- CREATE POLICY "Users can update their own avatar." ON storage.objects FOR UPDATE USING (bucket_id = 'avatars' AND auth.uid()::text = (storage.foldername(name))[1]);
+
+-- Storage Policies for 'portfolio'
+-- CREATE POLICY "Portfolio media is publicly accessible." ON storage.objects FOR SELECT USING (bucket_id = 'portfolio');
+-- CREATE POLICY "Users can upload their own portfolio media." ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'portfolio' AND auth.uid()::text = (storage.foldername(name))[1]);
+-- CREATE POLICY "Users can delete their own portfolio media." ON storage.objects FOR DELETE USING (bucket_id = 'portfolio' AND auth.uid()::text = (storage.foldername(name))[1]);

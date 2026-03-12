@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Loader2, AlertCircle, Plus } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { gigsService } from '../services/gigsService';
 import { supabase } from '../services/supabaseClient';
 import GigCard from '../components/GigCard';
+import ApplicantsModal from '../components/ApplicantsModal';
 
 const MyPostedGigs: React.FC = () => {
+  const navigate = useNavigate();
   const [gigs, setGigs] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedGig, setSelectedGig] = useState<any | null>(null);
 
   useEffect(() => {
     const fetchGigs = async () => {
@@ -57,7 +60,13 @@ const MyPostedGigs: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {gigs.length > 0 ? (
             gigs.map((gig) => (
-              <GigCard key={gig.id} gig={gig} showApply={false} />
+              <GigCard 
+                key={gig.id} 
+                gig={gig} 
+                showApply={false} 
+                onViewDetails={(g) => navigate(`/gig/${g.id}`)}
+                onViewApplicants={(g) => setSelectedGig(g)}
+              />
             ))
           ) : (
             <div className="col-span-full text-center py-20 bg-white rounded-3xl border border-brand-purple-light/20 border-dashed">
@@ -68,6 +77,13 @@ const MyPostedGigs: React.FC = () => {
             </div>
           )}
         </div>
+      )}
+
+      {selectedGig && (
+        <ApplicantsModal 
+          gig={selectedGig} 
+          onClose={() => setSelectedGig(null)} 
+        />
       )}
     </div>
   );

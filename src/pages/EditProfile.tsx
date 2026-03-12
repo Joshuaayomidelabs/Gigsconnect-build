@@ -1,8 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Camera, Loader2, Save, MapPin, User, Briefcase, Globe, Edit3, Phone, CheckCircle2 } from 'lucide-react';
+import { Camera, Loader2, Save, MapPin, User, Briefcase, Globe, Edit3, Phone, CheckCircle2, Facebook, Instagram, Music2, Video, Image as ImageIcon, Trash2, Plus, ExternalLink, Play } from 'lucide-react';
 import { supabase } from '../services/supabaseClient';
 import { profilesService } from '../services/profilesService';
 import { motion, AnimatePresence } from 'motion/react';
+
+interface PortfolioItem {
+  url: string;
+  type: 'image' | 'video';
+  id: string;
+  is_featured?: boolean;
+}
 
 const EditProfile: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -18,7 +25,11 @@ const EditProfile: React.FC = () => {
     city: '',
     country: '',
     skills: [] as string[],
-    avatar_url: ''
+    avatar_url: '',
+    facebook_url: '',
+    instagram_url: '',
+    tiktok_url: '',
+    portfolio_media: [] as PortfolioItem[]
   });
 
   const fetchProfile = async () => {
@@ -36,7 +47,11 @@ const EditProfile: React.FC = () => {
           city: data.city || '',
           country: data.country || '',
           skills: data.skills || [],
-          avatar_url: data.avatar_url || ''
+          avatar_url: data.avatar_url || '',
+          facebook_url: data.facebook_url || '',
+          instagram_url: data.instagram_url || '',
+          tiktok_url: data.tiktok_url || '',
+          portfolio_media: data.portfolio_media || []
         });
       }
     }
@@ -69,6 +84,87 @@ const EditProfile: React.FC = () => {
       const publicUrl = await profilesService.uploadAvatar(session.user.id, file);
       setFormData(prev => ({ ...prev, avatar_url: publicUrl }));
       setSuccessMessage('Photo updated!');
+      setTimeout(() => setSuccessMessage(''), 3000);
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handlePortfolioUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'image' | 'video') => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const currentMedia = formData.portfolio_media.filter(m => m.type === type);
+    if (currentMedia.length >= 3) {
+      alert(`You can only upload up to 3 ${type}s.`);
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Login required');
+
+      const publicUrl = await profilesService.uploadPortfolioMedia(session.user.id, file, type);
+      
+      const newItem: PortfolioItem = {
+        url: publicUrl,
+        type,
+        id: Math.random().toString(36).substring(2),
+        is_featured: formData.portfolio_media.length === 0 // First item is featured by default
+      };
+
+      const updatedMedia = [...formData.portfolio_media, newItem];
+      setFormData(prev => ({ ...prev, portfolio_media: updatedMedia }));
+      
+      // Auto-save the media update to the profile
+      await profilesService.updateProfile({ ...formData, portfolio_media: updatedMedia });
+      
+      setSuccessMessage(`${type.charAt(0).toUpperCase() + type.slice(1)} uploaded!`);
+      setTimeout(() => setSuccessMessage(''), 3000);
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const toggleFeatured = async (id: string) => {
+    const updatedMedia = formData.portfolio_media.map(item => ({
+      ...item,
+      is_featured: item.id === id
+    }));
+
+    setFormData(prev => ({ ...prev, portfolio_media: updatedMedia }));
+    await profilesService.updateProfile({ ...formData, portfolio_media: updatedMedia });
+    setSuccessMessage('Featured item updated!');
+    setTimeout(() => setSuccessMessage(''), 3000);
+  };
+
+  const handleDeleteMedia = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this item?')) return;
+
+    try {
+      setIsLoading(true);
+      const itemToDelete = formData.portfolio_media.find(m => m.id === id);
+      if (!itemToDelete) return;
+
+      // Extract path from URL
+      // URL format: .../storage/v1/object/public/portfolio/user_id/filename.ext
+      const urlParts = itemToDelete.url.split('/portfolio/');
+      if (urlParts.length > 1) {
+        const filePath = urlParts[1].split('?')[0]; // Remove cache buster if any
+        await profilesService.deletePortfolioMedia(filePath);
+      }
+
+      const updatedMedia = formData.portfolio_media.filter(m => m.id !== id);
+      setFormData(prev => ({ ...prev, portfolio_media: updatedMedia }));
+      
+      await profilesService.updateProfile({ ...formData, portfolio_media: updatedMedia });
+      
+      setSuccessMessage('Item deleted!');
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err: any) {
       alert(err.message);
@@ -171,6 +267,49 @@ const EditProfile: React.FC = () => {
                     </div>
 
                     <div>
+                      <h3 className="text-xs font-black uppercase tracking-widest text-brand-gray-dark mb-4">Portfolio</h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {formData.portfolio_media.length > 0 ? (
+                          formData.portfolio_media.map((item) => (
+                    <div key={item.id} className={`relative aspect-video rounded-2xl overflow-hidden bg-brand-gray group ${item.is_featured ? 'ring-2 ring-brand-purple ring-offset-2' : ''}`}>
+                              {item.type === 'image' ? (
+                                <img src={item.url} alt="Portfolio" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                              ) : (
+                                <div className="w-full h-full relative">
+                                  <video src={item.url} className="w-full h-full object-cover" />
+                                  <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/40 transition-all">
+                                    <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white">
+                                      <Play className="w-6 h-6 fill-current" />
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                              <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                                <a 
+                                  href={item.url} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="p-2 bg-white/80 backdrop-blur-sm rounded-lg hover:bg-white"
+                                >
+                                  <ExternalLink className="w-4 h-4 text-brand-purple" />
+                                </a>
+                              </div>
+                              {item.is_featured && (
+                                <div className="absolute bottom-2 left-2 px-2 py-1 bg-brand-purple text-white text-[10px] font-black uppercase tracking-widest rounded-md">
+                                  Featured
+                                </div>
+                              )}
+                            </div>
+                          ))
+                        ) : (
+                          <div className="col-span-full py-8 text-center bg-brand-gray/30 rounded-3xl border border-dashed border-brand-purple-light/20">
+                            <p className="text-brand-gray-dark text-sm">No portfolio items added yet.</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div>
                       <h3 className="text-xs font-black uppercase tracking-widest text-brand-gray-dark mb-4">Skills & Expertise</h3>
                       <div className="flex flex-wrap gap-2">
                         {formData.skills.length > 0 ? (
@@ -219,6 +358,30 @@ const EditProfile: React.FC = () => {
                         <div>
                           <p className="text-[10px] uppercase font-black text-brand-gray-dark tracking-tighter">Contact</p>
                           <p className="text-sm font-bold">{formData.phone || 'Not specified'}</p>
+                        </div>
+                      </div>
+
+                      <div className="pt-4 border-t border-brand-purple-light/10">
+                        <h3 className="text-[10px] font-black uppercase tracking-widest text-brand-gray-dark mb-4">Social Links</h3>
+                        <div className="flex gap-3">
+                          {formData.facebook_url && (
+                            <a href={formData.facebook_url} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm hover:bg-brand-purple-soft hover:text-brand-purple transition-all">
+                              <Facebook className="w-5 h-5" />
+                            </a>
+                          )}
+                          {formData.instagram_url && (
+                            <a href={formData.instagram_url} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm hover:bg-brand-purple-soft hover:text-brand-purple transition-all">
+                              <Instagram className="w-5 h-5" />
+                            </a>
+                          )}
+                          {formData.tiktok_url && (
+                            <a href={formData.tiktok_url} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm hover:bg-brand-purple-soft hover:text-brand-purple transition-all">
+                              <Music2 className="w-5 h-5" />
+                            </a>
+                          )}
+                          {!formData.facebook_url && !formData.instagram_url && !formData.tiktok_url && (
+                            <p className="text-xs text-brand-gray-dark italic">No social links added.</p>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -371,6 +534,118 @@ const EditProfile: React.FC = () => {
                     className="w-full p-4 rounded-2xl border border-brand-purple-light/20 focus:ring-2 focus:ring-brand-purple focus:border-transparent transition-all outline-none bg-brand-gray focus:bg-white"
                   />
                 </div>
+              </div>
+
+              {/* Social Links */}
+              <div className="bg-white rounded-3xl p-8 shadow-sm border border-brand-purple-light/10 grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="md:col-span-3">
+                  <h3 className="text-lg font-bold text-brand-black mb-4 border-b border-brand-gray pb-2">Social Media Links</h3>
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-brand-gray-dark mb-2 flex items-center gap-2">
+                    <Facebook className="w-4 h-4 text-brand-purple" />
+                    Facebook URL
+                  </label>
+                  <input 
+                    name="facebook_url"
+                    value={formData.facebook_url}
+                    onChange={handleChange}
+                    placeholder="https://facebook.com/..."
+                    className="w-full p-4 rounded-2xl border border-brand-purple-light/20 focus:ring-2 focus:ring-brand-purple focus:border-transparent transition-all outline-none bg-brand-gray focus:bg-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-brand-gray-dark mb-2 flex items-center gap-2">
+                    <Instagram className="w-4 h-4 text-brand-purple" />
+                    Instagram URL
+                  </label>
+                  <input 
+                    name="instagram_url"
+                    value={formData.instagram_url}
+                    onChange={handleChange}
+                    placeholder="https://instagram.com/..."
+                    className="w-full p-4 rounded-2xl border border-brand-purple-light/20 focus:ring-2 focus:ring-brand-purple focus:border-transparent transition-all outline-none bg-brand-gray focus:bg-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-brand-gray-dark mb-2 flex items-center gap-2">
+                    <Music2 className="w-4 h-4 text-brand-purple" />
+                    TikTok URL
+                  </label>
+                  <input 
+                    name="tiktok_url"
+                    value={formData.tiktok_url}
+                    onChange={handleChange}
+                    placeholder="https://tiktok.com/@..."
+                    className="w-full p-4 rounded-2xl border border-brand-purple-light/20 focus:ring-2 focus:ring-brand-purple focus:border-transparent transition-all outline-none bg-brand-gray focus:bg-white"
+                  />
+                </div>
+              </div>
+
+              {/* Portfolio Media */}
+              <div className="bg-white rounded-3xl p-8 shadow-sm border border-brand-purple-light/10 space-y-6">
+                <div className="flex justify-between items-center border-b border-brand-gray pb-2">
+                  <h3 className="text-lg font-bold text-brand-black">Portfolio Media</h3>
+                  <div className="flex gap-2">
+                    <label className="flex items-center gap-2 px-4 py-2 bg-brand-purple-soft text-brand-purple rounded-xl text-xs font-bold cursor-pointer hover:bg-brand-purple-light transition-all">
+                      <ImageIcon className="w-4 h-4" />
+                      Add Image
+                      <input type="file" className="hidden" accept="image/*" onChange={(e) => handlePortfolioUpload(e, 'image')} />
+                    </label>
+                    <label className="flex items-center gap-2 px-4 py-2 bg-brand-purple-soft text-brand-purple rounded-xl text-xs font-bold cursor-pointer hover:bg-brand-purple-light transition-all">
+                      <Video className="w-4 h-4" />
+                      Add Video
+                      <input type="file" className="hidden" accept="video/*" onChange={(e) => handlePortfolioUpload(e, 'video')} />
+                    </label>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                  {formData.portfolio_media.map((item) => (
+                    <div key={item.id} className={`relative aspect-video rounded-2xl overflow-hidden bg-brand-gray group ${item.is_featured ? 'ring-2 ring-brand-purple ring-offset-2' : ''}`}>
+                      {item.type === 'image' ? (
+                        <img src={item.url} alt="Portfolio" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                      ) : (
+                        <div className="w-full h-full relative">
+                          <video src={item.url} className="w-full h-full object-cover" />
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                            <Play className="w-8 h-8 text-white fill-current" />
+                          </div>
+                        </div>
+                      )}
+                      <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                        <button 
+                          type="button"
+                          onClick={() => toggleFeatured(item.id)}
+                          className={`p-2 rounded-lg backdrop-blur-sm transition-all ${item.is_featured ? 'bg-brand-purple text-white' : 'bg-white/80 text-brand-gray-dark hover:bg-white'}`}
+                          title={item.is_featured ? 'Featured' : 'Mark as Featured'}
+                        >
+                          <CheckCircle2 className="w-4 h-4" />
+                        </button>
+                        <button 
+                          type="button"
+                          onClick={() => handleDeleteMedia(item.id)}
+                          className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                      {item.is_featured && (
+                        <div className="absolute bottom-2 left-2 px-2 py-1 bg-brand-purple text-white text-[10px] font-black uppercase tracking-widest rounded-md">
+                          Featured
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  {formData.portfolio_media.length === 0 && (
+                    <div className="col-span-full py-12 text-center bg-brand-gray/30 rounded-3xl border border-dashed border-brand-purple-light/20">
+                      <p className="text-brand-gray-dark text-sm">No media uploaded. Add up to 3 images and 3 videos.</p>
+                    </div>
+                  )}
+                </div>
+                <p className="text-[10px] text-brand-gray-dark font-medium">
+                  * Max 3 images (5MB each) and 3 videos (50MB each).
+                </p>
               </div>
 
               <div className="sticky bottom-24 lg:bottom-8 left-0 right-0 flex justify-end pt-4 pointer-events-none">

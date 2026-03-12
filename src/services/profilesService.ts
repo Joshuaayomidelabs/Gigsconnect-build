@@ -17,6 +17,10 @@ export const profilesService = {
     phone?: string;
     bio?: string;
     avatar_url?: string;
+    facebook_url?: string;
+    instagram_url?: string;
+    tiktok_url?: string;
+    portfolio_media?: any[];
     [key: string]: any;
   }) {
     try {
@@ -39,6 +43,37 @@ export const profilesService = {
       console.error('Error updating profile:', error.message);
       return { data: null, error };
     }
+  },
+
+  async uploadPortfolioMedia(userId: string, file: File, type: 'image' | 'video') {
+    const maxSize = type === 'image' ? 5 * 1024 * 1024 : 50 * 1024 * 1024; // 5MB for images, 50MB for videos
+    if (file.size > maxSize) {
+      throw new Error(`File size must be less than ${maxSize / (1024 * 1024)}MB.`);
+    }
+
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
+    const filePath = `${userId}/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('portfolio')
+      .upload(filePath, file, {
+        contentType: file.type
+      });
+
+    if (uploadError) throw uploadError;
+
+    const { data } = supabase.storage.from('portfolio').getPublicUrl(filePath);
+    return data.publicUrl;
+  },
+
+  async deletePortfolioMedia(filePath: string) {
+    // filePath should be the path within the bucket, e.g., "user_id/filename.ext"
+    const { error } = await supabase.storage
+      .from('portfolio')
+      .remove([filePath]);
+    
+    if (error) throw error;
   },
 
   async uploadAvatar(userId: string, file: File) {

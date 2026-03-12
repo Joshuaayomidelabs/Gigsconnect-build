@@ -7,10 +7,11 @@ interface GigCardProps {
   gig: any;
   onApply?: (id: string) => void;
   onViewDetails?: (gig: any) => void;
+  onViewApplicants?: (gig: any) => void;
   showApply?: boolean;
 }
 
-const GigCard: React.FC<GigCardProps> = ({ gig, onApply, onViewDetails, showApply = true }) => {
+const GigCard: React.FC<GigCardProps> = ({ gig, onApply, onViewDetails, onViewApplicants, showApply = true }) => {
   const creator = Array.isArray(gig.profiles) ? gig.profiles[0] : gig.profiles;
 
   return (
@@ -74,6 +75,14 @@ const GigCard: React.FC<GigCardProps> = ({ gig, onApply, onViewDetails, showAppl
         </div>
         
         <div className="flex items-center gap-2">
+          {onViewApplicants && (
+            <button 
+              onClick={() => onViewApplicants(gig)}
+              className="px-4 py-2.5 rounded-xl bg-brand-purple-soft text-brand-purple font-bold text-sm hover:bg-brand-purple-light transition-all active:scale-95"
+            >
+              Applicants
+            </button>
+          )}
           {onViewDetails && (
             <button 
               onClick={() => onViewDetails(gig)}
