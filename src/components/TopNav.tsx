@@ -2,56 +2,20 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Bell } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { useNotifications } from "../hooks/useNotifications";
 import { supabase } from "../services/supabaseClient";
 import Logo from "./Logo";
 
 const TopNav: React.FC = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
   const { user } = useAuth();
+  const { unreadCount } = useNotifications(user?.id);
   const navigate = useNavigate();
 
   const toggleMobile = () => setMobileOpen(!mobileOpen);
 
   // Only show links for logged-in users
   const isLoggedIn = !!user;
-
-  useEffect(() => {
-    if (!isLoggedIn || !user) return;
-
-    const fetchNotifications = async () => {
-      const { count, error } = await supabase
-        .from("notifications")
-        .select("*", { count: "exact", head: true })
-        .eq("recipient_id", user.id)
-        .eq("read", false);
-
-      if (!error) setUnreadCount(count || 0);
-    };
-
-    fetchNotifications();
-
-    // Subscribe to realtime notifications
-    const channel = supabase
-      .channel(`unread-notifications-${user.id}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "notifications",
-          filter: `recipient_id=eq.${user.id}`,
-        },
-        () => {
-          fetchNotifications();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user, isLoggedIn]);
 
   return (
     <nav className="bg-white shadow-md p-4 flex items-center justify-between relative z-50">

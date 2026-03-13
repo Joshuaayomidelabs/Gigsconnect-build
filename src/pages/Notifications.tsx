@@ -1,34 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, Check, ExternalLink, MessageSquare, Briefcase, Info, Trash2, Loader2 } from 'lucide-react';
+import { Bell, Check, ExternalLink, MessageSquare, Briefcase, Info, Loader2 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
-import { notificationsService, Notification } from '../services/notificationsService';
-import { supabase } from '../services/supabaseClient';
+import { useAuth } from '../context/AuthContext';
+import { useNotifications } from '../hooks/useNotifications';
+import { notificationsService } from '../services/notificationsService';
 
 const Notifications: React.FC = () => {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchNotifications = async () => {
-      try {
-        setIsLoading(true);
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) return;
-
-        const { data, error: fetchError } = await notificationsService.getNotifications(session.user.id);
-        if (fetchError) throw fetchError;
-        setNotifications(data || []);
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchNotifications();
-  }, []);
+  const { user } = useAuth();
+  const { notifications, setNotifications, isLoading, error } = useNotifications(user?.id);
 
   const handleMarkAsRead = async (id: string) => {
     const { error } = await notificationsService.markAsRead(id);
@@ -38,10 +18,9 @@ const Notifications: React.FC = () => {
   };
 
   const handleMarkAllAsRead = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return;
+    if (!user) return;
 
-    const { error } = await notificationsService.markAllAsRead(session.user.id);
+    const { error } = await notificationsService.markAllAsRead(user.id);
     if (!error) {
       setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
     }

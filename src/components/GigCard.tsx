@@ -54,24 +54,11 @@ const GigCard: React.FC<GigCardProps> = ({ gig, onApply, onViewDetails, onViewAp
         </p>
       </div>
 
-      {gig.skills && (
-        <div className="flex flex-wrap gap-1 mb-4">
-          {gig.skills.split(',').slice(0, 3).map((skill: string) => (
-            <span key={skill} className="text-[9px] font-bold text-brand-purple bg-brand-purple-soft/50 px-2 py-0.5 rounded-md">
-              {skill.trim()}
-            </span>
-          ))}
-          {gig.skills.split(',').length > 3 && (
-            <span className="text-[9px] font-bold text-brand-gray-dark px-1">+ {gig.skills.split(',').length - 3} more</span>
-          )}
-        </div>
-      )}
-
       {/* Card Footer: Meta & Actions */}
       <div className="mt-auto pt-4 border-t border-brand-gray flex items-center justify-between">
         <div className="flex flex-col">
           <span className="text-[10px] text-brand-gray-dark font-bold uppercase tracking-widest mb-0.5">Budget</span>
-          <span className="text-base font-black text-brand-black">{formatCurrency(gig.budget || 0)}</span>
+          <span className="text-base font-black text-brand-black">{formatCurrency(gig.budget || 0, gig.currency || 'USD')}</span>
         </div>
         
         <div className="flex items-center gap-2">

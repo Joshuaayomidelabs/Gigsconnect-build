@@ -39,7 +39,6 @@ const BrowseGigs: React.FC = () => {
         gig.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         gig.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
         gig.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (gig.skills && gig.skills.toLowerCase().includes(searchTerm.toLowerCase())) ||
         gig.gig_category?.toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchesCategory = selectedCategory === 'All' || gig.gig_category === selectedCategory;

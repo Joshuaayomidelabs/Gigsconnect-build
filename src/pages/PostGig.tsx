@@ -12,11 +12,13 @@ const PostGig: React.FC = () => {
     title: '',
     description: '',
     budget: '',
+    currency: 'NGN',
     location: '',
     gig_category: GIG_CATEGORIES[0],
-    deadline: '',
-    skills: ''
+    deadline: ''
   });
+
+  const getCurrencySymbol = (currency: string) => (currency === "USD" ? "$" : "₦");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -33,8 +35,9 @@ const PostGig: React.FC = () => {
 
       const { error } = await gigsService.createGig({
         ...formData,
-        budget: parseFloat(formData.budget),
-        user_id: session.user.id
+        budget: Number(formData.budget),
+        user_id: session.user.id,
+        creator_id: session.user.id
       });
 
       if (error) throw error;
@@ -48,7 +51,7 @@ const PostGig: React.FC = () => {
 
   return (
     <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8 max-w-3xl mx-auto min-h-screen bg-brand-gray">
-      <section className="mb-10">
+      <section className="mb-10 text-center">
         <h1 className="text-4xl font-black text-brand-black tracking-tight mb-4">Post a New <span className="text-brand-purple">Gig</span></h1>
         <p className="text-brand-gray-dark text-lg">Find the perfect talent for your musical project.</p>
       </section>
@@ -73,18 +76,41 @@ const PostGig: React.FC = () => {
           <div>
             <label className="block text-sm font-bold text-brand-black mb-2 flex items-center gap-2">
               <DollarSign className="w-4 h-4 text-brand-purple" />
-              Budget (USD) *
+              Budget *
             </label>
-            <input 
-              required
-              type="number"
-              name="budget"
-              value={formData.budget}
-              onChange={handleChange}
-              placeholder="e.g. 500"
-              className="w-full p-4 rounded-2xl border border-brand-purple-light/20 focus:ring-2 focus:ring-brand-purple focus:border-transparent transition-all outline-none bg-brand-gray focus:bg-white text-brand-black"
-            />
+            <div className="flex items-center bg-brand-gray rounded-2xl border border-brand-purple-light/20 focus-within:ring-2 focus-within:ring-brand-purple focus-within:border-transparent transition-all overflow-hidden">
+              <span className="px-4 font-bold text-brand-purple bg-brand-purple-soft/30 h-full flex items-center py-4">
+                {getCurrencySymbol(formData.currency)}
+              </span>
+              <input 
+                required
+                type="number"
+                name="budget"
+                value={formData.budget}
+                onChange={handleChange}
+                placeholder="e.g. 500"
+                className="w-full p-4 outline-none bg-transparent text-brand-black"
+              />
+            </div>
           </div>
+          <div>
+            <label className="block text-sm font-bold text-brand-black mb-2 flex items-center gap-2">
+              <DollarSign className="w-4 h-4 text-brand-purple" />
+              Currency *
+            </label>
+            <select 
+              name="currency"
+              value={formData.currency}
+              onChange={handleChange}
+              className="w-full p-4 rounded-2xl border border-brand-purple-light/20 focus:ring-2 focus:ring-brand-purple focus:border-transparent transition-all outline-none bg-brand-gray focus:bg-white text-brand-black"
+            >
+              <option value="NGN">Naira (₦)</option>
+              <option value="USD">Dollar ($)</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-bold text-brand-black mb-2 flex items-center gap-2">
               <MapPin className="w-4 h-4 text-brand-purple" />
@@ -99,9 +125,6 @@ const PostGig: React.FC = () => {
               className="w-full p-4 rounded-2xl border border-brand-purple-light/20 focus:ring-2 focus:ring-brand-purple focus:border-transparent transition-all outline-none bg-brand-gray focus:bg-white text-brand-black"
             />
           </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-bold text-brand-black mb-2 flex items-center gap-2">
               <Music className="w-4 h-4 text-brand-purple" />
@@ -118,6 +141,9 @@ const PostGig: React.FC = () => {
               ))}
             </select>
           </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-bold text-brand-black mb-2 flex items-center gap-2">
               <Calendar className="w-4 h-4 text-brand-purple" />
@@ -132,20 +158,6 @@ const PostGig: React.FC = () => {
               className="w-full p-4 rounded-2xl border border-brand-purple-light/20 focus:ring-2 focus:ring-brand-purple focus:border-transparent transition-all outline-none bg-brand-gray focus:bg-white text-brand-black"
             />
           </div>
-        </div>
-        
-        <div>
-          <label className="block text-sm font-bold text-brand-black mb-2 flex items-center gap-2">
-            <Music className="w-4 h-4 text-brand-purple" />
-            Required Skills (comma separated)
-          </label>
-          <input 
-            name="skills"
-            value={formData.skills}
-            onChange={handleChange}
-            placeholder="e.g. Guitar, Vocals, Logic Pro"
-            className="w-full p-4 rounded-2xl border border-brand-purple-light/20 focus:ring-2 focus:ring-brand-purple focus:border-transparent transition-all outline-none bg-brand-gray focus:bg-white text-brand-black"
-          />
         </div>
 
         <div>

@@ -2,39 +2,18 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Bell, Check, ExternalLink, MessageSquare, Briefcase, Info, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Link } from 'react-router-dom';
-import { notificationsService, Notification } from '../services/notificationsService';
+import { useAuth } from '../context/AuthContext';
+import { useNotifications } from '../hooks/useNotifications';
+import { notificationsService } from '../services/notificationsService';
 import { supabase } from '../services/supabaseClient';
 
 const NotificationDropdown: React.FC = () => {
+  const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const { notifications, unreadCount, setNotifications, setUnreadCount } = useNotifications(user?.id);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const fetchNotifications = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
-
-      const { data, error } = await notificationsService.getNotifications(session.user.id);
-      if (data) {
-        setNotifications(data);
-        setUnreadCount(data.filter(n => !n.is_read).length);
-      }
-
-      // Subscribe to real-time updates
-      const subscription = notificationsService.subscribeToNotifications(session.user.id, (newNotif) => {
-        setNotifications(prev => [newNotif, ...prev]);
-        setUnreadCount(prev => prev + 1);
-      });
-
-      return () => {
-        subscription.unsubscribe();
-      };
-    };
-
-    fetchNotifications();
-
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false);

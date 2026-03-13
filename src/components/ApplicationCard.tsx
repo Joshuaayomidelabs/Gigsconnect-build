@@ -35,7 +35,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({ application, onView }
         </div>
         <div className="flex items-center gap-2 text-brand-gray-dark text-xs font-semibold">
           <DollarSign className="w-3.5 h-3.5 text-brand-purple" />
-          <span>{formatCurrency(application.gigs?.budget || 0)}</span>
+          <span>{formatCurrency(application.gigs?.budget || 0, application.gigs?.currency || 'USD')}</span>
         </div>
       </div>
 

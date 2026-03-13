@@ -26,10 +26,14 @@ export const gigsService = {
       .select()
       .single();
 
+    if (error) {
+      console.error("Gig creation error:", error);
+    }
+
     if (!error && data) {
       // Notify creator
       await notificationsService.createNotification({
-        recipient_id: data.user_id,
+        recipient_id: data.creator_id || data.user_id,
         type: 'gig_new',
         title: 'Gig Posted Successfully',
         message: `Your gig "${data.title}" is now live!`,
