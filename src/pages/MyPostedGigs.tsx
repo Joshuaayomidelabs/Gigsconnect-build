@@ -33,6 +33,25 @@ const MyPostedGigs: React.FC = () => {
     fetchGigs();
   }, []);
 
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this gig? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const { error: deleteError } = await gigsService.deleteGig(id, session.user.id);
+      if (deleteError) throw deleteError;
+
+      setGigs(prev => prev.filter(gig => gig.id !== id));
+      alert('Gig deleted successfully.');
+    } catch (err: any) {
+      alert('Failed to delete gig: ' + err.message);
+    }
+  };
+
   return (
     <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto min-h-screen bg-brand-gray">
       <div className="flex justify-between items-center mb-10">
@@ -66,6 +85,7 @@ const MyPostedGigs: React.FC = () => {
                 showApply={false} 
                 onViewDetails={(g) => navigate(`/gig/${g.id}`)}
                 onViewApplicants={(g) => setSelectedGig(g)}
+                onDelete={handleDelete}
               />
             ))
           ) : (

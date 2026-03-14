@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../services/supabaseClient';
+import { profilesService } from '../services/profilesService';
 
 interface AuthContextType {
   user: User | null;
@@ -30,6 +31,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (mounted) {
           setSession(initialSession);
           setUser(initialSession?.user || null);
+          if (initialSession?.user) {
+            profilesService.ensureProfileExists(initialSession.user);
+          }
         }
       } catch (err: any) {
         console.error('Error fetching session:', err);
@@ -49,6 +53,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (mounted) {
         setSession(currentSession);
         setUser(currentSession?.user || null);
+        if (currentSession?.user) {
+          profilesService.ensureProfileExists(currentSession.user);
+        }
         setLoading(false);
       }
     });

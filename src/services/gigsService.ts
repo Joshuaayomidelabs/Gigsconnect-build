@@ -3,9 +3,13 @@ import { notificationsService } from './notificationsService';
 
 export const gigsService = {
   async getAllGigs() {
+    const threeDaysAgo = new Date();
+    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+    
     const { data, error } = await supabase
       .from('gigs')
-      .select('*, profiles(full_name, avatar_url, subscription_plan)')
+      .select('*, profiles(id, full_name, avatar_url, subscription_plan)')
+      .gte('created_at', threeDaysAgo.toISOString())
       .order('created_at', { ascending: false });
     return { data, error };
   },
@@ -13,9 +17,20 @@ export const gigsService = {
   async getGigById(id: string) {
     const { data, error } = await supabase
       .from('gigs')
-      .select('*, profiles(full_name, avatar_url, subscription_plan)')
+      .select('*, profiles(id, full_name, avatar_url, subscription_plan)')
       .eq('id', id)
       .single();
+    return { data, error };
+  },
+
+  async deleteGig(id: string, userId: string) {
+    const { data, error } = await supabase
+      .from('gigs')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', userId) // Security: Ensure only owner can delete
+      .select();
+    
     return { data, error };
   },
 

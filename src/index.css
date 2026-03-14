@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
+@config "../tailwind.config.js";
 
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
@@ -23,21 +24,38 @@
   --shadow-soft: 0 2px 10px rgba(0, 0, 0, 0.02);
 }
 
-/* Custom styles for GigsConnect */
+@layer base {
+  :root {
+    --bg-main: #F9FAFB; /* gray-50 */
+    --text-main: #111827; /* gray-900 */
+    --card-bg: #FFFFFF;
+    --border-color: #E5E7EB; /* gray-200 */
+  }
 
-body {
-  background-color: var(--color-brand-gray);
-  color: var(--color-brand-black);
-  font-family: var(--font-sans);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  .dark {
+    --bg-main: #111827; /* gray-900 */
+    --text-main: #F3F4F6; /* gray-100 */
+    --card-bg: #1F2937; /* gray-800 */
+    --border-color: #374151; /* gray-700 */
+  }
+
+  body {
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    transition: background-color 0.5s ease, color 0.5s ease;
+  }
 }
+
+/* Custom styles for GigsConnect */
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-sans);
   font-weight: 800;
   letter-spacing: -0.02em;
-  color: var(--color-brand-black);
+  color: inherit;
 }
 
 .gradient-purple {

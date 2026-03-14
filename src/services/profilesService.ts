@@ -10,6 +10,24 @@ export const profilesService = {
     return { data, error };
   },
 
+  async ensureProfileExists(user: any) {
+    const { data, error } = await supabase
+      .from('profiles')
+      .upsert({
+        id: user.id,
+        full_name: user.user_metadata?.full_name || 'Anonymous',
+        avatar_url: user.user_metadata?.avatar_url || '',
+        email: user.email,
+        bio: '',
+        role: '',
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'id' })
+      .select()
+      .single();
+    
+    return { data, error };
+  },
+
   async updateProfile(profileData: {
     full_name?: string;
     country?: string;
