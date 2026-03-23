@@ -76,33 +76,39 @@ const Landing: React.FC = () => {
     {
       title: "Post a Gig",
       description: "Describe your needs and reach thousands of talented creatives.",
-      icon: <PlusCircle className="w-8 h-8" />
+      icon: <PlusCircle className="w-8 h-8" />,
+      bg: "bg-brand-purple/10",
+      iconColor: "text-brand-purple"
     },
     {
       title: "Receive Applications",
       description: "Review portfolios and chat with applicants in real-time.",
-      icon: <MessageSquare className="w-8 h-8" />
+      icon: <MessageSquare className="w-8 h-8" />,
+      bg: "bg-brand-purple/20",
+      iconColor: "text-brand-purple-dark"
     },
     {
       title: "Hire Talent",
       description: "Securely hire the best fit and start collaborating.",
-      icon: <CheckCircle className="w-8 h-8" />
+      icon: <CheckCircle className="w-8 h-8" />,
+      bg: "bg-brand-purple/30",
+      iconColor: "text-brand-purple-dark"
     }
   ];
 
   const testimonials = [
     {
-      quote: "GigsConnect transformed how I find work. The quality of talent here is unmatched.",
-      name: "Sarah Johnson",
-      role: "Event Director",
-      avatar: "https://i.pravatar.cc/150?u=sarah",
+      quote: "GigsConnect transformed how I find session work. The quality of opportunities here is unmatched for a professional bassist.",
+      name: "Joshua Ayomide",
+      role: "Bassist",
+      avatar: "https://images.unsplash.com/photo-1564186763535-ebb21ef5277f?auto=format&fit=crop&q=80&w=300",
       rating: 5
     },
     {
-      quote: "As a producer, finding reliable vocalists was hard until I joined this community.",
-      name: "Tunde Ednut",
-      role: "Music Producer",
-      avatar: "https://i.pravatar.cc/150?u=tunde",
+      quote: "As a session drummer, finding reliable producers was hard until I joined this community. It's truly a game-changer.",
+      name: "bright. Bchops",
+      role: "Session drummer",
+      avatar: "https://images.unsplash.com/photo-1524230659092-07f99a75c013?auto=format&fit=crop&q=80&w=300",
       rating: 5
     }
   ];
@@ -330,13 +336,19 @@ const Landing: React.FC = () => {
                 className="group glass-card rounded-[2.5rem] p-6 border border-white/40 hover:border-brand-purple/20 hover:bg-white/60 hover:shadow-premium transition-all duration-500"
               >
                 <div className="flex items-center justify-between mb-6">
-                  <div className="relative">
-                    <img src={gig.avatar} className="w-14 h-14 rounded-2xl object-cover shadow-sm" alt={gig.postedBy} />
-                    {gig.verified && (
-                      <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-brand-purple rounded-full border-2 border-white flex items-center justify-center text-white">
-                        <CheckCircle className="w-3 h-3" />
-                      </div>
-                    )}
+                  <div className="flex items-center gap-3">
+                    <div className="relative">
+                      <img src={gig.avatar} className="w-12 h-12 rounded-2xl object-cover shadow-sm" alt={gig.postedBy} />
+                      {gig.verified && (
+                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-brand-purple rounded-full border-2 border-white flex items-center justify-center text-white">
+                          <CheckCircle className="w-2.5 h-2.5" />
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-[9px] font-bold text-brand-gray-dark uppercase tracking-widest">Posted by</p>
+                      <p className="text-xs font-black text-brand-black">{gig.postedBy}</p>
+                    </div>
                   </div>
                   <div className="px-3 py-1 rounded-full bg-white text-brand-purple text-[10px] font-bold uppercase tracking-wider shadow-sm">
                     {gig.role}
@@ -413,17 +425,21 @@ const Landing: React.FC = () => {
                 {steps.map((step, index) => (
                   <motion.div 
                     key={index}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: index * 0.2 }}
-                    className="flex gap-4 lg:gap-6"
+                    initial={{ opacity: 0, y: 30, scale: 0.95 }}
+                    whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                    viewport={{ once: true, margin: "-50px" }}
+                    transition={{ 
+                      duration: 0.6, 
+                      delay: index * 0.15,
+                      ease: [0.21, 0.47, 0.32, 0.98] 
+                    }}
+                    className="flex gap-4 lg:gap-6 group"
                   >
-                    <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-xl lg:rounded-2xl bg-brand-purple text-white flex-shrink-0 flex items-center justify-center shadow-glow">
+                    <div className={`w-12 h-12 lg:w-16 lg:h-16 rounded-xl lg:rounded-2xl ${step.bg} ${step.iconColor} flex-shrink-0 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-500`}>
                       {React.cloneElement(step.icon as React.ReactElement, { className: "w-6 h-6 lg:w-8 lg:h-8" })}
                     </div>
                     <div>
-                      <h3 className="text-lg lg:text-xl font-black text-brand-black mb-1 lg:mb-2">{step.title}</h3>
+                      <h3 className="text-lg lg:text-xl font-black text-brand-black mb-1 lg:mb-2 group-hover:text-brand-purple transition-colors">{step.title}</h3>
                       <p className="text-sm lg:text-base text-brand-gray-dark leading-relaxed">{step.description}</p>
                     </div>
                   </motion.div>
@@ -439,7 +455,7 @@ const Landing: React.FC = () => {
             >
               <div className="relative z-10 rounded-[2rem] lg:rounded-[3rem] overflow-hidden shadow-premium border-4 lg:border-8 border-brand-gray">
                 <img 
-                  src="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?auto=format&fit=crop&q=80&w=800" 
+                  src="https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&q=80&w=800" 
                   alt="Collaboration" 
                   className="w-full h-[300px] lg:h-[600px] object-cover"
                   referrerPolicy="no-referrer"
@@ -524,64 +540,6 @@ const Landing: React.FC = () => {
           </div>
         </motion.div>
       </section>
-
-      {/* Footer */}
-      <footer className="py-16 lg:py-20 bg-brand-black text-white">
-        <div className="max-w-7xl mx-auto px-5">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-16 mb-16 lg:mb-20">
-            <div>
-              <Link to="/" className="text-2xl font-black tracking-tighter mb-8 flex items-center gap-2">
-                <Logo iconClassName="w-10 h-10" />
-                GigsConnect
-              </Link>
-              <p className="text-gray-400 leading-relaxed mb-8">
-                The leading community platform for music professionals in Africa. Connect, collaborate, and grow.
-              </p>
-              <div className="flex gap-4">
-                <button className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-brand-purple transition-all"><Share2 className="w-5 h-5" /></button>
-                <button className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-brand-purple transition-all"><Heart className="w-5 h-5" /></button>
-              </div>
-            </div>
-
-            <div>
-              <h4 className="font-black uppercase tracking-widest text-xs mb-8 text-brand-purple">Platform</h4>
-              <ul className="space-y-4">
-                <li><Link to={isLoggedIn ? "/browse" : "/login"} className="text-gray-400 hover:text-white transition-colors">Browse Gigs</Link></li>
-                <li><Link to={isLoggedIn ? "/browse" : "/login"} className="text-gray-400 hover:text-white transition-colors">Find Talent</Link></li>
-                <li><Link to={isLoggedIn ? "/post" : "/login"} className="text-gray-400 hover:text-white transition-colors">Post a Gig</Link></li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-black uppercase tracking-widest text-xs mb-8 text-brand-purple">Support</h4>
-              <ul className="space-y-4">
-                <li><a href="mailto:support@gigsconnect.africa" className="text-gray-400 hover:text-white transition-colors">support@gigsconnect.africa</a></li>
-                <li><Link to="#" className="text-gray-400 hover:text-white transition-colors">Help Center</Link></li>
-                <li><Link to="#" className="text-gray-400 hover:text-white transition-colors">Safety Tips</Link></li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-black uppercase tracking-widest text-xs mb-8 text-brand-purple">Newsletter</h4>
-              <p className="text-sm text-gray-400 mb-6">Get the latest gigs and news delivered to your inbox.</p>
-              <div className="flex gap-2">
-                <input type="email" placeholder="Email address" className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-brand-purple w-full" />
-                <button className="p-2 rounded-xl bg-brand-purple hover:bg-brand-purple-dark transition-all"><ArrowRight className="w-5 h-5" /></button>
-              </div>
-            </div>
-          </div>
-
-          <div className="pt-10 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
-            <p className="text-gray-500 text-sm font-medium">
-              © {new Date().getFullYear()} GigsConnect. All rights reserved.
-            </p>
-            <div className="flex gap-8">
-              <Link to="#" className="text-gray-500 hover:text-white text-sm">Privacy Policy</Link>
-              <Link to="#" className="text-gray-500 hover:text-white text-sm">Terms of Service</Link>
-            </div>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 };

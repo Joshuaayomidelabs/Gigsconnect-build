@@ -88,13 +88,16 @@ const GigCard: React.FC<GigCardProps> = ({ gig, onApply, onViewDetails, onViewAp
             )}
           </div>
           <div className="flex flex-col">
+            <div className="flex items-center gap-1 mb-1">
+              <span className="text-[10px] text-gray-400 dark:text-gray-500 font-black uppercase tracking-widest">Posted by</span>
+            </div>
             <span 
-              className="text-sm font-black text-brand-black dark:text-brand-white hover:text-brand-purple transition-colors cursor-pointer leading-none mb-1"
+              className="text-sm font-black text-brand-black dark:text-brand-white hover:text-brand-purple transition-colors cursor-pointer leading-none"
               onClick={goToProfile}
             >
               {creator?.full_name || 'Anonymous'}
             </span>
-            <div className="flex items-center gap-1 text-[10px] text-gray-400 dark:text-gray-500 font-bold uppercase tracking-wider">
+            <div className="flex items-center gap-1 text-[10px] text-gray-400 dark:text-gray-500 font-bold uppercase tracking-wider mt-1.5">
               <MapPin className="w-2.5 h-2.5" />
               <span>{gig.location}</span>
             </div>

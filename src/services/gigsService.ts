@@ -62,7 +62,7 @@ export const gigsService = {
   async getMyGigs(userId: string) {
     const { data, error } = await supabase
       .from('gigs')
-      .select('*')
+      .select('*, profiles(id, full_name, avatar_url)')
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
     return { data, error };
