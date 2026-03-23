@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, Check, ExternalLink, MessageSquare, Briefcase, Info, Loader2 } from 'lucide-react';
+import { Bell, Check, ExternalLink, MessageSquare, Briefcase, Info, Loader2, XCircle, CheckCircle } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../hooks/useNotifications';
 import { notificationsService } from '../services/notificationsService';
+import { applicationsService } from '../services/applicationsService';
 
 const Notifications: React.FC = () => {
   const { user } = useAuth();
   const { notifications, setNotifications, isLoading, error } = useNotifications(user?.id);
+
+  const [isProcessing, setIsProcessing] = useState<string | null>(null);
 
   const handleMarkAsRead = async (id: string) => {
     const { error } = await notificationsService.markAsRead(id);
@@ -26,26 +29,52 @@ const Notifications: React.FC = () => {
     }
   };
 
+  const handleStatusUpdate = async (notificationId: string, link: string | undefined, status: 'Accepted' | 'Rejected') => {
+    if (!link) return;
+    
+    // Extract appId from link: /posted-gigs?gigId=...&appId=...
+    const url = new URL(link, window.location.origin);
+    const appId = url.searchParams.get('appId');
+    
+    if (!appId) return;
+
+    setIsProcessing(notificationId);
+    try {
+      const { error } = await applicationsService.updateApplicationStatus(appId, status);
+      if (error) throw error;
+      
+      // Mark notification as read after action
+      await handleMarkAsRead(notificationId);
+      
+      alert(`Application ${status.toLowerCase()} successfully!`);
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setIsProcessing(null);
+    }
+  };
+
   const getIcon = (type: string) => {
     switch (type) {
       case 'gig_new': return <Briefcase className="w-6 h-6 text-brand-purple" />;
-      case 'message_new': return <MessageSquare className="w-6 h-6 text-blue-500" />;
-      case 'application_update': return <Check className="w-6 h-6 text-emerald-500" />;
-      default: return <Info className="w-6 h-6 text-brand-gray-dark" />;
+      case 'application_received': return <Briefcase className="w-6 h-6 text-brand-purple" />;
+      case 'message_new': return <MessageSquare className="w-6 h-6 text-brand-purple" />;
+      case 'application_update': return <Check className="w-6 h-6 text-brand-purple" />;
+      default: return <Info className="w-6 h-6 text-gray-500 dark:text-gray-400" />;
     }
   };
 
   return (
-    <div className="pt-24 pb-24 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto min-h-screen bg-brand-gray">
+    <div className="pt-24 pb-24 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto min-h-screen bg-brand-gray dark:bg-brand-black">
       <header className="mb-10 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-black text-brand-black tracking-tight mb-2">Notifications</h1>
-          <p className="text-brand-gray-dark text-lg">Stay updated with your music career.</p>
+          <h1 className="text-4xl font-black text-brand-black dark:text-brand-white tracking-tight mb-2">Notifications</h1>
+          <p className="text-gray-500 dark:text-gray-400 text-lg">Stay updated with your music career.</p>
         </div>
         {notifications.some(n => !n.is_read) && (
           <button 
             onClick={handleMarkAllAsRead}
-            className="px-6 py-2 bg-white border border-brand-purple-light/20 rounded-xl text-sm font-bold text-brand-purple hover:bg-brand-purple-soft transition-all shadow-sm"
+            className="px-6 py-2 bg-brand-white dark:bg-brand-dark-card border border-brand-gray dark:border-brand-black rounded-xl text-sm font-bold text-brand-purple hover:bg-brand-purple/5 transition-all shadow-sm"
           >
             Mark all as read
           </button>
@@ -57,8 +86,8 @@ const Notifications: React.FC = () => {
           <Loader2 className="w-10 h-10 animate-spin text-brand-purple" />
         </div>
       ) : error ? (
-        <div className="bg-red-50 border border-red-100 rounded-3xl p-12 text-center">
-          <p className="text-red-600 font-bold">{error}</p>
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/40 rounded-3xl p-12 text-center">
+          <p className="text-red-600 dark:text-red-400 font-bold">{error}</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -69,26 +98,26 @@ const Notifications: React.FC = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.05 }}
-                className={`bg-white rounded-[2rem] p-6 shadow-sm border border-brand-purple-light/10 flex gap-6 items-start relative group transition-all hover:shadow-md ${!notif.is_read ? 'ring-2 ring-brand-purple/10' : ''}`}
+                className={`bg-brand-white dark:bg-brand-dark-card rounded-[2rem] p-6 shadow-sm border border-brand-gray dark:border-brand-black flex gap-6 items-start relative group transition-all hover:shadow-md ${!notif.is_read ? 'ring-2 ring-brand-purple/10' : ''}`}
               >
-                <div className={`flex-shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center ${!notif.is_read ? 'bg-brand-purple-soft' : 'bg-brand-gray'}`}>
+                <div className={`flex-shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center ${!notif.is_read ? 'bg-brand-purple/10' : 'bg-brand-gray dark:bg-brand-black'}`}>
                   {getIcon(notif.type)}
                 </div>
 
                 <div className="flex-grow">
                   <div className="flex justify-between items-start mb-2">
                     <div>
-                      <h3 className={`text-lg font-black tracking-tight ${!notif.is_read ? 'text-brand-black' : 'text-brand-gray-dark'}`}>
+                      <h3 className={`text-lg font-black tracking-tight ${!notif.is_read ? 'text-brand-black dark:text-brand-white' : 'text-gray-500 dark:text-gray-400'}`}>
                         {notif.title}
                       </h3>
-                      <span className="text-xs text-brand-gray-dark font-medium">
+                      <span className="text-xs text-gray-500 dark:text-gray-500 font-medium">
                         {new Date(notif.created_at).toLocaleString()}
                       </span>
                     </div>
                     {!notif.is_read && (
                       <button 
                         onClick={() => handleMarkAsRead(notif.id)}
-                        className="p-2 text-brand-purple hover:bg-brand-purple-soft rounded-full transition-all"
+                        className="p-2 text-brand-purple hover:bg-brand-purple/10 rounded-full transition-all"
                         title="Mark as read"
                       >
                         <Check className="w-5 h-5" />
@@ -96,27 +125,50 @@ const Notifications: React.FC = () => {
                     )}
                   </div>
                   
-                  <p className="text-brand-gray-dark mb-4 leading-relaxed">
+                  <p className="text-gray-700 dark:text-gray-300 mb-4 leading-relaxed">
                     {notif.message}
                   </p>
 
                   {notif.link && (
-                    <Link 
-                      to={notif.link}
-                      onClick={() => handleMarkAsRead(notif.id)}
-                      className="inline-flex items-center gap-2 text-sm font-bold text-brand-purple hover:underline"
-                    >
-                      View details <ExternalLink className="w-4 h-4" />
-                    </Link>
+                    <div className="flex flex-wrap items-center gap-4">
+                      <Link 
+                        to={notif.link}
+                        onClick={() => handleMarkAsRead(notif.id)}
+                        className="inline-flex items-center gap-2 text-sm font-bold text-brand-purple hover:underline"
+                      >
+                        View details <ExternalLink className="w-4 h-4" />
+                      </Link>
+
+                      {notif.type === 'application_received' && !notif.is_read && (
+                        <div className="flex gap-2 ml-auto">
+                          <button 
+                            onClick={() => handleStatusUpdate(notif.id, notif.link, 'Rejected')}
+                            disabled={!!isProcessing}
+                            className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-brand-gray dark:bg-brand-black text-brand-black dark:text-brand-white text-xs font-bold hover:bg-brand-black/5 dark:hover:bg-brand-black/20 transition-all border border-brand-gray dark:border-brand-black disabled:opacity-50"
+                          >
+                            {isProcessing === notif.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <XCircle className="w-3 h-3" />}
+                            Reject
+                          </button>
+                          <button 
+                            onClick={() => handleStatusUpdate(notif.id, notif.link, 'Accepted')}
+                            disabled={!!isProcessing}
+                            className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-brand-purple text-white text-xs font-bold hover:bg-brand-purple-hover transition-all shadow-sm disabled:opacity-50"
+                          >
+                            {isProcessing === notif.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle className="w-3 h-3" />}
+                            Accept
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
               </motion.div>
             ))
           ) : (
-            <div className="bg-white rounded-[3rem] p-20 text-center border border-brand-purple-light/10 border-dashed">
-              <Bell className="w-16 h-16 text-brand-gray-dark/20 mx-auto mb-6" />
-              <h3 className="text-xl font-bold text-brand-black mb-2">All caught up!</h3>
-              <p className="text-brand-gray-dark">You don't have any notifications at the moment.</p>
+            <div className="bg-brand-white dark:bg-brand-dark-card rounded-[3rem] p-20 text-center border border-brand-gray dark:border-brand-black border-dashed">
+              <Bell className="w-16 h-16 text-gray-400/20 dark:text-gray-700 mx-auto mb-6" />
+              <h3 className="text-xl font-bold text-brand-black dark:text-brand-white mb-2">All caught up!</h3>
+              <p className="text-gray-500 dark:text-gray-400">You don't have any notifications at the moment.</p>
             </div>
           )}
         </div>

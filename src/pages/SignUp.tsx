@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Loader2, Check } from 'lucide-react';
 import { supabase } from '../services/supabaseClient';
 import { africanCountries, getStatesForCountry, musicProfessions, experienceLevels } from '../utils/locations';
+import Logo from '../components/Logo';
 
 const SignUp: React.FC = () => {
   const navigate = useNavigate();
@@ -147,7 +148,7 @@ const SignUp: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-brand-gray flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans relative overflow-hidden">
+    <div className="min-h-screen bg-brand-gray dark:bg-brand-black flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans relative overflow-hidden">
       {/* Background Decorative SVGs */}
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-32 h-32 text-brand-purple opacity-5 absolute top-10 left-10 -rotate-12 hidden md:block pointer-events-none">
         <path d="M9 18V5l12-2v13"></path>
@@ -159,27 +160,28 @@ const SignUp: React.FC = () => {
       </svg>
 
       <div className="relative z-10 sm:mx-auto sm:w-full sm:max-w-md text-center">
-        <Link to="/" className="inline-block">
-          <h1 className="text-4xl font-black text-brand-black tracking-tighter">
+        <Link to="/" className="inline-flex items-center gap-2 group">
+          <Logo iconClassName="w-10 h-10" />
+          <h1 className="text-4xl font-black text-brand-black dark:text-brand-white tracking-tighter">
             Gigs<span className="text-brand-purple">Connect</span>
           </h1>
         </Link>
-        <h2 className="mt-6 text-center text-2xl font-bold leading-9 tracking-tight text-brand-black">
+        <h2 className="mt-6 text-center text-2xl font-bold leading-9 tracking-tight text-brand-black dark:text-brand-white">
           Create your complete profile
         </h2>
       </div>
 
       <div className="relative z-10 mt-8 sm:mx-auto sm:w-full sm:max-w-2xl">
-        <div className="bg-white px-6 py-10 shadow-xl sm:rounded-3xl sm:px-12 border border-brand-purple-light/20">
+        <div className="bg-brand-white dark:bg-brand-dark-card px-6 py-10 shadow-xl sm:rounded-3xl sm:px-12 border border-brand-purple/10">
           
           {state?.message && (
-            <div className="mb-6 p-4 rounded-xl bg-brand-purple-soft border border-brand-purple-light/30 text-brand-purple text-sm text-center font-medium shadow-sm">
+            <div className="mb-6 p-4 rounded-xl bg-brand-purple/5 border border-brand-purple/20 text-brand-purple text-sm text-center font-medium shadow-sm">
               {state.message}
             </div>
           )}
 
           {supabaseError && (
-            <div className="mb-6 text-sm text-red-600 bg-red-50 p-4 rounded-xl border border-red-100 flex items-start">
+            <div className="mb-6 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 p-4 rounded-xl border border-red-100 dark:border-red-900/40 flex items-start">
               <span className="block sm:inline">{supabaseError}</span>
             </div>
           )}
@@ -188,10 +190,10 @@ const SignUp: React.FC = () => {
             
             {/* 1. Account Information */}
             <div>
-              <h3 className="text-lg font-bold text-brand-black border-b border-brand-gray pb-2 mb-4">1. Account Information</h3>
+              <h3 className="text-lg font-bold text-brand-black dark:text-brand-white border-b border-brand-gray dark:border-gray-700 pb-2 mb-4">1. Account Information</h3>
               <div className="grid grid-cols-1 gap-y-5 gap-x-6 sm:grid-cols-2">
                 <div className="sm:col-span-2">
-                  <label className="block text-sm font-bold leading-6 text-brand-black">
+                  <label className="block text-sm font-bold leading-6 text-brand-black dark:text-gray-300">
                     Email address <span className="text-red-500">*</span>
                   </label>
                   <div className="mt-2">
@@ -200,7 +202,7 @@ const SignUp: React.FC = () => {
                       type="email"
                       value={formData.email}
                       onChange={handleChange}
-                      className={`block w-full rounded-xl border-0 py-3 px-4 text-brand-black shadow-sm ring-1 ring-inset ${errors.email ? 'ring-red-300 focus:ring-red-500' : 'ring-brand-purple-light focus:ring-brand-purple'} placeholder:text-brand-gray-dark/50 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 bg-brand-gray focus:bg-white transition-colors`}
+                      className={`block w-full rounded-xl border-0 py-3 px-4 text-brand-black dark:text-brand-white shadow-sm ring-1 ring-inset ${errors.email ? 'ring-red-300 focus:ring-red-500' : 'ring-brand-purple/20 focus:ring-brand-purple'} placeholder:text-gray-400 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 bg-brand-gray dark:bg-brand-black focus:bg-brand-white dark:focus:bg-brand-dark-card transition-colors`}
                       placeholder="you@example.com"
                     />
                     {errors.email && <p className="mt-1 text-xs text-red-600">{errors.email}</p>}
@@ -208,7 +210,7 @@ const SignUp: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold leading-6 text-brand-black">
+                  <label className="block text-sm font-bold leading-6 text-brand-black dark:text-gray-300">
                     Password <span className="text-red-500">*</span>
                   </label>
                   <div className="mt-2">
@@ -217,14 +219,14 @@ const SignUp: React.FC = () => {
                       type="password"
                       value={formData.password}
                       onChange={handleChange}
-                      className={`block w-full rounded-xl border-0 py-3 px-4 text-brand-black shadow-sm ring-1 ring-inset ${errors.password ? 'ring-red-300 focus:ring-red-500' : 'ring-brand-purple-light focus:ring-brand-purple'} placeholder:text-brand-gray-dark/50 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 bg-brand-gray focus:bg-white transition-colors`}
+                      className={`block w-full rounded-xl border-0 py-3 px-4 text-brand-black dark:text-brand-white shadow-sm ring-1 ring-inset ${errors.password ? 'ring-red-300 focus:ring-red-500' : 'ring-brand-purple/20 focus:ring-brand-purple'} placeholder:text-gray-400 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 bg-brand-gray dark:bg-brand-black focus:bg-brand-white dark:focus:bg-brand-dark-card transition-colors`}
                     />
                     {errors.password && <p className="mt-1 text-xs text-red-600">{errors.password}</p>}
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold leading-6 text-brand-black">
+                  <label className="block text-sm font-bold leading-6 text-brand-black dark:text-gray-300">
                     Confirm Password <span className="text-red-500">*</span>
                   </label>
                   <div className="mt-2">
@@ -233,7 +235,7 @@ const SignUp: React.FC = () => {
                       type="password"
                       value={formData.confirmPassword}
                       onChange={handleChange}
-                      className={`block w-full rounded-xl border-0 py-3 px-4 text-brand-black shadow-sm ring-1 ring-inset ${errors.confirmPassword ? 'ring-red-300 focus:ring-red-500' : 'ring-brand-purple-light focus:ring-brand-purple'} placeholder:text-brand-gray-dark/50 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 bg-brand-gray focus:bg-white transition-colors`}
+                      className={`block w-full rounded-xl border-0 py-3 px-4 text-brand-black dark:text-brand-white shadow-sm ring-1 ring-inset ${errors.confirmPassword ? 'ring-red-300 focus:ring-red-500' : 'ring-brand-purple/20 focus:ring-brand-purple'} placeholder:text-gray-400 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 bg-brand-gray dark:bg-brand-black focus:bg-brand-white dark:focus:bg-brand-dark-card transition-colors`}
                     />
                     {errors.confirmPassword && <p className="mt-1 text-xs text-red-600">{errors.confirmPassword}</p>}
                   </div>
@@ -243,10 +245,10 @@ const SignUp: React.FC = () => {
 
             {/* 2. Personal Information */}
             <div>
-              <h3 className="text-lg font-bold text-brand-black border-b border-brand-gray pb-2 mb-4">2. Personal Information</h3>
+              <h3 className="text-lg font-bold text-brand-black dark:text-brand-white border-b border-brand-gray dark:border-gray-700 pb-2 mb-4">2. Personal Information</h3>
               <div className="grid grid-cols-1 gap-y-5 gap-x-6 sm:grid-cols-2">
                 <div>
-                  <label className="block text-sm font-bold leading-6 text-brand-black">
+                  <label className="block text-sm font-bold leading-6 text-brand-black dark:text-gray-300">
                     Full Name <span className="text-red-500">*</span>
                   </label>
                   <div className="mt-2">
@@ -255,7 +257,7 @@ const SignUp: React.FC = () => {
                       type="text"
                       value={formData.fullName}
                       onChange={handleChange}
-                      className={`block w-full rounded-xl border-0 py-3 px-4 text-brand-black shadow-sm ring-1 ring-inset ${errors.fullName ? 'ring-red-300 focus:ring-red-500' : 'ring-brand-purple-light focus:ring-brand-purple'} placeholder:text-brand-gray-dark/50 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 bg-brand-gray focus:bg-white transition-colors`}
+                      className={`block w-full rounded-xl border-0 py-3 px-4 text-brand-black dark:text-brand-white shadow-sm ring-1 ring-inset ${errors.fullName ? 'ring-red-300 focus:ring-red-500' : 'ring-brand-purple/20 focus:ring-brand-purple'} placeholder:text-gray-400 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 bg-brand-gray dark:bg-brand-black focus:bg-brand-white dark:focus:bg-brand-dark-card transition-colors`}
                       placeholder="John Doe"
                     />
                     {errors.fullName && <p className="mt-1 text-xs text-red-600">{errors.fullName}</p>}
@@ -263,8 +265,8 @@ const SignUp: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold leading-6 text-brand-black">
-                    Stage Name <span className="text-brand-gray-dark font-normal">(Optional)</span>
+                  <label className="block text-sm font-bold leading-6 text-brand-black dark:text-gray-300">
+                    Stage Name <span className="text-gray-400 dark:text-gray-500 font-normal">(Optional)</span>
                   </label>
                   <div className="mt-2">
                     <input
@@ -272,14 +274,14 @@ const SignUp: React.FC = () => {
                       type="text"
                       value={formData.stageName}
                       onChange={handleChange}
-                      className="block w-full rounded-xl border-0 py-3 px-4 text-brand-black shadow-sm ring-1 ring-inset ring-brand-purple-light placeholder:text-brand-gray-dark/50 focus:ring-2 focus:ring-inset focus:ring-brand-purple sm:text-sm sm:leading-6 bg-brand-gray focus:bg-white transition-colors"
+                      className="block w-full rounded-xl border-0 py-3 px-4 text-brand-black dark:text-brand-white shadow-sm ring-1 ring-inset ring-brand-purple/20 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-brand-purple sm:text-sm sm:leading-6 bg-brand-gray dark:bg-brand-black focus:bg-brand-white dark:focus:bg-brand-dark-card transition-colors"
                       placeholder="DJ Apollo"
                     />
                   </div>
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label className="block text-sm font-bold leading-6 text-brand-black">
+                  <label className="block text-sm font-bold leading-6 text-brand-black dark:text-gray-300">
                     Phone Number <span className="text-red-500">*</span>
                   </label>
                   <div className="mt-2">
@@ -288,7 +290,7 @@ const SignUp: React.FC = () => {
                       type="tel"
                       value={formData.phoneNumber}
                       onChange={handleChange}
-                      className={`block w-full rounded-xl border-0 py-3 px-4 text-brand-black shadow-sm ring-1 ring-inset ${errors.phoneNumber ? 'ring-red-300 focus:ring-red-500' : 'ring-brand-purple-light focus:ring-brand-purple'} placeholder:text-brand-gray-dark/50 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 bg-brand-gray focus:bg-white transition-colors`}
+                      className={`block w-full rounded-xl border-0 py-3 px-4 text-brand-black dark:text-brand-white shadow-sm ring-1 ring-inset ${errors.phoneNumber ? 'ring-red-300 focus:ring-red-500' : 'ring-brand-purple/20 focus:ring-brand-purple'} placeholder:text-gray-400 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 bg-brand-gray dark:bg-brand-black focus:bg-brand-white dark:focus:bg-brand-dark-card transition-colors`}
                       placeholder="+234 800 000 0000"
                     />
                     {errors.phoneNumber && <p className="mt-1 text-xs text-red-600">{errors.phoneNumber}</p>}
@@ -299,10 +301,10 @@ const SignUp: React.FC = () => {
 
             {/* 3. Location */}
             <div>
-              <h3 className="text-lg font-bold text-brand-black border-b border-brand-gray pb-2 mb-4">3. Location</h3>
+              <h3 className="text-lg font-bold text-brand-black dark:text-brand-white border-b border-brand-gray dark:border-gray-700 pb-2 mb-4">3. Location</h3>
               <div className="grid grid-cols-1 gap-y-5 gap-x-6 sm:grid-cols-2">
                 <div>
-                  <label className="block text-sm font-bold leading-6 text-brand-black">
+                  <label className="block text-sm font-bold leading-6 text-brand-black dark:text-gray-300">
                     Country <span className="text-red-500">*</span>
                   </label>
                   <div className="mt-2">
@@ -310,7 +312,7 @@ const SignUp: React.FC = () => {
                       name="country"
                       value={formData.country}
                       onChange={handleChange}
-                      className={`block w-full rounded-xl border-0 py-3 px-4 text-brand-black shadow-sm ring-1 ring-inset ${errors.country ? 'ring-red-300 focus:ring-red-500' : 'ring-brand-purple-light focus:ring-brand-purple'} focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 bg-brand-gray focus:bg-white transition-colors`}
+                      className={`block w-full rounded-xl border-0 py-3 px-4 text-brand-black dark:text-brand-white shadow-sm ring-1 ring-inset ${errors.country ? 'ring-red-300 focus:ring-red-500' : 'ring-brand-purple/20 focus:ring-brand-purple'} focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 bg-brand-gray dark:bg-brand-black focus:bg-brand-white dark:focus:bg-brand-dark-card transition-colors`}
                     >
                       <option value="">Select a country</option>
                       {africanCountries.map((country: any) => (
@@ -322,7 +324,7 @@ const SignUp: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold leading-6 text-brand-black">
+                  <label className="block text-sm font-bold leading-6 text-brand-black dark:text-gray-300">
                     State / Region <span className="text-red-500">*</span>
                   </label>
                   <div className="mt-2">
@@ -331,7 +333,7 @@ const SignUp: React.FC = () => {
                       value={formData.stateRegion}
                       onChange={handleChange}
                       disabled={!formData.country}
-                      className={`block w-full rounded-xl border-0 py-3 px-4 text-brand-black shadow-sm ring-1 ring-inset ${errors.stateRegion ? 'ring-red-300 focus:ring-red-500' : 'ring-brand-purple-light focus:ring-brand-purple'} focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 bg-brand-gray focus:bg-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
+                      className={`block w-full rounded-xl border-0 py-3 px-4 text-brand-black dark:text-brand-white shadow-sm ring-1 ring-inset ${errors.stateRegion ? 'ring-red-300 focus:ring-red-500' : 'ring-brand-purple/20 focus:ring-brand-purple'} focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 bg-brand-gray dark:bg-brand-black focus:bg-brand-white dark:focus:bg-brand-dark-card transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
                     >
                       <option value="">Select a state/region</option>
                       {availableStates.map(state => (
@@ -343,7 +345,7 @@ const SignUp: React.FC = () => {
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label className="block text-sm font-bold leading-6 text-brand-black">
+                  <label className="block text-sm font-bold leading-6 text-brand-black dark:text-gray-300">
                     City / Town <span className="text-red-500">*</span>
                   </label>
                   <div className="mt-2">
@@ -352,7 +354,7 @@ const SignUp: React.FC = () => {
                       type="text"
                       value={formData.cityTown}
                       onChange={handleChange}
-                      className={`block w-full rounded-xl border-0 py-3 px-4 text-brand-black shadow-sm ring-1 ring-inset ${errors.cityTown ? 'ring-red-300 focus:ring-red-500' : 'ring-brand-purple-light focus:ring-brand-purple'} placeholder:text-brand-gray-dark/50 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 bg-brand-gray focus:bg-white transition-colors`}
+                      className={`block w-full rounded-xl border-0 py-3 px-4 text-brand-black dark:text-brand-white shadow-sm ring-1 ring-inset ${errors.cityTown ? 'ring-red-300 focus:ring-red-500' : 'ring-brand-purple/20 focus:ring-brand-purple'} placeholder:text-gray-400 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 bg-brand-gray dark:bg-brand-black focus:bg-brand-white dark:focus:bg-brand-dark-card transition-colors`}
                       placeholder="Lagos"
                     />
                     {errors.cityTown && <p className="mt-1 text-xs text-red-600">{errors.cityTown}</p>}
@@ -363,13 +365,13 @@ const SignUp: React.FC = () => {
 
             {/* 4. Professional Details */}
             <div>
-              <h3 className="text-lg font-bold text-brand-black border-b border-brand-gray pb-2 mb-4">4. Professional Details</h3>
+              <h3 className="text-lg font-bold text-brand-black dark:text-brand-white border-b border-brand-gray dark:border-gray-700 pb-2 mb-4">4. Professional Details</h3>
               
               <div className="mb-5">
-                <label className="block text-sm font-bold leading-6 text-brand-black mb-2">
+                <label className="block text-sm font-bold leading-6 text-brand-black dark:text-gray-300 mb-2">
                   Professions (Select all that apply) <span className="text-red-500">*</span>
                 </label>
-                <div className="flex flex-wrap gap-2 mt-2 max-h-60 overflow-y-auto p-2 border border-brand-purple-light/20 rounded-xl bg-brand-gray">
+                <div className="flex flex-wrap gap-2 mt-2 max-h-60 overflow-y-auto p-2 border border-brand-purple/20 rounded-xl bg-brand-gray dark:bg-brand-black">
                   {musicProfessions.map((prof: any) => (
                     <button
                       key={prof}
@@ -377,8 +379,8 @@ const SignUp: React.FC = () => {
                       onClick={() => toggleProfession(prof)}
                       className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all flex items-center gap-1 ${
                         selectedProfessions.includes(prof)
-                          ? 'bg-brand-purple text-white shadow-sm'
-                          : 'bg-white text-brand-black border border-brand-purple-light/30 hover:border-brand-purple hover:bg-brand-purple-soft'
+                          ? 'bg-brand-purple text-brand-white shadow-sm'
+                          : 'bg-brand-white dark:bg-brand-dark-card text-brand-black dark:text-gray-300 border border-brand-purple/30 hover:border-brand-purple hover:bg-brand-purple/5'
                       }`}
                     >
                       {selectedProfessions.includes(prof) && <Check className="w-3.5 h-3.5" />}
@@ -390,7 +392,7 @@ const SignUp: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-bold leading-6 text-brand-black">
+                <label className="block text-sm font-bold leading-6 text-brand-black dark:text-gray-300">
                   Experience Level <span className="text-red-500">*</span>
                 </label>
                 <div className="mt-2">
@@ -398,7 +400,7 @@ const SignUp: React.FC = () => {
                     name="experienceLevel"
                     value={formData.experienceLevel}
                     onChange={handleChange}
-                    className={`block w-full rounded-xl border-0 py-3 px-4 text-brand-black shadow-sm ring-1 ring-inset ${errors.experienceLevel ? 'ring-red-300 focus:ring-red-500' : 'ring-brand-purple-light focus:ring-brand-purple'} focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 bg-brand-gray focus:bg-white transition-colors`}
+                    className={`block w-full rounded-xl border-0 py-3 px-4 text-brand-black dark:text-brand-white shadow-sm ring-1 ring-inset ${errors.experienceLevel ? 'ring-red-300 focus:ring-red-500' : 'ring-brand-purple/20 focus:ring-brand-purple'} focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 bg-brand-gray dark:bg-brand-black focus:bg-brand-white dark:focus:bg-brand-dark-card transition-colors`}
                   >
                     <option value="">Select your experience level</option>
                     {experienceLevels.map((level: any) => (
@@ -414,7 +416,7 @@ const SignUp: React.FC = () => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="flex w-full justify-center items-center rounded-xl bg-brand-purple px-3 py-4 text-base font-bold leading-6 text-white shadow-md hover:bg-brand-purple-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-purple transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100 purple-glow"
+                className="flex w-full justify-center items-center rounded-xl bg-brand-purple px-3 py-4 text-base font-bold leading-6 text-brand-white shadow-md hover:bg-brand-purple-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-purple transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
               >
                 {isLoading ? (
                   <>
@@ -428,12 +430,12 @@ const SignUp: React.FC = () => {
             </div>
           </form>
 
-          <p className="mt-8 text-center text-sm text-brand-gray-dark">
+          <p className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
             Already have an account?{' '}
             <Link 
               to="/login" 
               state={state}
-              className="font-semibold leading-6 text-brand-purple hover:text-brand-purple-dark transition-colors"
+              className="font-semibold leading-6 text-brand-purple hover:text-brand-purple-hover transition-colors"
             >
               Login
             </Link>

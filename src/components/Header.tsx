@@ -49,7 +49,6 @@ const Header: React.FC = () => {
     { name: 'My Applications', path: '/applications' },
     { name: 'My Posted Gigs', path: '/posted-gigs' },
     { name: 'Edit Profile', path: '/edit-profile' },
-    { name: 'Subscription', path: '/subscription' },
   ];
 
   return (
@@ -60,7 +59,7 @@ const Header: React.FC = () => {
         }`}
       >
         <Link to="/" className="flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity flex items-center gap-2">
-          <Logo variant="color" />
+          <Logo iconClassName="w-8 h-8" />
           <span className="font-black text-xl tracking-tighter text-brand-black">Gigs<span className="text-brand-purple">Connect</span></span>
         </Link>
         
@@ -150,7 +149,7 @@ const Header: React.FC = () => {
         >
           <div className="flex items-center justify-between mb-4 px-2">
             <div className="flex items-center gap-2">
-              <Logo variant="color" />
+              <Logo iconClassName="w-8 h-8" />
               <span className="font-bold text-xl tracking-tighter text-brand-black">GigsConnect</span>
             </div>
             <button 

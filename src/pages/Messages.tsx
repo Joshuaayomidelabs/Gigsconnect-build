@@ -11,50 +11,50 @@ const Messages: React.FC = () => {
   ];
 
   return (
-    <div className="pt-24 pb-24 px-4 sm:px-6 lg:px-8 max-w-3xl mx-auto min-h-screen bg-brand-gray">
+    <div className="pt-24 pb-24 px-4 sm:px-6 lg:px-8 max-w-3xl mx-auto min-h-screen bg-brand-gray dark:bg-brand-black">
       <header className="mb-8">
-        <h1 className="text-3xl font-black text-brand-black tracking-tight">Messages</h1>
-        <p className="text-brand-gray-dark text-sm">Connect with other musicians</p>
+        <h1 className="text-3xl font-black text-brand-black dark:text-brand-white tracking-tight">Messages</h1>
+        <p className="text-gray-500 dark:text-gray-400 text-sm">Connect with other musicians</p>
       </header>
 
-      <div className="bg-white rounded-[2rem] shadow-sm border border-brand-purple-light/10 overflow-hidden">
-        <div className="p-4 border-b border-brand-purple-light/10">
+      <div className="bg-brand-white dark:bg-brand-dark-card rounded-[2rem] shadow-sm border border-brand-gray dark:border-brand-black overflow-hidden">
+        <div className="p-4 border-b border-brand-gray dark:border-brand-black">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-gray-dark" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 dark:text-gray-400" />
             <input 
               type="text" 
               placeholder="Search conversations..." 
-              className="w-full pl-10 pr-4 py-2 bg-brand-gray rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-purple/20 transition-all"
+              className="w-full pl-10 pr-4 py-2 bg-brand-gray dark:bg-brand-black rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-purple/20 transition-all text-brand-black dark:text-brand-white"
             />
           </div>
         </div>
 
-        <div className="divide-y divide-brand-purple-light/5">
+        <div className="divide-y divide-brand-gray dark:divide-brand-black">
           {conversations.map((chat, i) => (
             <motion.div 
               key={chat.id}
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: i * 0.05 }}
-              className="p-4 flex items-center gap-4 hover:bg-brand-purple-soft/30 cursor-pointer transition-colors group"
+              className="p-4 flex items-center gap-4 hover:bg-brand-purple/5 cursor-pointer transition-colors group"
             >
               <div className="relative">
-                <div className="w-12 h-12 rounded-full bg-brand-purple-light flex items-center justify-center text-brand-purple font-bold text-lg border-2 border-white shadow-sm">
+                <div className="w-12 h-12 rounded-full bg-brand-purple/10 flex items-center justify-center text-brand-purple font-bold text-lg border-2 border-brand-white dark:border-brand-dark-card shadow-sm">
                   {chat.avatar}
                 </div>
                 {chat.unread && (
-                  <div className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-brand-purple rounded-full border-2 border-white" />
+                  <div className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-brand-purple rounded-full border-2 border-brand-white dark:border-brand-dark-card" />
                 )}
               </div>
               
               <div className="flex-grow min-w-0">
                 <div className="flex justify-between items-baseline mb-0.5">
-                  <h3 className={`text-sm font-bold truncate ${chat.unread ? 'text-brand-black' : 'text-brand-gray-dark'}`}>
+                  <h3 className={`text-sm font-bold truncate ${chat.unread ? 'text-brand-black dark:text-brand-white' : 'text-gray-500 dark:text-gray-400'}`}>
                     {chat.name}
                   </h3>
-                  <span className="text-[10px] text-brand-gray-dark whitespace-nowrap">{chat.time}</span>
+                  <span className="text-[10px] text-gray-500 dark:text-gray-500 whitespace-nowrap">{chat.time}</span>
                 </div>
-                <p className={`text-xs truncate ${chat.unread ? 'text-brand-black font-medium' : 'text-brand-gray-dark'}`}>
+                <p className={`text-xs truncate ${chat.unread ? 'text-brand-black dark:text-brand-white font-medium' : 'text-gray-500 dark:text-gray-400'}`}>
                   {chat.lastMessage}
                 </p>
               </div>
@@ -65,9 +65,9 @@ const Messages: React.FC = () => {
         </div>
       </div>
 
-      <div className="mt-8 p-6 bg-brand-purple-soft/50 rounded-[2rem] border border-brand-purple-light/20 text-center">
+      <div className="mt-8 p-6 bg-brand-purple/5 dark:bg-brand-purple/10 rounded-[2rem] border border-brand-purple/20 text-center">
         <MessageCircle className="w-8 h-8 text-brand-purple mx-auto mb-2 opacity-50" />
-        <p className="text-xs text-brand-gray-dark font-medium">Looking for someone to collaborate with?</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Looking for someone to collaborate with?</p>
         <button className="mt-3 text-brand-purple font-bold text-sm hover:underline">Start a new chat</button>
       </div>
     </div>

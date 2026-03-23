@@ -30,15 +30,15 @@ const MyApplications: React.FC = () => {
   }, []);
 
   return (
-    <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-500">
+    <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto min-h-screen bg-brand-gray dark:bg-brand-black transition-colors duration-500">
       <section className="mb-10">
-        <h1 className="text-4xl font-black text-gray-900 dark:text-gray-100 tracking-tight mb-4">My <span className="text-blue-600 dark:text-blue-400">Applications</span></h1>
-        <p className="text-gray-700 dark:text-gray-200 text-lg">Track the status of gigs you've applied for.</p>
+        <h1 className="text-4xl font-black text-brand-black dark:text-brand-white tracking-tight mb-4">My <span className="text-brand-purple">Applications</span></h1>
+        <p className="text-gray-500 dark:text-gray-400 text-lg">Track the status of gigs you've applied for.</p>
       </section>
 
       {isLoading ? (
         <div className="flex items-center justify-center py-20">
-          <Loader2 className="w-10 h-10 animate-spin text-blue-500 dark:text-blue-400" />
+          <Loader2 className="w-10 h-10 animate-spin text-brand-purple opacity-50" />
         </div>
       ) : error ? (
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/40 rounded-2xl p-8 text-center">
@@ -53,7 +53,7 @@ const MyApplications: React.FC = () => {
               <ApplicationCard key={app.id} application={app} />
             ))
           ) : (
-            <div className="col-span-full text-center py-20 bg-white dark:bg-gray-800 rounded-3xl border border-gray-200 dark:border-gray-700 border-dashed">
+            <div className="col-span-full text-center py-20 bg-brand-white dark:bg-brand-dark-card rounded-3xl border border-brand-gray dark:border-brand-black border-dashed">
               <p className="text-gray-500 dark:text-gray-400 text-lg">You haven't applied to any gigs yet.</p>
             </div>
           )}

@@ -128,7 +128,7 @@ const CreateProfile: React.FC = () => {
 
   if (isFetching) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-brand-gray">
+      <div className="flex items-center justify-center min-h-screen bg-brand-gray dark:bg-brand-black">
         <Loader2 className="w-10 h-10 animate-spin text-brand-purple" />
       </div>
     );
@@ -137,83 +137,87 @@ const CreateProfile: React.FC = () => {
   const progress = ((currentStep + 1) / STEPS.length) * 100;
 
   return (
-    <div className="bg-brand-gray min-h-screen pt-24 pb-32 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-2xl mx-auto">
+    <div className="bg-brand-white dark:bg-brand-black min-h-screen pt-24 pb-32 px-4 sm:px-6 lg:px-8 transition-colors duration-500 relative overflow-hidden">
+      {/* Decorative background elements */}
+      <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/4 w-[600px] h-[600px] bg-brand-purple/5 rounded-full blur-[120px] pointer-events-none"></div>
+      <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/4 w-[600px] h-[600px] bg-brand-purple/5 rounded-full blur-[120px] pointer-events-none"></div>
+
+      <div className="max-w-2xl mx-auto relative z-10">
         {/* Progress Header */}
         <div className="mb-12">
-          <div className="flex justify-between items-end mb-4">
+          <div className="flex justify-between items-end mb-6">
             <div>
-              <h1 className="text-3xl font-black text-brand-black tracking-tight">
+              <h1 className="text-4xl font-black text-brand-black dark:text-brand-white tracking-tighter leading-none mb-3">
                 Complete Your <span className="text-brand-purple">Profile</span>
               </h1>
-              <p className="text-brand-gray-dark font-medium">Step {currentStep + 1} of {STEPS.length}: {STEPS[currentStep].title}</p>
+              <p className="text-gray-500 dark:text-gray-400 font-bold text-sm uppercase tracking-widest">Step {currentStep + 1} of {STEPS.length}: {STEPS[currentStep].title}</p>
             </div>
             <div className="text-right">
-              <span className="text-2xl font-black text-brand-purple">{Math.round(progress)}%</span>
+              <span className="text-3xl font-black text-brand-purple">{Math.round(progress)}%</span>
             </div>
           </div>
-          <div className="h-3 w-full bg-white rounded-full overflow-hidden border border-brand-purple-light/10 shadow-inner">
+          <div className="h-4 w-full bg-brand-gray dark:bg-brand-black rounded-full overflow-hidden border border-brand-gray dark:border-brand-black shadow-inner p-1">
             <motion.div 
               initial={{ width: 0 }}
               animate={{ width: `${progress}%` }}
-              className="h-full bg-brand-purple shadow-[0_0_15px_rgba(124,58,237,0.5)]"
+              className="h-full bg-brand-purple rounded-full shadow-[0_0_20px_rgba(124,58,237,0.4)]"
             />
           </div>
         </div>
 
         {/* Step Content */}
-        <div className="bg-white rounded-[2.5rem] p-8 sm:p-12 shadow-xl border border-brand-purple-light/10 relative overflow-hidden">
+        <div className="bg-brand-white dark:bg-brand-dark-card rounded-[3rem] p-8 sm:p-12 shadow-2xl shadow-brand-purple/5 border border-brand-gray dark:border-brand-black relative overflow-hidden transition-all duration-500">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentStep}
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3 }}
-              className="space-y-8"
+              transition={{ duration: 0.4, ease: "easeOut" }}
+              className="space-y-10"
             >
               {currentStep === 0 && (
-                <div className="space-y-8">
-                  <div className="flex flex-col items-center gap-6">
+                <div className="space-y-10">
+                  <div className="flex flex-col items-center gap-8">
                     <div className="relative group">
-                      <div className="w-32 h-32 rounded-full bg-brand-gray border-4 border-white shadow-lg overflow-hidden flex items-center justify-center">
+                      <div className="w-40 h-40 rounded-[2.5rem] bg-brand-gray dark:bg-brand-black border-8 border-brand-white dark:border-brand-dark-card shadow-2xl overflow-hidden flex items-center justify-center transition-transform duration-500 group-hover:scale-105">
                         {formData.avatar_url ? (
                           <img src={formData.avatar_url} alt="Profile" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                         ) : (
-                          <User className="w-12 h-12 text-brand-gray-dark/30" />
+                          <User className="w-16 h-16 text-gray-300 dark:text-gray-600" />
                         )}
                       </div>
-                      <label className="absolute bottom-0 right-0 p-3 bg-brand-purple text-white rounded-full shadow-xl cursor-pointer hover:bg-brand-purple-dark transition-all active:scale-90 border-2 border-white">
-                        <Camera className="w-5 h-5" />
+                      <label className="absolute -bottom-2 -right-2 p-4 bg-brand-purple text-brand-white rounded-2xl shadow-2xl cursor-pointer hover:bg-brand-purple-hover transition-all active:scale-90 border-4 border-brand-white dark:border-brand-dark-card">
+                        <Camera className="w-6 h-6" />
                         <input type="file" className="hidden" accept="image/*" onChange={handleAvatarUpload} />
                       </label>
                     </div>
                     <div className="text-center">
-                      <h3 className="text-xl font-black text-brand-black">Add a Profile Photo</h3>
-                      <p className="text-sm text-brand-gray-dark font-medium">Help others recognize you in the community.</p>
+                      <h3 className="text-2xl font-black text-brand-black dark:text-brand-white tracking-tight">Add a Profile Photo</h3>
+                      <p className="text-gray-500 dark:text-gray-400 font-medium mt-1">Help others recognize you in the community.</p>
                     </div>
                   </div>
 
-                  <div className="space-y-6">
+                  <div className="space-y-8">
                     <div>
-                      <label className="block text-sm font-bold text-brand-black mb-2">Display Name</label>
+                      <label className="block text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] mb-3">Display Name</label>
                       <input 
                         name="full_name"
                         value={formData.full_name}
                         onChange={handleChange}
                         placeholder="e.g. John 'The Bass' Doe"
-                        className="w-full p-4 rounded-2xl border border-brand-purple-light/20 focus:ring-2 focus:ring-brand-purple focus:border-transparent transition-all outline-none bg-brand-gray focus:bg-white text-brand-black font-medium"
+                        className="w-full p-5 rounded-2xl border border-brand-gray dark:border-brand-black focus:ring-2 focus:ring-brand-purple focus:border-transparent transition-all outline-none bg-brand-gray dark:bg-brand-black focus:bg-brand-white dark:focus:bg-brand-dark-card text-brand-black dark:text-brand-white font-bold text-lg placeholder:text-gray-300 dark:placeholder:text-gray-700"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-bold text-brand-black mb-2">Bio</label>
+                      <label className="block text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] mb-3">Bio</label>
                       <textarea 
                         name="bio"
                         value={formData.bio}
                         onChange={handleChange}
                         rows={4}
                         placeholder="Tell the community about your musical journey..."
-                        className="w-full p-4 rounded-2xl border border-brand-purple-light/20 focus:ring-2 focus:ring-brand-purple focus:border-transparent transition-all outline-none bg-brand-gray focus:bg-white text-brand-black font-medium resize-none"
+                        className="w-full p-5 rounded-2xl border border-brand-gray dark:border-brand-black focus:ring-2 focus:ring-brand-purple focus:border-transparent transition-all outline-none bg-brand-gray dark:bg-brand-black focus:bg-brand-white dark:focus:bg-brand-dark-card text-brand-black dark:text-brand-white font-bold text-lg placeholder:text-gray-300 dark:placeholder:text-gray-700 resize-none"
                       />
                     </div>
                   </div>
@@ -221,10 +225,12 @@ const CreateProfile: React.FC = () => {
               )}
 
               {currentStep === 1 && (
-                <div className="space-y-8">
+                <div className="space-y-10">
                   <div>
-                    <label className="block text-sm font-bold text-brand-black mb-4 flex items-center gap-2">
-                      <Briefcase className="w-5 h-5 text-brand-purple" />
+                    <label className="block text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] mb-4 flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-brand-purple/10 flex items-center justify-center text-brand-purple border border-brand-purple/20">
+                        <Briefcase className="w-4 h-4" />
+                      </div>
                       What is your primary role?
                     </label>
                     <input 
@@ -232,22 +238,22 @@ const CreateProfile: React.FC = () => {
                       value={formData.role}
                       onChange={handleChange}
                       placeholder="e.g. Session Drummer, Music Producer"
-                      className="w-full p-4 rounded-2xl border border-brand-purple-light/20 focus:ring-2 focus:ring-brand-purple focus:border-transparent transition-all outline-none bg-brand-gray focus:bg-white text-brand-black font-medium"
+                      className="w-full p-5 rounded-2xl border border-brand-gray dark:border-brand-black focus:ring-2 focus:ring-brand-purple focus:border-transparent transition-all outline-none bg-brand-gray dark:bg-brand-black focus:bg-brand-white dark:focus:bg-brand-dark-card text-brand-black dark:text-brand-white font-bold text-lg placeholder:text-gray-300 dark:placeholder:text-gray-700"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-bold text-brand-black mb-4">Select your top skills</label>
-                    <div className="flex flex-wrap gap-2">
+                    <label className="block text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] mb-6">Select your top skills</label>
+                    <div className="flex flex-wrap gap-3">
                       {['Mixing', 'Mastering', 'Live Performance', 'Songwriting', 'Vocalist', 'Guitarist', 'Pianist', 'Drummer', 'Bassist', 'Producer'].map(skill => (
                         <button
                           key={skill}
                           type="button"
                           onClick={() => toggleSkill(skill)}
-                          className={`px-4 py-2 rounded-xl text-sm font-bold transition-all border ${
+                          className={`px-6 py-3.5 rounded-2xl text-xs font-black transition-all border tracking-tight ${
                             formData.skills.includes(skill)
-                              ? 'bg-brand-purple text-white border-brand-purple shadow-md'
-                              : 'bg-brand-gray text-brand-gray-dark border-brand-purple-light/10 hover:border-brand-purple/30'
+                              ? 'bg-brand-purple text-brand-white border-brand-purple shadow-xl shadow-brand-purple/20 scale-105'
+                              : 'bg-brand-gray dark:bg-brand-black text-gray-500 dark:text-gray-400 border-brand-gray dark:border-brand-black hover:border-brand-purple/50'
                           }`}
                         >
                           {skill}
@@ -259,11 +265,13 @@ const CreateProfile: React.FC = () => {
               )}
 
               {currentStep === 2 && (
-                <div className="space-y-8">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="space-y-10">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                     <div>
-                      <label className="block text-sm font-bold text-brand-black mb-2 flex items-center gap-2">
-                        <Globe className="w-4 h-4 text-brand-purple" />
+                      <label className="block text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] mb-3 flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-brand-purple/10 flex items-center justify-center text-brand-purple border border-brand-purple/20">
+                          <Globe className="w-4 h-4" />
+                        </div>
                         Country
                       </label>
                       <input 
@@ -271,12 +279,14 @@ const CreateProfile: React.FC = () => {
                         value={formData.country}
                         onChange={handleChange}
                         placeholder="e.g. Nigeria"
-                        className="w-full p-4 rounded-2xl border border-brand-purple-light/20 focus:ring-2 focus:ring-brand-purple focus:border-transparent transition-all outline-none bg-brand-gray focus:bg-white text-brand-black font-medium"
+                        className="w-full p-5 rounded-2xl border border-brand-gray dark:border-brand-black focus:ring-2 focus:ring-brand-purple focus:border-transparent transition-all outline-none bg-brand-gray dark:bg-brand-black focus:bg-brand-white dark:focus:bg-brand-dark-card text-brand-black dark:text-brand-white font-bold text-lg placeholder:text-gray-300 dark:placeholder:text-gray-700"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-bold text-brand-black mb-2 flex items-center gap-2">
-                        <MapPin className="w-4 h-4 text-brand-purple" />
+                      <label className="block text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] mb-3 flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-brand-purple/10 flex items-center justify-center text-brand-purple border border-brand-purple/20">
+                          <MapPin className="w-4 h-4" />
+                        </div>
                         City
                       </label>
                       <input 
@@ -284,19 +294,19 @@ const CreateProfile: React.FC = () => {
                         value={formData.city}
                         onChange={handleChange}
                         placeholder="e.g. Lagos"
-                        className="w-full p-4 rounded-2xl border border-brand-purple-light/20 focus:ring-2 focus:ring-brand-purple focus:border-transparent transition-all outline-none bg-brand-gray focus:bg-white text-brand-black font-medium"
+                        className="w-full p-5 rounded-2xl border border-brand-gray dark:border-brand-black focus:ring-2 focus:ring-brand-purple focus:border-transparent transition-all outline-none bg-brand-gray dark:bg-brand-black focus:bg-brand-white dark:focus:bg-brand-dark-card text-brand-black dark:text-brand-white font-bold text-lg placeholder:text-gray-300 dark:placeholder:text-gray-700"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-bold text-brand-black mb-2">Phone Number</label>
+                    <label className="block text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] mb-3">Phone Number</label>
                     <input 
                       name="phone"
                       value={formData.phone}
                       onChange={handleChange}
                       placeholder="+234 ..."
-                      className="w-full p-4 rounded-2xl border border-brand-purple-light/20 focus:ring-2 focus:ring-brand-purple focus:border-transparent transition-all outline-none bg-brand-gray focus:bg-white text-brand-black font-medium"
+                      className="w-full p-5 rounded-2xl border border-brand-gray dark:border-brand-black focus:ring-2 focus:ring-brand-purple focus:border-transparent transition-all outline-none bg-brand-gray dark:bg-brand-black focus:bg-brand-white dark:focus:bg-brand-dark-card text-brand-black dark:text-brand-white font-bold text-lg placeholder:text-gray-300 dark:placeholder:text-gray-700"
                     />
                   </div>
                 </div>
@@ -305,14 +315,14 @@ const CreateProfile: React.FC = () => {
           </AnimatePresence>
 
           {/* Navigation Buttons */}
-          <div className="mt-12 flex items-center justify-between gap-4">
+          <div className="mt-16 flex items-center justify-between gap-6">
             <button
               onClick={prevStep}
               disabled={currentStep === 0 || isLoading}
-              className={`flex items-center gap-2 px-6 py-4 rounded-2xl font-bold transition-all ${
+              className={`flex items-center gap-3 px-8 py-5 rounded-2xl font-black text-sm uppercase tracking-widest transition-all ${
                 currentStep === 0 
                   ? 'opacity-0 pointer-events-none' 
-                  : 'text-brand-gray-dark hover:bg-brand-gray'
+                  : 'text-gray-400 dark:text-gray-500 hover:bg-brand-gray dark:hover:bg-brand-black'
               }`}
             >
               <ArrowLeft className="w-5 h-5" />
@@ -322,14 +332,14 @@ const CreateProfile: React.FC = () => {
             <button
               onClick={nextStep}
               disabled={isLoading}
-              className="flex-1 sm:flex-none px-10 py-4 rounded-2xl bg-brand-purple text-white font-black hover:bg-brand-purple-dark transition-all shadow-xl shadow-brand-purple/20 flex items-center justify-center gap-3 active:scale-95 disabled:opacity-70"
+              className="flex-1 sm:flex-none px-12 py-5 rounded-2xl bg-brand-purple text-brand-white font-black hover:bg-brand-purple-hover transition-all shadow-2xl shadow-brand-purple/30 flex items-center justify-center gap-4 active:scale-95 disabled:opacity-70 group"
             >
               {isLoading ? (
                 <Loader2 className="w-6 h-6 animate-spin" />
               ) : (
                 <>
-                  <span>{currentStep === STEPS.length - 1 ? 'Finish Setup' : 'Continue'}</span>
-                  <ArrowRight className="w-5 h-5" />
+                  <span className="uppercase tracking-widest text-sm">{currentStep === STEPS.length - 1 ? 'Finish Setup' : 'Continue'}</span>
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </>
               )}
             </button>
@@ -337,10 +347,10 @@ const CreateProfile: React.FC = () => {
         </div>
 
         {/* Skip Option */}
-        <div className="mt-8 text-center">
+        <div className="mt-10 text-center">
           <button 
             onClick={() => navigate('/overview')}
-            className="text-brand-gray-dark font-bold hover:text-brand-purple transition-colors"
+            className="text-gray-400 dark:text-gray-500 font-black text-xs uppercase tracking-[0.2em] hover:text-brand-purple transition-colors"
           >
             Skip for now, I'll do this later
           </button>

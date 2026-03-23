@@ -1,6 +1,6 @@
 import { supabase } from './supabaseClient';
 
-export type NotificationType = 'gig_new' | 'application_update' | 'message_new' | 'system';
+export type NotificationType = 'gig_new' | 'application_received' | 'application_update' | 'message_new' | 'system';
 
 export interface Notification {
   id: string;

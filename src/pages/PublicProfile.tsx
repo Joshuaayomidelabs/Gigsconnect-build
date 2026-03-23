@@ -12,7 +12,9 @@ import {
   Phone,
   Instagram,
   Facebook,
-  Twitter
+  Twitter,
+  CheckCircle2,
+  Music2
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { profilesService } from '../services/profilesService';
@@ -53,22 +55,22 @@ const PublicProfile: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
-        <Loader2 className="w-10 h-10 animate-spin text-blue-500 dark:text-blue-400" />
+      <div className="flex items-center justify-center min-h-screen bg-brand-gray dark:bg-brand-black transition-colors">
+        <Loader2 className="w-10 h-10 animate-spin text-brand-purple" />
       </div>
     );
   }
 
   if (error || !profile) {
     return (
-      <div className="pt-24 pb-12 px-4 text-center min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
-        <div className="max-w-md mx-auto bg-white dark:bg-gray-800 p-12 rounded-[3rem] shadow-xl border border-gray-200 dark:border-gray-700">
+      <div className="pt-24 pb-12 px-4 text-center min-h-screen bg-brand-gray dark:bg-brand-black transition-colors">
+        <div className="max-w-md mx-auto bg-brand-white dark:bg-brand-dark-card p-12 rounded-[3rem] shadow-xl border border-brand-gray dark:border-brand-black">
           <User className="w-16 h-16 text-gray-400 dark:text-gray-600 mx-auto mb-6" />
-          <h2 className="text-2xl font-black text-gray-900 dark:text-gray-100 mb-2">Profile Not Found</h2>
+          <h2 className="text-2xl font-black text-brand-black dark:text-brand-white mb-2">Profile Not Found</h2>
           <p className="text-gray-700 dark:text-gray-200 mb-8">{error || "The profile you're looking for doesn't exist."}</p>
           <button 
             onClick={() => navigate(-1)}
-            className="px-8 py-3 bg-blue-500 dark:bg-blue-400 text-white dark:text-gray-900 font-bold rounded-2xl hover:bg-blue-600 dark:hover:bg-blue-300 transition-all"
+            className="px-8 py-3 bg-brand-purple text-brand-white font-bold rounded-2xl hover:bg-brand-purple-hover transition-all"
           >
             Go Back
           </button>
@@ -78,12 +80,12 @@ const PublicProfile: React.FC = () => {
   }
 
   return (
-    <div className="bg-gray-50 dark:bg-gray-900 min-h-screen pt-24 pb-24 px-4 sm:px-6 lg:px-8 transition-colors duration-500">
+    <div className="bg-brand-gray dark:bg-brand-black min-h-screen pt-24 pb-24 px-4 sm:px-6 lg:px-8 transition-colors duration-500">
       <div className="max-w-5xl mx-auto">
         {/* Back Button */}
         <button 
           onClick={() => navigate(-1)}
-          className="mb-8 flex items-center gap-2 text-gray-700 dark:text-gray-200 font-bold hover:text-blue-600 dark:hover:text-blue-400 transition-colors group"
+          className="mb-8 flex items-center gap-2 text-brand-black dark:text-brand-white font-bold hover:text-brand-purple transition-colors group"
         >
           <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
           Back
@@ -92,62 +94,67 @@ const PublicProfile: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column: Profile Card */}
           <div className="lg:col-span-1 space-y-6">
-            <div className="bg-white dark:bg-gray-800 rounded-[2.5rem] p-8 shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden text-center">
+            <div className="bg-brand-white dark:bg-brand-dark-card rounded-[2.5rem] p-8 shadow-xl border border-brand-gray dark:border-brand-black overflow-hidden text-center">
               <div className="relative inline-block mb-6">
-                <div className="w-32 h-32 rounded-full bg-gray-100 dark:bg-gray-700 border-4 border-white dark:border-gray-800 shadow-lg overflow-hidden flex items-center justify-center mx-auto">
+                <div className="w-32 h-32 rounded-full bg-brand-gray dark:bg-brand-black border-4 border-brand-white dark:border-brand-dark-card shadow-lg overflow-hidden flex items-center justify-center mx-auto">
                   {profile.avatar_url ? (
                     <img src={profile.avatar_url} alt={profile.full_name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                   ) : (
                     <User className="w-12 h-12 text-gray-400 dark:text-gray-600" />
                   )}
                 </div>
-                {profile.subscription_plan === 'pro' && (
-                  <span className="absolute -top-1 -right-1 bg-blue-500 dark:bg-blue-400 text-white dark:text-gray-900 text-[10px] font-black px-2 py-1 rounded-lg uppercase tracking-wider shadow-lg border-2 border-white dark:border-gray-800">
-                    PRO
-                  </span>
+                {profile.verification_status === 'Verified' && (
+                  <div className="absolute -bottom-1 -right-1 bg-brand-purple text-brand-white p-2 rounded-full border-4 border-brand-white dark:border-brand-dark-card shadow-lg" title="Verified Professional">
+                    <CheckCircle2 className="w-5 h-5" />
+                  </div>
                 )}
               </div>
 
-              <h1 className="text-2xl font-black text-gray-900 dark:text-gray-100 tracking-tight mb-1">{profile.full_name}</h1>
-              <p className="text-blue-600 dark:text-blue-400 font-bold mb-4">{profile.role || 'Music Professional'}</p>
+              <h1 className="text-2xl font-black text-brand-black dark:text-brand-white tracking-tight mb-1">{profile.full_name}</h1>
+              <p className="text-brand-purple font-bold mb-4">{profile.role || 'Music Professional'}</p>
               
               <div className="flex items-center justify-center gap-2 text-gray-500 dark:text-gray-400 text-sm font-medium mb-6">
                 <MapPin className="w-4 h-4" />
                 <span>{profile.city ? `${profile.city}, ${profile.country}` : profile.country || 'Global'}</span>
               </div>
-
-              <div className="flex justify-center gap-3">
-                {profile.instagram_url && (
-                  <a href={profile.instagram_url} target="_blank" rel="noopener noreferrer" className="p-3 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400 transition-all">
-                    <Instagram className="w-5 h-5" />
-                  </a>
-                )}
-                {profile.facebook_url && (
-                  <a href={profile.facebook_url} target="_blank" rel="noopener noreferrer" className="p-3 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400 transition-all">
-                    <Facebook className="w-5 h-5" />
-                  </a>
-                )}
-                {profile.tiktok_url && (
-                  <a href={profile.tiktok_url} target="_blank" rel="noopener noreferrer" className="p-3 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400 transition-all">
-                    <Twitter className="w-5 h-5" />
-                  </a>
-                )}
-              </div>
             </div>
 
             {/* Contact Info */}
-            <div className="bg-white dark:bg-gray-800 rounded-[2rem] p-8 shadow-lg border border-gray-200 dark:border-gray-700 space-y-4">
-              <h3 className="font-black text-gray-900 dark:text-gray-100 tracking-tight mb-4">Contact Information</h3>
+            <div className="bg-brand-white dark:bg-brand-dark-card rounded-[2rem] p-8 shadow-lg border border-brand-gray dark:border-brand-black space-y-4">
+              <h3 className="font-black text-brand-black dark:text-brand-white tracking-tight mb-4">Contact Information</h3>
               {profile.email && (
                 <div className="flex items-center gap-3 text-sm">
-                  <Mail className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  <Mail className="w-4 h-4 text-brand-purple" />
                   <span className="text-gray-700 dark:text-gray-200 font-medium truncate">{profile.email}</span>
                 </div>
               )}
               {profile.phone && (
                 <div className="flex items-center gap-3 text-sm">
-                  <Phone className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  <Phone className="w-4 h-4 text-brand-purple" />
                   <span className="text-gray-700 dark:text-gray-200 font-medium">{profile.phone}</span>
+                </div>
+              )}
+
+              {(profile.instagram_url || profile.facebook_url || profile.tiktok_url) && (
+                <div className="pt-4 border-t border-brand-gray dark:border-brand-black">
+                  <p className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] mb-4">Social Media</p>
+                  <div className="flex gap-3">
+                    {profile.instagram_url && (
+                      <a href={profile.instagram_url} target="_blank" rel="noopener noreferrer" className="p-3 rounded-xl bg-brand-gray dark:bg-brand-black text-gray-500 dark:text-gray-400 hover:bg-brand-purple/5 dark:hover:bg-brand-purple/20 hover:text-brand-purple transition-all border border-transparent hover:border-brand-purple/10">
+                        <Instagram className="w-5 h-5" />
+                      </a>
+                    )}
+                    {profile.facebook_url && (
+                      <a href={profile.facebook_url} target="_blank" rel="noopener noreferrer" className="p-3 rounded-xl bg-brand-gray dark:bg-brand-black text-gray-500 dark:text-gray-400 hover:bg-brand-purple/5 dark:hover:bg-brand-purple/20 hover:text-brand-purple transition-all border border-transparent hover:border-brand-purple/10">
+                        <Facebook className="w-5 h-5" />
+                      </a>
+                    )}
+                    {profile.tiktok_url && (
+                      <a href={profile.tiktok_url} target="_blank" rel="noopener noreferrer" className="p-3 rounded-xl bg-brand-gray dark:bg-brand-black text-gray-500 dark:text-gray-400 hover:bg-brand-purple/5 dark:hover:bg-brand-purple/20 hover:text-brand-purple transition-all border border-transparent hover:border-brand-purple/10">
+                        <Music2 className="w-5 h-5" />
+                      </a>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -156,9 +163,9 @@ const PublicProfile: React.FC = () => {
           {/* Right Column: Bio & Gigs */}
           <div className="lg:col-span-2 space-y-8">
             {/* Bio Section */}
-            <div className="bg-white dark:bg-gray-800 rounded-[2.5rem] p-10 shadow-xl border border-gray-200 dark:border-gray-700">
-              <h2 className="text-2xl font-black text-gray-900 dark:text-gray-100 tracking-tight mb-6 flex items-center gap-3">
-                <Music className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+            <div className="bg-brand-white dark:bg-brand-dark-card rounded-[2.5rem] p-10 shadow-xl border border-brand-gray dark:border-brand-black">
+              <h2 className="text-2xl font-black text-brand-black dark:text-brand-white tracking-tight mb-6 flex items-center gap-3">
+                <Music className="w-6 h-6 text-brand-purple" />
                 About
               </h2>
               <p className="text-gray-700 dark:text-gray-200 text-lg leading-relaxed whitespace-pre-wrap">
@@ -167,10 +174,10 @@ const PublicProfile: React.FC = () => {
 
               {profile.skills && profile.skills.length > 0 && (
                 <div className="mt-8">
-                  <h4 className="text-sm font-bold text-gray-900 dark:text-gray-100 mb-4 uppercase tracking-widest">Skills & Expertise</h4>
+                  <h4 className="text-sm font-bold text-brand-black dark:text-brand-white mb-4 uppercase tracking-widest">Skills & Expertise</h4>
                   <div className="flex flex-wrap gap-2">
                     {profile.skills.map((skill: string) => (
-                      <span key={skill} className="px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-xl text-sm font-bold text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-600">
+                      <span key={skill} className="px-4 py-2 bg-brand-gray dark:bg-brand-black rounded-xl text-sm font-bold text-gray-500 dark:text-gray-400 border border-brand-gray dark:border-brand-black">
                         {skill}
                       </span>
                     ))}
@@ -181,14 +188,14 @@ const PublicProfile: React.FC = () => {
 
             {/* Portfolio Section */}
             {profile.portfolio_media && profile.portfolio_media.length > 0 && (
-              <div className="bg-white dark:bg-gray-800 rounded-[2.5rem] p-10 shadow-xl border border-gray-200 dark:border-gray-700">
-                <h2 className="text-2xl font-black text-gray-900 dark:text-gray-100 tracking-tight mb-6 flex items-center gap-3">
-                  <Globe className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+              <div className="bg-brand-white dark:bg-brand-dark-card rounded-[2.5rem] p-10 shadow-xl border border-brand-gray dark:border-brand-black">
+                <h2 className="text-2xl font-black text-brand-black dark:text-brand-white tracking-tight mb-6 flex items-center gap-3">
+                  <Globe className="w-6 h-6 text-brand-purple" />
                   Portfolio
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {profile.portfolio_media.map((item: any, index: number) => (
-                    <div key={index} className="relative aspect-video rounded-2xl overflow-hidden bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-700 group">
+                    <div key={index} className="relative aspect-video rounded-2xl overflow-hidden bg-brand-gray dark:bg-brand-black border border-brand-gray dark:border-brand-black group">
                       {item.type === 'video' ? (
                         <video 
                           src={item.url} 
@@ -211,8 +218,8 @@ const PublicProfile: React.FC = () => {
 
             {/* Gigs Posted Section */}
             <div>
-              <h2 className="text-2xl font-black text-gray-900 dark:text-gray-100 tracking-tight mb-6 flex items-center gap-3">
-                <Briefcase className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+              <h2 className="text-2xl font-black text-brand-black dark:text-brand-white tracking-tight mb-6 flex items-center gap-3">
+                <Briefcase className="w-6 h-6 text-brand-purple" />
                 Gigs Posted
               </h2>
               
@@ -228,7 +235,7 @@ const PublicProfile: React.FC = () => {
                   ))}
                 </div>
               ) : (
-                <div className="bg-white dark:bg-gray-800 rounded-[2.5rem] p-16 text-center border border-gray-200 dark:border-gray-700 border-dashed">
+                <div className="bg-brand-white dark:bg-brand-dark-card rounded-[2.5rem] p-16 text-center border border-brand-gray dark:border-brand-black border-dashed">
                   <Briefcase className="w-12 h-12 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
                   <p className="text-gray-700 dark:text-gray-200 font-medium">No gigs posted yet.</p>
                 </div>

@@ -8,7 +8,7 @@ export const gigsService = {
     
     const { data, error } = await supabase
       .from('gigs')
-      .select('*, profiles(id, full_name, avatar_url, subscription_plan)')
+      .select('*, profiles(id, full_name, avatar_url)')
       .gte('created_at', threeDaysAgo.toISOString())
       .order('created_at', { ascending: false });
     return { data, error };
@@ -17,7 +17,7 @@ export const gigsService = {
   async getGigById(id: string) {
     const { data, error } = await supabase
       .from('gigs')
-      .select('*, profiles(id, full_name, avatar_url, subscription_plan)')
+      .select('*, profiles(id, full_name, avatar_url)')
       .eq('id', id)
       .single();
     return { data, error };

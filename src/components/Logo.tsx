@@ -20,7 +20,7 @@ const Logo: React.FC<LogoProps> = ({
           src={LOGO_URL}
           alt="GigsConnect Logo" 
           referrerPolicy="no-referrer"
-          className="w-10 h-10 rounded-full object-cover border-2 border-brand-black"
+          className="w-full h-full rounded-full object-cover border-2 border-brand-purple"
         />
       </div>
     </div>

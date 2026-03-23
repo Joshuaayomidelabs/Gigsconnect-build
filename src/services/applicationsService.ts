@@ -19,10 +19,10 @@ export const applicationsService = {
       // Notify gig creator
       await notificationsService.createNotification({
         recipient_id: applicationData.gig_owner_id,
-        type: 'application_update',
+        type: 'application_received',
         title: 'New Application',
         message: `Someone applied to your gig: ${data.gigs.title}`,
-        link: `/posted-gigs`
+        link: `/posted-gigs?gigId=${data.gig_id}&appId=${data.id}`
       });
     }
 

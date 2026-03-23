@@ -137,5 +137,38 @@ export const profilesService = {
     if (updateError) throw updateError;
 
     return publicUrlWithCacheBuster;
+  },
+
+  async uploadVerificationDoc(userId: string, file: File) {
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (file.size > maxSize) {
+      throw new Error('File size must be less than 10MB.');
+    }
+
+    const fileExt = file.name.split('.').pop();
+    const fileName = `verification_${userId}_${Date.now()}.${fileExt}`;
+    const filePath = `${userId}/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('verification_docs')
+      .upload(filePath, file, {
+        contentType: file.type
+      });
+
+    if (uploadError) throw uploadError;
+
+    // We don't necessarily want public URLs for ID documents for security reasons.
+    // But for this implementation, we'll store the path.
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({ 
+        verification_status: 'Pending',
+        verification_doc_path: filePath
+      })
+      .eq('id', userId);
+
+    if (updateError) throw updateError;
+
+    return filePath;
   }
 };

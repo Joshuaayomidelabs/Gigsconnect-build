@@ -48,22 +48,12 @@ const BrowseGigs: React.FC = () => {
       const matchesBudget = gig.budget >= min && gig.budget <= max;
 
       return matchesSearch && matchesCategory && matchesBudget;
-    })
-    .sort((a, b) => {
-      const planA = a.profiles?.subscription_plan || 'starter';
-      const planB = b.profiles?.subscription_plan || 'starter';
-      
-      if (planA === 'premium' && planB !== 'premium') return -1;
-      if (planA !== 'premium' && planB === 'premium') return 1;
-      if (planA === 'pro' && planB === 'starter') return -1;
-      if (planA === 'starter' && planB === 'pro') return 1;
-      return 0;
     });
 
   return (
-    <div className="pt-24 pb-24 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-500">
+    <div className="pt-24 pb-24 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto min-h-screen bg-brand-gray dark:bg-brand-black transition-colors duration-500">
       <section className="mb-8 px-2">
-        <h1 className="text-3xl lg:text-4xl font-black text-gray-900 dark:text-gray-100 tracking-tight mb-2">Discover <span className="text-blue-600 dark:text-blue-400">Gigs</span></h1>
+        <h1 className="text-3xl lg:text-4xl font-black text-brand-black dark:text-brand-white tracking-tight mb-2">Discover <span className="text-brand-purple">Gigs</span></h1>
         <p className="text-gray-700 dark:text-gray-200 text-sm lg:text-base font-medium">Find your next big opportunity across the continent.</p>
       </section>
 
@@ -76,15 +66,15 @@ const BrowseGigs: React.FC = () => {
               placeholder="Search by title, skills, or location..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-3.5 rounded-2xl border border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/30 transition-all outline-none shadow-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm font-medium"
+              className="w-full pl-12 pr-4 py-3.5 rounded-2xl border border-brand-gray dark:border-brand-black focus:ring-2 focus:ring-brand-purple/20 focus:border-brand-purple/30 transition-all outline-none shadow-sm bg-brand-white dark:bg-brand-dark-card text-brand-black dark:text-brand-white text-sm font-medium"
             />
           </div>
           <button 
             onClick={() => setShowFilters(!showFilters)}
             className={`flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl border transition-all shadow-sm text-sm font-bold active:scale-95 ${
               showFilters 
-                ? 'bg-blue-500 dark:bg-blue-400 text-white dark:text-gray-900 border-blue-500 dark:border-blue-400' 
-                : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400'
+                ? 'bg-brand-purple text-brand-white border-brand-purple' 
+                : 'bg-brand-white dark:bg-brand-dark-card text-brand-black dark:text-brand-white border-brand-gray dark:border-brand-black hover:bg-brand-purple/5 dark:hover:bg-brand-purple/10 hover:text-brand-purple'
             }`}
           >
             <Filter className="w-4 h-4" />
@@ -100,14 +90,14 @@ const BrowseGigs: React.FC = () => {
               exit={{ opacity: 0, height: 0 }}
               className="overflow-hidden"
             >
-              <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-200 dark:border-gray-700 shadow-md grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-brand-white dark:bg-brand-dark-card rounded-3xl p-6 border border-brand-gray dark:border-brand-black shadow-md grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                   <label className="block text-xs font-black uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-3">Category</label>
                   <div className="relative">
                     <select 
                       value={selectedCategory}
                       onChange={(e) => setSelectedCategory(e.target.value)}
-                      className="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:bg-white dark:focus:bg-gray-800 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none text-sm font-bold appearance-none text-gray-900 dark:text-gray-100"
+                      className="w-full p-3 rounded-xl border border-brand-gray dark:border-brand-black bg-brand-gray dark:bg-brand-black focus:bg-brand-white dark:focus:bg-brand-dark-card focus:ring-2 focus:ring-brand-purple/20 transition-all outline-none text-sm font-bold appearance-none text-brand-black dark:text-brand-white"
                     >
                       <option value="All">All Categories</option>
                       {GIG_CATEGORIES.map(cat => (
@@ -128,10 +118,10 @@ const BrowseGigs: React.FC = () => {
                         placeholder="Min"
                         value={budgetRange.min}
                         onChange={(e) => setBudgetRange(prev => ({ ...prev, min: e.target.value }))}
-                        className="w-full pl-7 pr-3 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:bg-white dark:focus:bg-gray-800 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none text-sm font-bold text-gray-900 dark:text-gray-100"
+                        className="w-full pl-7 pr-3 py-3 rounded-xl border border-brand-gray dark:border-brand-black bg-brand-gray dark:bg-brand-black focus:bg-brand-white dark:focus:bg-brand-dark-card focus:ring-2 focus:ring-brand-purple/20 transition-all outline-none text-sm font-bold text-brand-black dark:text-brand-white"
                       />
                     </div>
-                    <div className="w-4 h-px bg-gray-200 dark:bg-gray-700"></div>
+                    <div className="w-4 h-px bg-brand-gray dark:bg-brand-black"></div>
                     <div className="relative flex-1">
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 text-xs font-bold">$</span>
                       <input 
@@ -139,7 +129,7 @@ const BrowseGigs: React.FC = () => {
                         placeholder="Max"
                         value={budgetRange.max}
                         onChange={(e) => setBudgetRange(prev => ({ ...prev, max: e.target.value }))}
-                        className="w-full pl-7 pr-3 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:bg-white dark:focus:bg-gray-800 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none text-sm font-bold text-gray-900 dark:text-gray-100"
+                        className="w-full pl-7 pr-3 py-3 rounded-xl border border-brand-gray dark:border-brand-black bg-brand-gray dark:bg-brand-black focus:bg-brand-white dark:focus:bg-brand-dark-card focus:ring-2 focus:ring-brand-purple/20 transition-all outline-none text-sm font-bold text-brand-black dark:text-brand-white"
                       />
                     </div>
                     <button 
@@ -148,7 +138,7 @@ const BrowseGigs: React.FC = () => {
                         setSelectedCategory('All');
                         setSearchTerm('');
                       }}
-                      className="p-3 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                      className="p-3 text-gray-500 dark:text-gray-400 hover:text-brand-purple transition-colors"
                       title="Reset Filters"
                     >
                       <X className="w-5 h-5" />
@@ -163,7 +153,7 @@ const BrowseGigs: React.FC = () => {
 
       {isLoading ? (
         <div className="flex items-center justify-center py-20">
-          <Loader2 className="w-10 h-10 animate-spin text-blue-500 dark:text-blue-400 opacity-50" />
+          <Loader2 className="w-10 h-10 animate-spin text-brand-purple opacity-50" />
         </div>
       ) : error ? (
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/40 rounded-[2rem] p-8 text-center mx-2">
@@ -190,9 +180,9 @@ const BrowseGigs: React.FC = () => {
                 </motion.div>
               ))
             ) : (
-              <div className="col-span-full text-center py-20 bg-white dark:bg-gray-800 rounded-[2.5rem] border border-gray-200 dark:border-gray-700 border-dashed mx-2">
+              <div className="col-span-full text-center py-20 bg-brand-white dark:bg-brand-dark-card rounded-[2.5rem] border border-brand-gray dark:border-brand-black border-dashed mx-2">
                 <p className="text-gray-500 dark:text-gray-400 text-lg font-medium">No gigs found matching your search.</p>
-                <button onClick={() => setSearchTerm('')} className="mt-4 text-blue-600 dark:text-blue-400 font-bold hover:underline">Clear search</button>
+                <button onClick={() => setSearchTerm('')} className="mt-4 text-brand-purple font-bold hover:underline">Clear search</button>
               </div>
             )}
           </AnimatePresence>

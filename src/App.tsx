@@ -15,7 +15,6 @@ import MyPostedGigs from './pages/MyPostedGigs';
 import EditProfile from './pages/EditProfile';
 import CreateProfile from './pages/CreateProfile';
 import Notifications from './pages/Notifications';
-import SubscriptionPage from './pages/SubscriptionPage';
 import GigDetails from './pages/GigDetails';
 import PublicProfile from './pages/PublicProfile';
 
@@ -33,10 +32,10 @@ const App: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-brand-gray dark:bg-brand-dark transition-colors">
+      <div className="min-h-screen flex items-center justify-center bg-brand-gray dark:bg-brand-black transition-colors">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-brand-purple border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-brand-gray-dark dark:text-gray-400 font-medium">Loading GigsConnect...</p>
+          <p className="text-gray-500 dark:text-gray-400 font-medium">Loading GigsConnect...</p>
         </div>
       </div>
     );
@@ -44,18 +43,18 @@ const App: React.FC = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-brand-gray dark:bg-brand-dark p-4 transition-colors">
-        <div className="bg-white dark:bg-brand-dark p-8 rounded-3xl shadow-xl max-w-md w-full text-center border border-red-100 dark:border-red-900/20">
+      <div className="min-h-screen flex items-center justify-center bg-brand-gray dark:bg-brand-black p-4 transition-colors">
+        <div className="bg-brand-white dark:bg-brand-dark-card p-8 rounded-3xl shadow-xl max-w-md w-full text-center border border-red-100 dark:border-red-900/20">
           <div className="w-16 h-16 bg-red-50 dark:bg-red-900/20 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-brand-black dark:text-white mb-2">Connection Error</h2>
-          <p className="text-brand-gray-dark dark:text-gray-400 mb-8">{error}</p>
+          <h2 className="text-2xl font-bold text-brand-black dark:text-brand-white mb-2">Connection Error</h2>
+          <p className="text-gray-500 dark:text-gray-400 mb-8">{error}</p>
           <button 
             onClick={() => window.location.reload()}
-            className="w-full py-4 bg-brand-purple text-white font-bold rounded-xl hover:bg-brand-purple-dark transition-all shadow-lg shadow-purple-200 dark:shadow-none"
+            className="w-full py-4 bg-brand-purple text-brand-white font-bold rounded-xl hover:bg-brand-purple-hover transition-all shadow-lg shadow-purple-200 dark:shadow-none"
           >
             Try Again
           </button>
@@ -66,7 +65,7 @@ const App: React.FC = () => {
 
   return (
     <DarkModeProvider>
-      <div className="flex flex-col min-h-screen bg-brand-gray dark:bg-brand-dark transition-colors">
+      <div className="flex flex-col min-h-screen bg-brand-gray dark:bg-brand-black transition-colors">
         <TopNav />
         <main className={`flex-grow ${showBottomNav ? 'pb-20 lg:pb-0' : ''}`}>
           <Routes>
@@ -84,7 +83,6 @@ const App: React.FC = () => {
             <Route path="/edit-profile" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
             <Route path="/create-profile" element={<ProtectedRoute><CreateProfile /></ProtectedRoute>} />
             <Route path="/profile/:userId" element={<ProtectedRoute><PublicProfile /></ProtectedRoute>} />
-            <Route path="/subscription" element={<ProtectedRoute><SubscriptionPage /></ProtectedRoute>} />
             <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
             <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
             

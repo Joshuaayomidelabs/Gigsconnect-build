@@ -47,9 +47,9 @@ const NotificationDropdown: React.FC = () => {
 
   const getIcon = (type: string) => {
     switch (type) {
-      case 'gig_new': return <Briefcase className="w-4 h-4 text-blue-600 dark:text-blue-400" />;
-      case 'message_new': return <MessageSquare className="w-4 h-4 text-blue-500" />;
-      case 'application_update': return <Check className="w-4 h-4 text-emerald-500" />;
+      case 'gig_new': return <Briefcase className="w-4 h-4 text-brand-purple" />;
+      case 'message_new': return <MessageSquare className="w-4 h-4 text-brand-purple" />;
+      case 'application_update': return <Check className="w-4 h-4 text-brand-purple" />;
       default: return <Info className="w-4 h-4 text-gray-500 dark:text-gray-400" />;
     }
   };
@@ -58,12 +58,12 @@ const NotificationDropdown: React.FC = () => {
     <div className="relative" ref={dropdownRef}>
       <button 
         onClick={handleToggle}
-        className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors group"
+        className="relative p-2 rounded-full hover:bg-brand-gray dark:hover:bg-brand-black transition-colors group"
         aria-label="Notifications"
       >
-        <Bell className="w-6 h-6 text-gray-900 dark:text-gray-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" />
+        <Bell className="w-6 h-6 text-brand-black dark:text-brand-white group-hover:text-brand-purple transition-colors" />
         {unreadCount > 0 && (
-          <span className="absolute top-1 right-1 w-5 h-5 bg-blue-500 dark:bg-blue-400 text-white dark:text-gray-900 text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-white dark:border-gray-800 shadow-sm">
+          <span className="absolute top-1 right-1 w-5 h-5 bg-brand-purple text-brand-white text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-brand-white dark:border-brand-dark-card shadow-sm">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
@@ -75,36 +75,36 @@ const NotificationDropdown: React.FC = () => {
             initial={{ opacity: 0, y: 10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
-            className="absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-gray-800 rounded-3xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50"
+            className="absolute right-0 mt-2 w-80 sm:w-96 bg-brand-white dark:bg-brand-dark-card rounded-3xl shadow-2xl border border-brand-gray dark:border-brand-black overflow-hidden z-50"
           >
-            <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-900/50">
-              <h3 className="font-black text-gray-900 dark:text-gray-100 tracking-tight">Notifications</h3>
+            <div className="p-4 border-b border-brand-gray dark:border-brand-black flex justify-between items-center bg-brand-gray dark:bg-brand-black/50">
+              <h3 className="font-black text-brand-black dark:text-brand-white tracking-tight">Notifications</h3>
               {unreadCount > 0 && (
                 <button 
                   onClick={handleMarkAllAsRead}
-                  className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline"
+                  className="text-xs font-bold text-brand-purple hover:underline"
                 >
                   Mark all as read
                 </button>
               )}
             </div>
 
-            <div className="max-h-[400px] overflow-y-auto divide-y divide-gray-100 dark:divide-gray-700">
+            <div className="max-h-[400px] overflow-y-auto divide-y divide-brand-gray dark:divide-brand-black">
               {notifications.length > 0 ? (
                 notifications.map((notif) => (
                   <div 
                     key={notif.id}
-                    className={`p-4 flex gap-4 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors relative group ${!notif.is_read ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''}`}
+                    className={`p-4 flex gap-4 hover:bg-brand-purple/5 dark:hover:bg-brand-purple/20 transition-colors relative group ${!notif.is_read ? 'bg-brand-purple/5 dark:bg-brand-purple/10' : ''}`}
                   >
                     <div className="flex-shrink-0 mt-1">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${!notif.is_read ? 'bg-blue-100 dark:bg-blue-900/30' : 'bg-gray-100 dark:bg-gray-700'}`}>
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${!notif.is_read ? 'bg-brand-purple/10 dark:bg-brand-purple/30' : 'bg-brand-gray dark:bg-brand-black'}`}>
                         {getIcon(notif.type)}
                       </div>
                     </div>
                     
                     <div className="flex-grow min-w-0">
                       <div className="flex justify-between items-start mb-1">
-                        <h4 className={`text-sm font-bold truncate ${!notif.is_read ? 'text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400'}`}>
+                        <h4 className={`text-sm font-bold truncate ${!notif.is_read ? 'text-brand-black dark:text-brand-white' : 'text-gray-500 dark:text-gray-400'}`}>
                           {notif.title}
                         </h4>
                         <span className="text-[10px] text-gray-500 dark:text-gray-400 whitespace-nowrap ml-2">
@@ -123,7 +123,7 @@ const NotificationDropdown: React.FC = () => {
                               handleMarkAsRead(notif.id);
                               setIsOpen(false);
                             }}
-                            className="text-[10px] font-bold text-blue-600 dark:text-blue-400 flex items-center gap-1 hover:underline"
+                            className="text-[10px] font-bold text-brand-purple flex items-center gap-1 hover:underline"
                           >
                             View details <ExternalLink className="w-2.5 h-2.5" />
                           </Link>
@@ -131,7 +131,7 @@ const NotificationDropdown: React.FC = () => {
                         {!notif.is_read && (
                           <button 
                             onClick={() => handleMarkAsRead(notif.id)}
-                            className="text-[10px] font-bold text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                            className="text-[10px] font-bold text-gray-500 dark:text-gray-400 hover:text-brand-purple transition-colors"
                           >
                             Mark as read
                           </button>
@@ -148,11 +148,11 @@ const NotificationDropdown: React.FC = () => {
               )}
             </div>
 
-            <div className="p-3 border-t border-gray-200 dark:border-gray-700 text-center bg-gray-50 dark:bg-gray-900/50">
+            <div className="p-3 border-t border-brand-gray dark:border-brand-black text-center bg-brand-gray dark:bg-brand-black/50">
               <Link 
                 to="/notifications" 
                 onClick={() => setIsOpen(false)}
-                className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline"
+                className="text-xs font-bold text-brand-purple hover:underline"
               >
                 View all notifications
               </Link>
