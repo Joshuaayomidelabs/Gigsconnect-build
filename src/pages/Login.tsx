@@ -75,148 +75,133 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-brand-gray dark:bg-brand-black flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans relative overflow-hidden">
-      {/* Background Decorative SVGs */}
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-32 h-32 text-brand-purple opacity-5 absolute top-10 left-10 -rotate-12 hidden md:block pointer-events-none">
-        <path d="M9 18V5l12-2v13"></path>
-        <circle cx="6" cy="18" r="3"></circle>
-        <circle cx="18" cy="16" r="3"></circle>
-      </svg>
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-40 h-40 text-brand-purple opacity-5 absolute bottom-20 right-10 rotate-12 hidden md:block pointer-events-none">
-        <path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"></path>
-      </svg>
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-24 h-24 text-brand-purple opacity-5 absolute top-1/4 right-20 rotate-45 hidden lg:block pointer-events-none">
-        <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
-        <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
-        <line x1="12" x2="12" y1="19" y2="22"></line>
-      </svg>
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-36 h-36 text-brand-purple opacity-5 absolute bottom-1/4 left-16 -rotate-6 hidden lg:block pointer-events-none">
-        <path d="M2 10v3"></path>
-        <path d="M6 6v11"></path>
-        <path d="M10 3v18"></path>
-        <path d="M14 8v7"></path>
-        <path d="M18 5v13"></path>
-        <path d="M22 10v3"></path>
-      </svg>
-
-      <div className="relative z-10 sm:mx-auto sm:w-full sm:max-w-md text-center">
+    <div className="min-h-screen bg-brand-gray dark:bg-brand-black flex flex-col font-sans transition-colors duration-500">
+      {/* Minimal Header */}
+      <div className="pt-8 px-6 flex justify-center sm:justify-start max-w-md mx-auto w-full">
         <Link to="/" className="inline-flex items-center gap-2 group">
-          <Logo iconClassName="w-10 h-10" />
-          <h1 className="text-4xl font-black text-brand-black dark:text-brand-white tracking-tighter">
+          <Logo iconClassName="w-8 h-8" />
+          <h1 className="text-2xl font-black text-brand-black dark:text-brand-white tracking-tighter">
             Gigs<span className="text-brand-purple">Connect</span>
           </h1>
         </Link>
-        <h2 className="mt-6 text-center text-2xl font-bold leading-9 tracking-tight text-brand-black dark:text-brand-white">
-          Sign in to your account
-        </h2>
       </div>
 
-      <div className="relative z-10 mt-8 sm:mx-auto sm:w-full sm:max-w-[400px]">
-        <div className="bg-brand-white dark:bg-brand-dark-card px-6 py-10 shadow-xl sm:rounded-3xl sm:px-12 border border-brand-purple/10">
-          {state?.message && (
-            <div className="mb-6 p-4 rounded-xl bg-brand-purple/5 border border-brand-purple/20 text-brand-purple text-sm text-center font-medium shadow-sm">
-              {state.message}
-            </div>
-          )}
-          {state?.signupSuccess && (
-            <div className="mb-6 p-4 rounded-xl bg-brand-purple/5 dark:bg-brand-purple/20 border border-brand-purple/20 text-brand-purple text-sm text-center font-medium shadow-sm">
-              Your account has been created. Please check your email and verify your address before logging in.
-            </div>
-          )}
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            <div>
-              <label className="block text-sm font-medium leading-6 text-brand-black dark:text-gray-300">
-                Email address <span className="text-red-500">*</span>
-              </label>
-              <div className="mt-2">
+      <main className="flex-grow flex flex-col px-4 py-8 sm:px-6 lg:px-8">
+        <div className="w-full max-w-md mx-auto">
+          <div className="mb-8">
+            <h2 className="text-3xl font-black tracking-tight text-brand-black dark:text-brand-white">
+              Sign in
+            </h2>
+            <p className="mt-2 text-sm font-bold text-gray-500 dark:text-gray-400">
+              Welcome back to GigsConnect
+            </p>
+          </div>
+
+          <div className="w-full">
+            {state?.message && (
+              <div className="mb-6 p-4 rounded-xl bg-brand-purple/5 border border-brand-purple/20 text-brand-purple text-sm text-center font-medium">
+                {state.message}
+              </div>
+            )}
+            {state?.signupSuccess && (
+              <div className="mb-6 p-4 rounded-xl bg-brand-purple/5 dark:bg-brand-purple/20 border border-brand-purple/20 text-brand-purple text-sm text-center font-medium">
+                Your account has been created. Please check your email and verify your address before logging in.
+              </div>
+            )}
+
+            <form className="space-y-4" onSubmit={handleSubmit}>
+              <div>
+                <label className="block text-xs font-black uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2 ml-1">
+                  Email address <span className="text-red-500">*</span>
+                </label>
                 <input
                   name="email"
                   type="email"
                   autoComplete="email"
                   value={formData.email}
                   onChange={handleChange}
-                  className={`block w-full rounded-xl border-0 py-3.5 px-4 text-brand-black dark:text-brand-white shadow-sm ring-1 ring-inset ${errors.email ? 'ring-red-300 focus:ring-red-500' : 'ring-brand-purple/20 focus:ring-brand-purple'} placeholder:text-gray-400 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 transition-all duration-200 bg-brand-gray dark:bg-brand-black focus:bg-brand-white dark:focus:bg-brand-dark-card`}
+                  className={`block w-full h-[54px] rounded-xl border-0 px-5 text-base text-brand-black dark:text-brand-white shadow-sm ring-1 ring-inset ${errors.email ? 'ring-red-300 focus:ring-red-500' : 'ring-brand-purple/10 focus:ring-brand-purple'} placeholder:text-gray-400 focus:ring-2 focus:ring-inset transition-all duration-200 bg-white dark:bg-brand-dark-card focus:bg-white dark:focus:bg-brand-dark-card`}
                   placeholder="you@example.com"
                 />
-                {errors.email && <p className="mt-2 text-sm text-red-600">{errors.email}</p>}
+                {errors.email && <p className="mt-2 text-xs font-bold text-red-600 ml-1">{errors.email}</p>}
               </div>
-            </div>
 
-            <div>
-              <label className="block text-sm font-medium leading-6 text-brand-black dark:text-gray-300">
-                Password <span className="text-red-500">*</span>
-              </label>
-              <div className="mt-2">
+              <div>
+                <label className="block text-xs font-black uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2 ml-1">
+                  Password <span className="text-red-500">*</span>
+                </label>
                 <input
                   name="password"
                   type="password"
                   autoComplete="current-password"
                   value={formData.password}
                   onChange={handleChange}
-                  className={`block w-full rounded-xl border-0 py-3.5 px-4 text-brand-black dark:text-brand-white shadow-sm ring-1 ring-inset ${errors.password ? 'ring-red-300 focus:ring-red-500' : 'ring-brand-purple/20 focus:ring-brand-purple'} placeholder:text-gray-400 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 transition-all duration-200 bg-brand-gray dark:bg-brand-black focus:bg-brand-white dark:focus:bg-brand-dark-card`}
+                  className={`block w-full h-[54px] rounded-xl border-0 px-5 text-base text-brand-black dark:text-brand-white shadow-sm ring-1 ring-inset ${errors.password ? 'ring-red-300 focus:ring-red-500' : 'ring-brand-purple/10 focus:ring-brand-purple'} placeholder:text-gray-400 focus:ring-2 focus:ring-inset transition-all duration-200 bg-white dark:bg-brand-dark-card focus:bg-white dark:focus:bg-brand-dark-card`}
                 />
-                {errors.password && <p className="mt-2 text-sm text-red-600">{errors.password}</p>}
+                {errors.password && <p className="mt-2 text-xs font-bold text-red-600 ml-1">{errors.password}</p>}
               </div>
+
+              <div className="flex items-center justify-between pt-1">
+                <div className="flex items-center">
+                  <input
+                    id="remember-me"
+                    name="rememberMe"
+                    type="checkbox"
+                    checked={formData.rememberMe}
+                    onChange={handleChange}
+                    className="h-5 w-5 rounded border-brand-purple/30 text-brand-purple focus:ring-brand-purple transition-all cursor-pointer bg-white dark:bg-brand-black"
+                  />
+                  <label htmlFor="remember-me" className="ml-3 block text-sm font-bold text-gray-600 dark:text-gray-300 cursor-pointer">
+                    Remember me
+                  </label>
+                </div>
+
+                <div className="text-sm">
+                  <a href="#" className="font-bold text-brand-purple hover:text-brand-purple-hover transition-colors">
+                    Forgot password?
+                  </a>
+                </div>
+              </div>
+
+              <div className="pt-4">
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="flex w-full h-[54px] justify-center items-center rounded-xl bg-brand-purple text-white text-sm font-black uppercase tracking-widest shadow-glow hover:bg-brand-purple-dark transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      Signing in...
+                    </>
+                  ) : (
+                    'Sign in'
+                  )}
+                </button>
+              </div>
+              
+              {supabaseError && (
+                <div className="mt-4 text-xs font-bold text-red-600 text-center bg-red-50 dark:bg-red-900/20 p-4 rounded-xl border border-red-100 dark:border-red-900/40">
+                  {supabaseError}
+                </div>
+              )}
+            </form>
+
+            <div className="mt-10 text-center">
+              <p className="text-sm font-bold text-gray-500 dark:text-gray-400">
+                Don't have an account?{' '}
+                <Link 
+                  to="/signup" 
+                  state={state}
+                  className="text-brand-purple hover:text-brand-purple-hover transition-colors"
+                >
+                  Sign up
+                </Link>
+              </p>
             </div>
-
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <input
-                  id="remember-me"
-                  name="rememberMe"
-                  type="checkbox"
-                  checked={formData.rememberMe}
-                  onChange={handleChange}
-                  className="h-4 w-4 rounded border-brand-purple/30 text-brand-purple focus:ring-brand-purple transition-all cursor-pointer bg-brand-white dark:bg-brand-black"
-                />
-                <label htmlFor="remember-me" className="ml-3 block text-sm leading-6 text-brand-black dark:text-gray-300 cursor-pointer">
-                  Remember me
-                </label>
-              </div>
-
-              <div className="text-sm leading-6">
-                <a href="#" className="font-semibold text-brand-purple hover:text-brand-purple-hover transition-colors">
-                  Forgot password?
-                </a>
-              </div>
-            </div>
-
-            <div>
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="flex w-full justify-center items-center rounded-xl bg-brand-purple px-3 py-4 text-sm font-bold leading-6 text-brand-white shadow-md hover:bg-brand-purple-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-purple transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    Signing in...
-                  </>
-                ) : (
-                  'Sign in'
-                )}
-              </button>
-            </div>
-            
-            {supabaseError && (
-              <div className="mt-4 text-sm text-red-600 text-center bg-red-50 dark:bg-red-900/20 p-3 rounded-lg border border-red-100 dark:border-red-900/40">
-                {supabaseError}
-              </div>
-            )}
-          </form>
-
-          <p className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
-            Don't have an account?{' '}
-            <Link 
-              to="/signup" 
-              state={state}
-              className="font-semibold leading-6 text-brand-purple hover:text-brand-purple-hover transition-colors"
-            >
-              Sign up
-            </Link>
-          </p>
+          </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 };

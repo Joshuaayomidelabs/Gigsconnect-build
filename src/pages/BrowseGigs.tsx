@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, Loader2, AlertCircle, X, ChevronDown } from 'lucide-react';
+import { Search, Filter, Loader2, AlertCircle, X, ChevronDown, Banknote } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
 import { gigsService } from '../services/gigsService';
 import GigCard from '../components/GigCard';
+import GigDetailsModal from '../components/GigDetailsModal';
 import { GIG_CATEGORIES } from '../utils/constants';
 
 const BrowseGigs: React.FC = () => {
@@ -15,6 +16,8 @@ const BrowseGigs: React.FC = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [budgetRange, setBudgetRange] = useState({ min: '', max: '' });
+  const [selectedGig, setSelectedGig] = useState<any | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchGigs = async () => {
@@ -49,6 +52,15 @@ const BrowseGigs: React.FC = () => {
 
       return matchesSearch && matchesCategory && matchesBudget;
     });
+
+  const handleViewDetails = (gig: any) => {
+    setSelectedGig(gig);
+    setIsModalOpen(true);
+  };
+
+  const handleApply = (id: string) => {
+    navigate(`/gig/${id}`);
+  };
 
   return (
     <div className="pt-24 pb-24 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto min-h-screen bg-brand-gray dark:bg-brand-black transition-colors duration-500">
@@ -109,27 +121,27 @@ const BrowseGigs: React.FC = () => {
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-xs font-black uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-3">Budget Range (USD)</label>
+                  <label className="block text-xs font-black uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-3">Budget Range</label>
                   <div className="flex items-center gap-3">
                     <div className="relative flex-1">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 text-xs font-bold">$</span>
+                      <Banknote className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 w-3.5 h-3.5" />
                       <input 
                         type="number" 
                         placeholder="Min"
                         value={budgetRange.min}
                         onChange={(e) => setBudgetRange(prev => ({ ...prev, min: e.target.value }))}
-                        className="w-full pl-7 pr-3 py-3 rounded-xl border border-brand-gray dark:border-brand-black bg-brand-gray dark:bg-brand-black focus:bg-brand-white dark:focus:bg-brand-dark-card focus:ring-2 focus:ring-brand-purple/20 transition-all outline-none text-sm font-bold text-brand-black dark:text-brand-white"
+                        className="w-full pl-9 pr-3 py-3 rounded-xl border border-brand-gray dark:border-brand-black bg-brand-gray dark:bg-brand-black focus:bg-brand-white dark:focus:bg-brand-dark-card focus:ring-2 focus:ring-brand-purple/20 transition-all outline-none text-sm font-bold text-brand-black dark:text-brand-white"
                       />
                     </div>
                     <div className="w-4 h-px bg-brand-gray dark:bg-brand-black"></div>
                     <div className="relative flex-1">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 text-xs font-bold">$</span>
+                      <Banknote className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 w-3.5 h-3.5" />
                       <input 
                         type="number" 
                         placeholder="Max"
                         value={budgetRange.max}
                         onChange={(e) => setBudgetRange(prev => ({ ...prev, max: e.target.value }))}
-                        className="w-full pl-7 pr-3 py-3 rounded-xl border border-brand-gray dark:border-brand-black bg-brand-gray dark:bg-brand-black focus:bg-brand-white dark:focus:bg-brand-dark-card focus:ring-2 focus:ring-brand-purple/20 transition-all outline-none text-sm font-bold text-brand-black dark:text-brand-white"
+                        className="w-full pl-9 pr-3 py-3 rounded-xl border border-brand-gray dark:border-brand-black bg-brand-gray dark:bg-brand-black focus:bg-brand-white dark:focus:bg-brand-dark-card focus:ring-2 focus:ring-brand-purple/20 transition-all outline-none text-sm font-bold text-brand-black dark:text-brand-white"
                       />
                     </div>
                     <button 
@@ -174,8 +186,8 @@ const BrowseGigs: React.FC = () => {
                 >
                   <GigCard 
                     gig={gig} 
-                    onViewDetails={(g) => navigate(`/gig/${g.id}`)}
-                    onApply={(id) => navigate(`/gig/${id}`)}
+                    onViewDetails={handleViewDetails}
+                    onApply={handleApply}
                   />
                 </motion.div>
               ))
@@ -188,6 +200,13 @@ const BrowseGigs: React.FC = () => {
           </AnimatePresence>
         </div>
       )}
+
+      <GigDetailsModal 
+        gig={selectedGig}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onApply={handleApply}
+      />
     </div>
   );
 };

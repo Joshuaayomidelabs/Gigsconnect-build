@@ -12,7 +12,7 @@ export const applicationsService = {
     const { data, error } = await supabase
       .from('gig_applications')
       .insert([applicationData])
-      .select('*, gigs(title)')
+      .select('*, gigs(title), applicant:profiles!applicant_id(full_name, avatar_url, role)')
       .single();
 
     if (!error && data) {
@@ -21,8 +21,14 @@ export const applicationsService = {
         recipient_id: applicationData.gig_owner_id,
         type: 'application_received',
         title: 'New Application',
-        message: `Someone applied to your gig: ${data.gigs.title}`,
-        link: `/posted-gigs?gigId=${data.gig_id}&appId=${data.id}`
+        message: `${(data as any).applicant?.full_name || 'Someone'} applied to your gig: ${(data as any).gigs.title}`,
+        link: `/posted-gigs?gigId=${data.gig_id}&appId=${data.id}`,
+        metadata: {
+          applicant_name: (data as any).applicant?.full_name,
+          applicant_avatar: (data as any).applicant?.avatar_url,
+          gig_title: (data as any).gigs.title,
+          role: (data as any).applicant?.role
+        }
       });
     }
 
@@ -43,8 +49,12 @@ export const applicationsService = {
         recipient_id: data.applicant_id,
         type: 'application_update',
         title: 'Application Update',
-        message: `Your application for "${data.gigs.title}" has been ${status}.`,
-        link: '/applications'
+        message: `Your application for "${(data as any).gigs.title}" has been ${status}.`,
+        link: '/applications',
+        metadata: {
+          gig_title: (data as any).gigs.title,
+          status: status
+        }
       });
     }
 

@@ -3,11 +3,16 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { supabase } from '../services/supabaseClient';
 import GigCard from './GigCard';
+import GigDetailsModal from './GigDetailsModal';
 import { ArrowRight, Sparkles } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const FeaturedGigs: React.FC = () => {
+  const navigate = useNavigate();
   const [gigs, setGigs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedGig, setSelectedGig] = useState<any | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchFeaturedGigs = async () => {
@@ -47,6 +52,15 @@ const FeaturedGigs: React.FC = () => {
 
   if (gigs.length === 0) return null;
 
+  const handleViewDetails = (gig: any) => {
+    setSelectedGig(gig);
+    setIsModalOpen(true);
+  };
+
+  const handleApply = (id: string) => {
+    navigate(`/gig/${id}`);
+  };
+
   return (
     <section className="py-24 bg-brand-light dark:bg-brand-dark transition-colors duration-500">
       <div className="max-w-[1400px] mx-auto px-6">
@@ -81,11 +95,18 @@ const FeaturedGigs: React.FC = () => {
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
             >
-              <GigCard gig={gig} showApply={false} onViewDetails={(g) => window.location.href = `/browse?id=${g.id}`} />
+              <GigCard gig={gig} showApply={false} onViewDetails={handleViewDetails} />
             </motion.div>
           ))}
         </div>
       </div>
+
+      <GigDetailsModal 
+        gig={selectedGig}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onApply={handleApply}
+      />
     </section>
   );
 };

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Bell, Check, ExternalLink, MessageSquare, Briefcase, Info, X } from 'lucide-react';
+import { Bell, Check, ExternalLink, MessageSquare, Briefcase, Info, X, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -104,18 +104,39 @@ const NotificationDropdown: React.FC = () => {
                     
                     <div className="flex-grow min-w-0">
                       <div className="flex justify-between items-start mb-1">
-                        <h4 className={`text-sm font-bold truncate ${!notif.is_read ? 'text-brand-black dark:text-brand-white' : 'text-gray-500 dark:text-gray-400'}`}>
+                        <h4 className={`text-sm font-black truncate ${!notif.is_read ? 'text-brand-black dark:text-brand-white' : 'text-gray-500 dark:text-gray-400 font-bold'}`}>
                           {notif.title}
                         </h4>
                         <span className="text-[10px] text-gray-500 dark:text-gray-400 whitespace-nowrap ml-2">
                           {new Date(notif.created_at).toLocaleDateString()}
                         </span>
                       </div>
-                      <p className="text-xs text-gray-700 dark:text-gray-300 line-clamp-2 mb-2">
+                      
+                      {notif.type === 'application_received' && notif.metadata?.applicant_name && (
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="w-6 h-6 rounded-full overflow-hidden bg-brand-purple-soft flex items-center justify-center">
+                            {notif.metadata.applicant_avatar ? (
+                              <img src={notif.metadata.applicant_avatar} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                              <User className="w-3 h-3 text-brand-purple" />
+                            )}
+                          </div>
+                          <span className={`text-xs font-bold ${!notif.is_read ? 'text-brand-black dark:text-brand-white' : 'text-gray-600 dark:text-gray-400'}`}>
+                            {notif.metadata.applicant_name}
+                          </span>
+                          {notif.metadata.role && (
+                            <span className="text-[10px] text-gray-500 dark:text-gray-400 bg-brand-gray dark:bg-brand-black px-1.5 py-0.5 rounded">
+                              {notif.metadata.role}
+                            </span>
+                          )}
+                        </div>
+                      )}
+
+                      <p className={`text-xs line-clamp-2 mb-3 ${!notif.is_read ? 'text-brand-black dark:text-brand-white font-bold' : 'text-gray-700 dark:text-gray-300 font-medium'}`}>
                         {notif.message}
                       </p>
                       
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2">
                         {notif.link && (
                           <Link 
                             to={notif.link}
@@ -123,15 +144,34 @@ const NotificationDropdown: React.FC = () => {
                               handleMarkAsRead(notif.id);
                               setIsOpen(false);
                             }}
-                            className="text-[10px] font-bold text-brand-purple flex items-center gap-1 hover:underline"
+                            className={`text-[10px] font-bold px-3 py-1.5 rounded-lg transition-all flex items-center gap-1 ${
+                              notif.type === 'application_received' 
+                                ? 'bg-brand-purple text-brand-white hover:bg-brand-purple-dark' 
+                                : 'text-brand-purple hover:bg-brand-purple-soft'
+                            }`}
                           >
-                            View details <ExternalLink className="w-2.5 h-2.5" />
+                            {notif.type === 'application_received' ? 'View Application' : 'View Details'}
+                            {notif.type !== 'application_received' && <ExternalLink className="w-2.5 h-2.5" />}
                           </Link>
                         )}
-                        {!notif.is_read && (
+                        
+                        {notif.type === 'application_received' && (
+                          <Link 
+                            to="/messages"
+                            onClick={() => {
+                              handleMarkAsRead(notif.id);
+                              setIsOpen(false);
+                            }}
+                            className="text-[10px] font-bold text-brand-purple border border-brand-purple px-3 py-1.5 rounded-lg hover:bg-brand-purple-soft transition-all"
+                          >
+                            Message Applicant
+                          </Link>
+                        )}
+
+                        {!notif.is_read && notif.type !== 'application_received' && (
                           <button 
                             onClick={() => handleMarkAsRead(notif.id)}
-                            className="text-[10px] font-bold text-gray-500 dark:text-gray-400 hover:text-brand-purple transition-colors"
+                            className="text-[10px] font-bold text-gray-500 dark:text-gray-400 hover:text-brand-purple transition-colors ml-auto"
                           >
                             Mark as read
                           </button>

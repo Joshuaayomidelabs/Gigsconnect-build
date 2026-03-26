@@ -22,6 +22,8 @@ import ProtectedRoute from './components/ProtectedRoute';
 import { useAuth } from './context/AuthContext';
 import { DarkModeProvider } from './context/DarkModeContext';
 
+import { Toaster } from 'sonner';
+
 const App: React.FC = () => {
   const { user, loading, error } = useAuth();
   const location = useLocation();
@@ -66,6 +68,7 @@ const App: React.FC = () => {
   return (
     <DarkModeProvider>
       <div className="flex flex-col min-h-screen bg-brand-gray dark:bg-brand-black transition-colors">
+        <Toaster position="top-right" richColors />
         <TopNav />
         <main className={`flex-grow ${showBottomNav ? 'pb-20 lg:pb-0' : ''}`}>
           <Routes>

@@ -1,12 +1,81 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Compass, PlusSquare, FileText, User, ArrowRight, Loader2, Zap } from 'lucide-react';
-import { motion } from 'motion/react';
+import { LayoutDashboard, Compass, PlusSquare, FileText, User, ArrowRight, Loader2, Zap, MapPin, CheckCircle2, TrendingUp, Award, MessageSquare } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import { supabase } from '../services/supabaseClient';
 import { gigsService } from '../services/gigsService';
 import { profilesService } from '../services/profilesService';
 import GigCard from '../components/GigCard';
 import ProfileCard from '../components/ProfileCard';
+import GigDetailsModal from '../components/GigDetailsModal';
+
+const featuredCreators = [
+  {
+    id: '1',
+    name: 'Soundsprodigy',
+    location: 'Lagos, Nigeria',
+    skill: 'Bassist',
+    badge: 'Verified',
+    avatar: 'https://picsum.photos/seed/prodigy/200'
+  },
+  {
+    id: '2',
+    name: 'TobyHeart',
+    location: 'Lagos, Nigeria',
+    skill: 'Vocalist',
+    badge: 'Verified',
+    avatar: 'https://picsum.photos/seed/toby/200'
+  },
+  {
+    id: '3',
+    name: 'Bchops',
+    location: 'Lagos, Nigeria',
+    skill: 'Drummer',
+    badge: 'Verified',
+    avatar: 'https://picsum.photos/seed/bchops/200'
+  },
+  {
+    id: '4',
+    name: 'Amara',
+    location: 'Nairobi, Kenya',
+    skill: 'Saxophonist',
+    badge: 'Trending',
+    avatar: 'https://picsum.photos/seed/amara/200'
+  },
+  {
+    id: '5',
+    name: 'Kofi',
+    location: 'Accra, Ghana',
+    skill: 'Music Producer',
+    badge: 'Top Performer',
+    avatar: 'https://picsum.photos/seed/kofi/200'
+  },
+  {
+    id: '6',
+    name: 'Zola',
+    location: 'Johannesburg, South Africa',
+    skill: 'Songwriter',
+    badge: 'Verified',
+    avatar: 'https://picsum.photos/seed/zola/200'
+  }
+];
+
+const CreatorBadge = ({ type }: { type: string }) => {
+  const configs: Record<string, { icon: any, color: string, bg: string }> = {
+    'Verified': { icon: <CheckCircle2 className="w-3 h-3" />, color: 'text-blue-500', bg: 'bg-blue-500/10' },
+    'Trending': { icon: <TrendingUp className="w-3 h-3" />, color: 'text-orange-500', bg: 'bg-orange-500/10' },
+    'Top Performer': { icon: <Award className="w-3 h-3" />, color: 'text-yellow-600', bg: 'bg-yellow-500/10' },
+  };
+
+  const config = configs[type] || configs['Verified'];
+
+  return (
+    <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full ${config.bg} ${config.color} text-[9px] font-black uppercase tracking-wider`}>
+      {config.icon}
+      {type}
+    </div>
+  );
+};
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -14,6 +83,9 @@ const Dashboard: React.FC = () => {
   const [profile, setProfile] = useState<any>(null);
   const [recentGigs, setRecentGigs] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [visibleCount, setVisibleCount] = useState(8);
+  const [selectedGig, setSelectedGig] = useState<any | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -25,12 +97,21 @@ const Dashboard: React.FC = () => {
           gigsService.getAllGigs()
         ]);
         if (profileRes.data) setProfile(profileRes.data);
-        if (gigsRes.data) setRecentGigs(gigsRes.data.slice(0, 2));
+        if (gigsRes.data) setRecentGigs(gigsRes.data);
       }
       setIsLoading(false);
     };
     fetchData();
   }, []);
+
+  const handleViewDetails = (gig: any) => {
+    setSelectedGig(gig);
+    setIsModalOpen(true);
+  };
+
+  const handleApply = (id: string) => {
+    navigate(`/gig/${id}`);
+  };
 
   if (isLoading) {
     return (
@@ -39,12 +120,6 @@ const Dashboard: React.FC = () => {
       </div>
     );
   }
-
-  const stats = [
-    { label: 'Gigs Applied', value: '8', color: 'brand' },
-    { label: 'Gigs Posted', value: '3', color: 'green' },
-    { label: 'Profile Views', value: '142', color: 'blue' }
-  ];
 
   return (
     <div className="pt-24 pb-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto min-h-screen bg-brand-gray dark:bg-brand-black transition-colors duration-500">
@@ -72,28 +147,71 @@ const Dashboard: React.FC = () => {
             </div>
           </header>
 
-          {/* Mobile Stats (Horizontal Scroll) */}
-          <section className="lg:hidden flex gap-3 overflow-x-auto pb-4 no-scrollbar px-2">
-            {stats.map((stat, i) => (
-              <div key={i} className="bg-brand-white dark:bg-brand-dark-card rounded-[1.5rem] p-4 border border-brand-gray dark:border-brand-black shadow-md min-w-[140px] flex-shrink-0 transition-colors">
-                <p className="text-gray-500 dark:text-gray-400 text-[10px] font-bold uppercase tracking-wider mb-1 opacity-60">{stat.label}</p>
-                <p className="text-xl font-black text-brand-black dark:text-brand-white">{stat.value}</p>
-              </div>
-            ))}
+          {/* Featured Creators (Horizontal Scroll) */}
+          <section className="space-y-3">
+            <div className="flex justify-between items-center px-2">
+              <h3 className="text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-[0.2em]">Featured Creators</h3>
+              <button className="text-[10px] font-black text-brand-purple uppercase tracking-widest hover:underline">View All</button>
+            </div>
+            <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar px-2 snap-x">
+              {featuredCreators.map((creator) => (
+                <div 
+                  key={creator.id} 
+                  className="bg-brand-white dark:bg-brand-dark-card rounded-[2rem] p-5 border border-brand-gray dark:border-brand-black shadow-soft min-w-[240px] flex-shrink-0 transition-all hover:shadow-md snap-start group"
+                >
+                  <div className="flex items-start gap-4 mb-4">
+                    <div className="relative">
+                      <img 
+                        src={creator.avatar} 
+                        alt={creator.name} 
+                        className="w-14 h-14 rounded-2xl object-cover shadow-sm group-hover:scale-105 transition-transform duration-300"
+                        referrerPolicy="no-referrer"
+                      />
+                      <div className="absolute -bottom-1 -right-1 bg-brand-purple text-white p-1 rounded-lg shadow-sm">
+                        <Zap className="w-3 h-3 fill-current" />
+                      </div>
+                    </div>
+                    <div className="flex-grow min-w-0">
+                      <h4 className="text-base font-black text-brand-black dark:text-brand-white truncate">{creator.name}</h4>
+                      <p className="text-xs font-bold text-brand-purple mb-1">{creator.skill}</p>
+                      <div className="flex items-center gap-1 text-[10px] text-gray-500 dark:text-gray-400 font-medium">
+                        <MapPin className="w-3 h-3" />
+                        {creator.location}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between gap-3 mt-auto">
+                    <CreatorBadge type={creator.badge} />
+                    <div className="flex gap-2">
+                      <button className="p-2 rounded-xl bg-brand-gray dark:bg-brand-black text-brand-black dark:text-brand-white hover:bg-brand-purple/10 hover:text-brand-purple transition-all">
+                        <MessageSquare className="w-4 h-4" />
+                      </button>
+                      <button className="px-4 py-2 rounded-xl bg-brand-purple text-white text-[10px] font-black uppercase tracking-widest hover:bg-brand-purple-dark transition-all shadow-glow">
+                        Profile
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </section>
 
           {/* Feed Items */}
           <section className="space-y-4 lg:space-y-6">
-            {recentGigs.map((gig, i) => (
-              <motion.div
-                key={gig.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.05 }}
-              >
-                <GigCard gig={gig} onViewDetails={(g) => navigate(`/gig/${g.id}`)} onApply={(id) => navigate(`/gig/${id}`)} />
-              </motion.div>
-            ))}
+            <AnimatePresence mode="popLayout">
+              {recentGigs.slice(0, visibleCount).map((gig, i) => (
+                <motion.div
+                  key={gig.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ delay: (i % 8) * 0.05 }}
+                >
+                  <GigCard gig={gig} onViewDetails={handleViewDetails} onApply={handleApply} />
+                </motion.div>
+              ))}
+            </AnimatePresence>
             
             {recentGigs.length === 0 && !isLoading && (
               <div className="bg-brand-white dark:bg-brand-dark-card rounded-[2.5rem] p-12 text-center border border-dashed border-brand-gray dark:border-brand-dark-card mx-2">
@@ -108,10 +226,17 @@ const Dashboard: React.FC = () => {
             )}
           </section>
 
-          {/* Load More Placeholder */}
-          <div className="py-8 text-center">
-            <button className="text-brand-purple font-bold text-sm hover:underline active:scale-95 transition-transform">Load more opportunities</button>
-          </div>
+          {/* Load More Button */}
+          {visibleCount < recentGigs.length && (
+            <div className="py-8 text-center">
+              <button 
+                onClick={() => setVisibleCount(prev => prev + 8)}
+                className="text-brand-purple font-black text-sm uppercase tracking-widest hover:underline active:scale-95 transition-transform"
+              >
+                Load more opportunities
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Right Column: Suggestions & Trending (Hidden on mobile) */}
@@ -150,6 +275,13 @@ const Dashboard: React.FC = () => {
         </div>
 
       </div>
+
+      <GigDetailsModal 
+        gig={selectedGig}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onApply={handleApply}
+      />
     </div>
   );
 };

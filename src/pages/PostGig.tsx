@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Loader2, Music, MapPin, DollarSign, Calendar, FileText } from 'lucide-react';
+import { Loader2, Music, MapPin, Banknote, Calendar, FileText } from 'lucide-react';
 import { gigsService } from '../services/gigsService';
 import { supabase } from '../services/supabaseClient';
 import { GIG_CATEGORIES } from '../utils/constants';
@@ -80,7 +80,7 @@ const PostGig: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-bold text-brand-black dark:text-brand-white mb-2 flex items-center gap-2">
-              <DollarSign className="w-4 h-4 text-brand-purple" />
+              <Banknote className="w-4 h-4 text-brand-purple" />
               Budget *
             </label>
             <div className="flex items-center bg-brand-gray dark:bg-brand-black rounded-2xl border border-brand-gray dark:border-brand-black focus-within:ring-2 focus-within:ring-brand-purple focus-within:border-transparent transition-all overflow-hidden">
@@ -100,7 +100,7 @@ const PostGig: React.FC = () => {
           </div>
           <div>
             <label className="block text-sm font-bold text-brand-black dark:text-brand-white mb-2 flex items-center gap-2">
-              <DollarSign className="w-4 h-4 text-brand-purple" />
+              <Banknote className="w-4 h-4 text-brand-purple" />
               Currency *
             </label>
             <select 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { MapPin, Calendar, DollarSign, FileText, Loader2, CheckCircle, ArrowLeft, Trash2 } from 'lucide-react';
+import { MapPin, Calendar, FileText, Loader2, CheckCircle, ArrowLeft, Trash2 } from 'lucide-react';
 import { gigsService } from '../services/gigsService';
 import { applicationsService } from '../services/applicationsService';
 import { supabase } from '../services/supabaseClient';

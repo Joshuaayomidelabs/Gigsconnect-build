@@ -11,6 +11,13 @@ export interface Notification {
   link?: string;
   is_read: boolean;
   created_at: string;
+  metadata?: {
+    applicant_name?: string;
+    applicant_avatar?: string;
+    gig_title?: string;
+    role?: string;
+    [key: string]: any;
+  };
 }
 
 export const notificationsService = {

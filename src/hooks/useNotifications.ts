@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../services/supabaseClient";
 import { Notification, notificationsService } from "../services/notificationsService";
+import { toast } from "sonner";
 
 export const useNotifications = (userId: string | undefined) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -42,6 +43,15 @@ export const useNotifications = (userId: string | undefined) => {
     const subscription = notificationsService.subscribeToNotifications(userId, (newNotif) => {
       setNotifications(prev => [newNotif, ...prev]);
       setUnreadCount(prev => prev + 1);
+      
+      // Show toast notification
+      toast.info(newNotif.title, {
+        description: newNotif.message,
+        action: newNotif.link ? {
+          label: 'View',
+          onClick: () => window.location.href = newNotif.link!
+        } : undefined
+      });
     });
 
     return () => {

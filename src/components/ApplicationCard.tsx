@@ -1,5 +1,5 @@
 import React from 'react';
-import { Eye, Calendar, DollarSign, MapPin } from 'lucide-react';
+import { Eye, Calendar, Banknote, MapPin } from 'lucide-react';
 import { formatDate, formatCurrency } from '../utils/helpers';
 
 interface ApplicationCardProps {
@@ -34,7 +34,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({ application, onView }
           <span className="truncate">{application.gigs?.location}</span>
         </div>
         <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300 text-xs font-semibold">
-          <DollarSign className="w-3.5 h-3.5 text-brand-purple" />
+          <Banknote className="w-3.5 h-3.5 text-brand-purple" />
           <span>{formatCurrency(application.gigs?.budget || 0, application.gigs?.currency || 'USD')}</span>
         </div>
       </div>
