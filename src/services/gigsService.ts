@@ -8,7 +8,7 @@ export const gigsService = {
     
     const { data, error } = await supabase
       .from('gigs')
-      .select('*, profiles(user_id, full_name, avatar_url)')
+      .select('*, profiles(id, full_name, avatar_url, verification_status, is_verified)')
       .gte('created_at', threeDaysAgo.toISOString())
       .order('created_at', { ascending: false });
     return { data, error };
@@ -17,7 +17,7 @@ export const gigsService = {
   async getGigById(id: string) {
     const { data, error } = await supabase
       .from('gigs')
-      .select('*, profiles(user_id, full_name, avatar_url)')
+      .select('*, profiles(id, full_name, avatar_url, verification_status, is_verified)')
       .eq('id', id)
       .single();
     return { data, error };
@@ -62,7 +62,7 @@ export const gigsService = {
   async getMyGigs(userId: string) {
     const { data, error } = await supabase
       .from('gigs')
-      .select('*, profiles(user_id, full_name, avatar_url)')
+      .select('*, profiles(id, full_name, avatar_url, verification_status, is_verified)')
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
     return { data, error };
@@ -76,7 +76,7 @@ export const gigsService = {
     // 1. Search gigs
     const { data: gigs, error: gigsError } = await supabase
       .from('gigs')
-      .select('*, profiles(user_id, full_name, avatar_url)')
+      .select('*, profiles(id, full_name, avatar_url, verification_status, is_verified)')
       .or(`title.ilike.%${normalized}%,description.ilike.%${normalized}%`);
 
     if (gigsError) console.error("Error searching gigs:", gigsError);
@@ -84,7 +84,7 @@ export const gigsService = {
     // 2. Search users by skills
     const { data: users, error: usersError } = await supabase
       .from('profiles')
-      .select('id, full_name, avatar_url, skills, city, country')
+      .select('id, full_name, avatar_url, skills, city, country, verification_status, is_verified')
       .overlaps('skills', [normalized]);
 
     if (usersError) console.error("Error searching users:", usersError);

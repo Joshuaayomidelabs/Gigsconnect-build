@@ -24,6 +24,7 @@ export const applicationsService = {
         message: `${(data as any).applicant?.full_name || 'Someone'} applied to your gig: ${(data as any).gigs.title}`,
         link: `/posted-gigs?gigId=${data.gig_id}&appId=${data.id}`,
         metadata: {
+          application_id: data.id,
           applicant_name: (data as any).applicant?.full_name,
           applicant_avatar: (data as any).applicant?.avatar_url,
           gig_title: (data as any).gigs.title,
@@ -77,7 +78,7 @@ export const applicationsService = {
   async getMyApplications(userId: string) {
     const { data, error } = await supabase
       .from('gig_applications')
-      .select('*, gigs(title, budget, location)')
+      .select('*, gigs(title, budget, location, currency)')
       .eq('applicant_id', userId)
       .order('created_at', { ascending: false });
     return { data, error };

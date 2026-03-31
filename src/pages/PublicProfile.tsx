@@ -14,11 +14,13 @@ import {
   Facebook,
   Twitter,
   CheckCircle2,
-  Music2
+  Music2,
+  Clock
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { profilesService } from '../services/profilesService';
 import { gigsService } from '../services/gigsService';
+import { supabase } from '../services/supabaseClient';
 import GigCard from '../components/GigCard';
 
 const PublicProfile: React.FC = () => {
@@ -51,6 +53,27 @@ const PublicProfile: React.FC = () => {
     };
 
     fetchData();
+
+    // Realtime subscription for profile updates (verification status, etc.)
+    const channel = supabase
+      .channel(`public-profile-${userId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+          filter: `id=eq.${userId}`,
+        },
+        (payload) => {
+          setProfile(payload.new);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [userId]);
 
   if (isLoading) {
@@ -108,7 +131,7 @@ const PublicProfile: React.FC = () => {
                     <User className="w-12 h-12 text-gray-400 dark:text-gray-600" />
                   )}
                 </div>
-                {profile.verification_status === 'Verified' && (
+                {(profile.verification_status === 'Verified' || profile.is_verified) && (
                   <div className="absolute -bottom-1 -right-1 bg-brand-purple text-brand-white p-2 rounded-full border-4 border-brand-white dark:border-brand-dark-card shadow-lg" title="Verified Professional">
                     <CheckCircle2 className="w-5 h-5" />
                   </div>
@@ -116,6 +139,14 @@ const PublicProfile: React.FC = () => {
               </div>
 
               <h1 className="text-2xl font-black text-brand-black dark:text-brand-white tracking-tight mb-1">{profile.full_name}</h1>
+              
+              {profile.verification_status === 'Pending' && (
+                <div className="flex items-center justify-center gap-2 px-4 py-2 bg-yellow-50 dark:bg-yellow-900/10 text-yellow-600 dark:text-yellow-400 text-xs font-bold rounded-xl mb-4 border border-yellow-100 dark:border-yellow-900/20">
+                  <Clock className="w-4 h-4" />
+                  Verification Pending
+                </div>
+              )}
+
               <p className="text-brand-purple font-bold mb-4">{profile.role || 'Music Professional'}</p>
               
               <div className="flex items-center justify-center gap-2 text-gray-500 dark:text-gray-400 text-sm font-medium mb-6">

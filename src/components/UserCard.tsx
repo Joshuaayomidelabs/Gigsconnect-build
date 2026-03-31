@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { User, MapPin } from 'lucide-react';
+import { User, MapPin, CheckCircle2 } from 'lucide-react';
 import { motion } from 'motion/react';
 
 interface UserCardProps {
@@ -44,6 +44,11 @@ export const UserCard: React.FC<UserCardProps> = ({ user }) => {
             ) : (
               <div className="h-full w-full rounded-full bg-gray-100 flex items-center justify-center border-2 border-gray-50">
                 <User className="h-8 w-8 text-gray-400" />
+              </div>
+            )}
+            {((user as any).verification_status === 'Verified' || (user as any).is_verified) && (
+              <div className="absolute -bottom-1 -right-1 bg-brand-purple text-white p-1 rounded-full border-2 border-white shadow-sm">
+                <CheckCircle2 className="w-3 h-3" />
               </div>
             )}
           </div>

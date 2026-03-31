@@ -29,12 +29,8 @@ const Notifications: React.FC = () => {
     }
   };
 
-  const handleStatusUpdate = async (notificationId: string, link: string | undefined, status: 'Accepted' | 'Rejected') => {
-    if (!link) return;
-    
-    // Extract appId from link: /posted-gigs?gigId=...&appId=...
-    const url = new URL(link, window.location.origin);
-    const appId = url.searchParams.get('appId');
+  const handleStatusUpdate = async (notificationId: string, link: string | undefined, metadata: any, status: 'Accepted' | 'Rejected') => {
+    const appId = metadata?.application_id || (link ? new URL(link, window.location.origin).searchParams.get('appId') : null);
     
     if (!appId) return;
 
@@ -45,6 +41,9 @@ const Notifications: React.FC = () => {
       
       // Mark notification as read after action
       await handleMarkAsRead(notificationId);
+      
+      // Update local state to show it's processed
+      setNotifications(prev => prev.map(n => n.id === notificationId ? { ...n, is_processed: true, processed_status: status } : n));
       
       alert(`Application ${status.toLowerCase()} successfully!`);
     } catch (err: any) {
@@ -129,8 +128,8 @@ const Notifications: React.FC = () => {
                     {notif.message}
                   </p>
 
-                  {notif.link && (
-                    <div className="flex flex-wrap items-center gap-4">
+                  <div className="flex flex-wrap items-center gap-4">
+                    {notif.link && (
                       <Link 
                         to={notif.link}
                         onClick={() => handleMarkAsRead(notif.id)}
@@ -138,29 +137,36 @@ const Notifications: React.FC = () => {
                       >
                         View details <ExternalLink className="w-4 h-4" />
                       </Link>
+                    )}
 
-                      {notif.type === 'application_received' && !notif.is_read && (
-                        <div className="flex gap-2 ml-auto">
-                          <button 
-                            onClick={() => handleStatusUpdate(notif.id, notif.link, 'Rejected')}
-                            disabled={!!isProcessing}
-                            className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-brand-gray dark:bg-brand-black text-brand-black dark:text-brand-white text-xs font-bold hover:bg-brand-black/5 dark:hover:bg-brand-black/20 transition-all border border-brand-gray dark:border-brand-black disabled:opacity-50"
-                          >
-                            {isProcessing === notif.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <XCircle className="w-3 h-3" />}
-                            Reject
-                          </button>
-                          <button 
-                            onClick={() => handleStatusUpdate(notif.id, notif.link, 'Accepted')}
-                            disabled={!!isProcessing}
-                            className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-brand-purple text-white text-xs font-bold hover:bg-brand-purple-hover transition-all shadow-sm disabled:opacity-50"
-                          >
-                            {isProcessing === notif.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle className="w-3 h-3" />}
-                            Accept
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                    {notif.type === 'application_received' && !notif.is_read && !(notif as any).is_processed && (
+                      <div className="flex gap-2 ml-auto">
+                        <button 
+                          onClick={() => handleStatusUpdate(notif.id, notif.link, notif.metadata, 'Rejected')}
+                          disabled={!!isProcessing}
+                          className="flex items-center gap-1 px-4 py-2 rounded-xl bg-brand-gray dark:bg-brand-black text-brand-black dark:text-brand-white text-xs font-bold hover:bg-brand-black/5 dark:hover:bg-brand-black/20 transition-all border border-brand-gray dark:border-brand-black disabled:opacity-50"
+                        >
+                          {isProcessing === notif.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <XCircle className="w-3 h-3" />}
+                          Reject
+                        </button>
+                        <button 
+                          onClick={() => handleStatusUpdate(notif.id, notif.link, notif.metadata, 'Accepted')}
+                          disabled={!!isProcessing}
+                          className="flex items-center gap-1 px-4 py-2 rounded-xl bg-brand-purple text-white text-xs font-bold hover:bg-brand-purple-hover transition-all shadow-sm disabled:opacity-50"
+                        >
+                          {isProcessing === notif.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle className="w-3 h-3" />}
+                          Accept
+                        </button>
+                      </div>
+                    )}
+
+                    {(notif as any).is_processed && (
+                      <div className={`ml-auto px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 ${(notif as any).processed_status === 'Accepted' ? 'bg-green-50 dark:bg-green-900/10 text-green-600' : 'bg-red-50 dark:bg-red-900/10 text-red-600'}`}>
+                        <CheckCircle className="w-3 h-3" />
+                        {(notif as any).processed_status}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </motion.div>
             ))
