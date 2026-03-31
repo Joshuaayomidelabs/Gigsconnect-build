@@ -20,8 +20,8 @@ const GigCard: React.FC<GigCardProps> = ({ gig, onApply, onViewDetails, onViewAp
 
   const goToProfile = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (creator?.id) {
-      navigate(`/profile/${creator.id}`);
+    if (creator?.user_id) {
+      navigate(`/profile/${creator.user_id}`);
     }
   };
 
@@ -80,9 +80,18 @@ const GigCard: React.FC<GigCardProps> = ({ gig, onApply, onViewDetails, onViewAp
           className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
           onClick={goToProfile}
         >
-          <div className="w-8 h-8 rounded-lg bg-brand-purple/10 flex items-center justify-center text-brand-purple text-[10px] font-black border border-brand-purple/10">
-            {creator?.full_name?.charAt(0).toUpperCase() || 'U'}
-          </div>
+          {creator?.avatar_url ? (
+            <img 
+              src={creator.avatar_url.includes('?') ? creator.avatar_url : `${creator.avatar_url}?t=${Date.now()}`}
+              alt={creator.full_name}
+              className="w-8 h-8 rounded-lg object-cover border border-brand-purple/10"
+              referrerPolicy="no-referrer"
+            />
+          ) : (
+            <div className="w-8 h-8 rounded-lg bg-brand-purple/10 flex items-center justify-center text-brand-purple text-[10px] font-black border border-brand-purple/10">
+              {creator?.full_name?.charAt(0).toUpperCase() || 'U'}
+            </div>
+          )}
           <span className="text-xs font-bold text-brand-black dark:text-brand-white truncate max-w-[100px]">
             {creator?.full_name || 'Anonymous'}
           </span>

@@ -13,7 +13,12 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile }) => {
       <div className="relative mb-4">
         <div className="w-20 h-20 rounded-full bg-brand-purple/5 dark:bg-brand-purple/10 border-4 border-brand-white dark:border-brand-black overflow-hidden shadow-md">
           {profile?.avatar_url ? (
-            <img src={profile.avatar_url} alt={profile.full_name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+            <img 
+              src={profile.avatar_url.includes('?') ? profile.avatar_url : `${profile.avatar_url}?t=${Date.now()}`} 
+              alt={profile.full_name} 
+              className="w-full h-full object-cover" 
+              referrerPolicy="no-referrer" 
+            />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-brand-purple font-black text-2xl">
               {profile?.full_name?.charAt(0).toUpperCase() || 'U'}

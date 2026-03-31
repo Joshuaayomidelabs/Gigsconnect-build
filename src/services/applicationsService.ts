@@ -12,7 +12,7 @@ export const applicationsService = {
     const { data, error } = await supabase
       .from('gig_applications')
       .insert([applicationData])
-      .select('*, gigs(title), applicant:profiles!applicant_id(full_name, avatar_url, role)')
+      .select('*, gigs(title), applicant:profiles!applicant_id(user_id, full_name, avatar_url, role)')
       .single();
 
     if (!error && data) {
@@ -86,7 +86,7 @@ export const applicationsService = {
   async getApplicationsForGig(gigId: string) {
     const { data, error } = await supabase
       .from('gig_applications')
-      .select('*, profiles(full_name, avatar_url, role)')
+      .select('*, profiles(user_id, full_name, avatar_url, role)')
       .eq('gig_id', gigId)
       .order('created_at', { ascending: false });
     return { data, error };

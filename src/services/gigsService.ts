@@ -8,7 +8,7 @@ export const gigsService = {
     
     const { data, error } = await supabase
       .from('gigs')
-      .select('*, profiles(id, full_name, avatar_url)')
+      .select('*, profiles(user_id, full_name, avatar_url)')
       .gte('created_at', threeDaysAgo.toISOString())
       .order('created_at', { ascending: false });
     return { data, error };
@@ -17,7 +17,7 @@ export const gigsService = {
   async getGigById(id: string) {
     const { data, error } = await supabase
       .from('gigs')
-      .select('*, profiles(id, full_name, avatar_url)')
+      .select('*, profiles(user_id, full_name, avatar_url)')
       .eq('id', id)
       .single();
     return { data, error };
@@ -62,9 +62,36 @@ export const gigsService = {
   async getMyGigs(userId: string) {
     const { data, error } = await supabase
       .from('gigs')
-      .select('*, profiles(id, full_name, avatar_url)')
+      .select('*, profiles(user_id, full_name, avatar_url)')
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
     return { data, error };
+  },
+
+  async searchGigsAndUsers(searchTerm: string) {
+    if (!searchTerm || !searchTerm.trim()) return { gigs: [], users: [] };
+
+    const normalized = searchTerm.toLowerCase().trim();
+
+    // 1. Search gigs
+    const { data: gigs, error: gigsError } = await supabase
+      .from('gigs')
+      .select('*, profiles(user_id, full_name, avatar_url)')
+      .or(`title.ilike.%${normalized}%,description.ilike.%${normalized}%`);
+
+    if (gigsError) console.error("Error searching gigs:", gigsError);
+
+    // 2. Search users by skills
+    const { data: users, error: usersError } = await supabase
+      .from('profiles')
+      .select('id, full_name, avatar_url, skills, city, country')
+      .overlaps('skills', [normalized]);
+
+    if (usersError) console.error("Error searching users:", usersError);
+
+    return {
+      gigs: gigs || [],
+      users: users || [],
+    };
   }
 };

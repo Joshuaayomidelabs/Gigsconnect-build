@@ -2,7 +2,7 @@
 
 -- 1. Create the 'profiles' table
 CREATE TABLE profiles (
-  id UUID REFERENCES auth.users(id) PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) PRIMARY KEY,
   full_name TEXT,
   stage_name TEXT,
   email TEXT,
@@ -21,6 +21,8 @@ CREATE TABLE profiles (
   instagram_url TEXT,
   tiktok_url TEXT,
   portfolio_media JSONB DEFAULT '[]'::jsonb,
+  verification_status TEXT DEFAULT 'Unverified',
+  verification_doc_path TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
@@ -30,8 +32,8 @@ ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 
 -- Policies for profiles
 CREATE POLICY "Public profiles are viewable by everyone." ON profiles FOR SELECT USING (true);
-CREATE POLICY "Users can insert their own profile." ON profiles FOR INSERT WITH CHECK (auth.uid() = id);
-CREATE POLICY "Users can update their own profile." ON profiles FOR UPDATE USING (auth.uid() = id);
+CREATE POLICY "Users can insert their own profile." ON profiles FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update their own profile." ON profiles FOR UPDATE USING (auth.uid() = user_id);
 
 -- 1.5 Create the 'user_professions' table
 CREATE TABLE user_professions (

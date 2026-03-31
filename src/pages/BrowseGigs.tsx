@@ -3,54 +3,82 @@ import { Search, Filter, Loader2, AlertCircle, X, ChevronDown, Banknote } from '
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
 import { gigsService } from '../services/gigsService';
+import { profilesService } from '../services/profilesService';
+import { supabase } from '../services/supabaseClient';
 import GigCard from '../components/GigCard';
+import { UserCard } from '../components/UserCard';
+import { GigCardSkeleton, UserCardSkeleton } from '../components/Skeleton';
 import GigDetailsModal from '../components/GigDetailsModal';
 import { GIG_CATEGORIES } from '../utils/constants';
 
 const BrowseGigs: React.FC = () => {
   const navigate = useNavigate();
   const [gigs, setGigs] = useState<any[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [budgetRange, setBudgetRange] = useState({ min: '', max: '' });
   const [selectedGig, setSelectedGig] = useState<any | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // Debounce search term
   useEffect(() => {
-    const fetchGigs = async () => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // Unified Search (Gigs + Users)
+  useEffect(() => {
+    const performSearch = async () => {
+      // If no search term, just fetch all gigs (initial state)
+      if (!debouncedSearchTerm.trim()) {
+        setUsers([]);
+        try {
+          setIsLoading(true);
+          const { data, error: fetchError } = await gigsService.getAllGigs();
+          if (fetchError) throw fetchError;
+          setGigs(data || []);
+        } catch (err: any) {
+          setError(err.message);
+        } finally {
+          setIsLoading(false);
+        }
+        return;
+      }
+
+      // If there is a search term, use the combined search service
       try {
-        setIsLoading(true);
-        const { data, error: fetchError } = await gigsService.getAllGigs();
-        if (fetchError) throw fetchError;
-        setGigs(data || []);
+        setIsSearching(true);
+        const { gigs: searchGigs, users: searchUsers } = await gigsService.searchGigsAndUsers(debouncedSearchTerm);
+        setGigs(searchGigs || []);
+        setUsers(searchUsers || []);
       } catch (err: any) {
-        setError(err.message);
+        console.error('Error during search:', err);
       } finally {
-        setIsLoading(false);
+        setIsSearching(false);
       }
     };
 
-    fetchGigs();
-  }, []);
+    performSearch();
+  }, [debouncedSearchTerm]);
 
   const filteredGigs = gigs
     .filter(gig => {
-      const matchesSearch = 
-        gig.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        gig.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        gig.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        gig.gig_category?.toLowerCase().includes(searchTerm.toLowerCase());
-
       const matchesCategory = selectedCategory === 'All' || gig.gig_category === selectedCategory;
       
       const min = budgetRange.min ? parseFloat(budgetRange.min) : 0;
       const max = budgetRange.max ? parseFloat(budgetRange.max) : Infinity;
       const matchesBudget = gig.budget >= min && gig.budget <= max;
 
-      return matchesSearch && matchesCategory && matchesBudget;
+      return matchesCategory && matchesBudget;
     });
 
   const handleViewDetails = (gig: any) => {
@@ -163,9 +191,38 @@ const BrowseGigs: React.FC = () => {
         </AnimatePresence>
       </div>
 
-      {isLoading ? (
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="w-10 h-10 animate-spin text-brand-purple opacity-50" />
+      {isLoading || isSearching ? (
+        <div className="space-y-12">
+          {searchTerm.trim() !== '' && (
+            <div className="px-2">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-black text-brand-black dark:text-brand-white tracking-tight">
+                  Searching <span className="text-brand-purple">Talent</span>
+                </h2>
+                <Loader2 className="w-5 h-5 animate-spin text-brand-purple" />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {[...Array(2)].map((_, i) => (
+                  <UserCardSkeleton key={i} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="px-2">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-black text-brand-black dark:text-brand-white tracking-tight">
+                {searchTerm.trim() !== '' ? 'Searching ' : 'Loading '} 
+                <span className="text-brand-purple">Gigs</span>
+              </h2>
+              <Loader2 className="w-5 h-5 animate-spin text-brand-purple" />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {[...Array(6)].map((_, i) => (
+                <GigCardSkeleton key={i} />
+              ))}
+            </div>
+          </div>
         </div>
       ) : error ? (
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/40 rounded-[2rem] p-8 text-center mx-2">
@@ -174,7 +231,44 @@ const BrowseGigs: React.FC = () => {
           <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <>
+          {searchTerm.trim() !== '' && (
+            <div className="mb-12 px-2">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-black text-brand-black dark:text-brand-white tracking-tight">
+                  Users with <span className="text-brand-purple">Skills</span>
+                </h2>
+              </div>
+
+              {users.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {users.map((user, i) => (
+                    <motion.div
+                      key={user.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.05 }}
+                    >
+                      <UserCard user={user} />
+                    </motion.div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12 bg-brand-white dark:bg-brand-dark-card rounded-[2rem] border border-brand-gray dark:border-brand-black border-dashed">
+                  <p className="text-gray-500 dark:text-gray-400 font-medium">No users found with these skills.</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="mb-6 px-2">
+            <h2 className="text-2xl font-black text-brand-black dark:text-brand-white tracking-tight">
+              {searchTerm.trim() !== '' ? 'Matching ' : 'Available '} 
+              <span className="text-brand-purple">Gigs</span>
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <AnimatePresence>
             {filteredGigs.length > 0 ? (
               filteredGigs.map((gig, i) => (
@@ -199,6 +293,7 @@ const BrowseGigs: React.FC = () => {
             )}
           </AnimatePresence>
         </div>
+      </>
       )}
 
       <GigDetailsModal 

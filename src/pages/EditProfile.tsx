@@ -86,6 +86,10 @@ const EditProfile: React.FC = () => {
       const publicUrl = await profilesService.uploadAvatar(session.user.id, file);
       setFormData(prev => ({ ...prev, avatar_url: publicUrl }));
       setSuccessMessage('Photo updated!');
+      
+      // Notify other components (like Header) to refresh
+      window.dispatchEvent(new CustomEvent('profile-updated'));
+      
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err: any) {
       alert(err.message);
@@ -204,6 +208,10 @@ const EditProfile: React.FC = () => {
       if (error) throw error;
       setSuccessMessage('Profile updated successfully!');
       setIsEditing(false);
+      
+      // Notify other components (like Header) to refresh
+      window.dispatchEvent(new CustomEvent('profile-updated'));
+      
       // Re-fetch to be sure we have the latest
       await fetchProfile();
       setTimeout(() => setSuccessMessage(''), 5000);
@@ -267,7 +275,12 @@ const EditProfile: React.FC = () => {
                   <div className="w-32 h-32 rounded-full bg-brand-white dark:bg-brand-dark-card p-1 shadow-xl">
                     <div className="w-full h-full rounded-full bg-brand-gray dark:bg-brand-black overflow-hidden flex items-center justify-center border-4 border-brand-white dark:border-brand-dark-card">
                       {formData.avatar_url ? (
-                        <img src={formData.avatar_url} alt={formData.full_name} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
+                        <img 
+                          src={formData.avatar_url.includes('?') ? formData.avatar_url : `${formData.avatar_url}?t=${Date.now()}`} 
+                          alt={formData.full_name} 
+                          referrerPolicy="no-referrer" 
+                          className="w-full h-full object-cover" 
+                        />
                       ) : (
                         <User className="w-12 h-12 text-gray-400 dark:text-gray-600" />
                       )}
@@ -438,7 +451,12 @@ const EditProfile: React.FC = () => {
                 <div className="relative group">
                   <div className="w-32 h-32 rounded-full bg-brand-gray dark:bg-brand-black border-4 border-brand-white dark:border-brand-dark-card shadow-md overflow-hidden flex items-center justify-center">
                     {formData.avatar_url ? (
-                      <img src={formData.avatar_url} alt="Profile" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
+                      <img 
+                        src={formData.avatar_url.includes('?') ? formData.avatar_url : `${formData.avatar_url}?t=${Date.now()}`} 
+                        alt="Profile" 
+                        referrerPolicy="no-referrer" 
+                        className="w-full h-full object-cover" 
+                      />
                     ) : (
                       <User className="w-12 h-12 text-gray-400 dark:text-gray-600" />
                     )}

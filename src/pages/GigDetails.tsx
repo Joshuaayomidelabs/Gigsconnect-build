@@ -171,7 +171,7 @@ const GigDetails: React.FC = () => {
             </div>
             <div 
               className="flex items-center gap-4 bg-brand-gray dark:bg-brand-black p-4 rounded-2xl border border-brand-gray dark:border-brand-black cursor-pointer hover:bg-brand-purple/5 dark:hover:bg-brand-purple/20 transition-all group"
-              onClick={() => gig.profiles?.id && navigate(`/profile/${gig.profiles.id}`)}
+              onClick={() => gig.profiles?.user_id && navigate(`/profile/${gig.profiles.user_id}`)}
             >
               <div className="w-12 h-12 rounded-full bg-brand-purple/10 dark:bg-brand-purple/20 border-2 border-brand-purple overflow-hidden group-hover:scale-105 transition-transform">
                 {gig.profiles?.avatar_url ? (

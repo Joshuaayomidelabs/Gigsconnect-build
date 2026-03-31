@@ -31,6 +31,10 @@ const Header: React.FC = () => {
     };
 
     fetchProfile();
+
+    // Listen for profile updates from other components
+    window.addEventListener('profile-updated', fetchProfile);
+    return () => window.removeEventListener('profile-updated', fetchProfile);
   }, [user]);
 
   const handleSignOut = async () => {
@@ -94,7 +98,12 @@ const Header: React.FC = () => {
                 </Link>
                 <Link to="/edit-profile" className="w-10 h-10 rounded-full bg-brand-purple-soft flex items-center justify-center overflow-hidden border-2 border-white shadow-sm hover:scale-110 transition-transform">
                   {profile?.avatar_url ? (
-                    <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                    <img 
+                      src={profile.avatar_url.includes('?') ? profile.avatar_url : `${profile.avatar_url}?t=${Date.now()}`} 
+                      alt="" 
+                      className="w-full h-full object-cover" 
+                      referrerPolicy="no-referrer" 
+                    />
                   ) : (
                     <User className="w-5 h-5 text-brand-purple" />
                   )}
@@ -112,7 +121,12 @@ const Header: React.FC = () => {
                   className="w-10 h-10 rounded-full bg-brand-purple-soft flex items-center justify-center overflow-hidden border-2 border-white shadow-sm"
                 >
                   {profile?.avatar_url ? (
-                    <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                    <img 
+                      src={profile.avatar_url.includes('?') ? profile.avatar_url : `${profile.avatar_url}?t=${Date.now()}`} 
+                      alt="" 
+                      className="w-full h-full object-cover" 
+                      referrerPolicy="no-referrer" 
+                    />
                   ) : (
                     <User className="w-5 h-5 text-brand-purple" />
                   )}

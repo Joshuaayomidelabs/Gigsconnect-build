@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { useNavigate } from 'react-router-dom';
 import { X, MapPin, Calendar, Banknote, Briefcase, Clock, User, Shield, ArrowRight } from 'lucide-react';
 import { formatCurrency, formatDate } from '../utils/helpers';
 
@@ -11,6 +12,7 @@ interface GigDetailsModalProps {
 }
 
 const GigDetailsModal: React.FC<GigDetailsModalProps> = ({ gig, isOpen, onClose, onApply }) => {
+  const navigate = useNavigate();
   if (!gig) return null;
 
   const creator = Array.isArray(gig.profiles) ? gig.profiles[0] : gig.profiles;
@@ -112,10 +114,18 @@ const GigDetailsModal: React.FC<GigDetailsModalProps> = ({ gig, isOpen, onClose,
               {/* Poster Info */}
               <div className="pt-8 border-t border-brand-purple/5">
                 <div className="flex items-center justify-between bg-brand-gray dark:bg-brand-black p-6 rounded-[2rem] border border-brand-gray dark:border-brand-black">
-                  <div className="flex items-center gap-4">
+                  <div 
+                    className="flex items-center gap-4 cursor-pointer hover:opacity-80 transition-opacity"
+                    onClick={() => creator?.user_id && navigate(`/profile/${creator.user_id}`)}
+                  >
                     <div className="w-16 h-16 rounded-2xl bg-brand-purple/10 border-2 border-brand-purple/20 overflow-hidden shadow-lg">
                       {creator?.avatar_url ? (
-                        <img src={creator.avatar_url} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
+                        <img 
+                          src={creator.avatar_url.includes('?') ? creator.avatar_url : `${creator.avatar_url}?t=${Date.now()}`} 
+                          alt="" 
+                          referrerPolicy="no-referrer" 
+                          className="w-full h-full object-cover" 
+                        />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-xl font-black text-brand-purple">
                           {creator?.full_name?.charAt(0).toUpperCase() || 'U'}

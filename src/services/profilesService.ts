@@ -11,21 +11,43 @@ export const profilesService = {
   },
 
   async ensureProfileExists(user: any) {
-    const { data, error } = await supabase
-      .from('profiles')
-      .upsert({
-        id: user.id,
-        full_name: user.user_metadata?.full_name || 'Anonymous',
-        avatar_url: user.user_metadata?.avatar_url || '',
-        email: user.email,
-        bio: '',
-        role: '',
-        updated_at: new Date().toISOString(),
-      }, { onConflict: 'id' })
-      .select()
-      .single();
-    
-    return { data, error };
+    try {
+      // 1. Check if profile already exists to avoid overwriting custom data
+      const { data: existingProfile, error: fetchError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (existingProfile) {
+        // If profile exists but lacks some basic info, we could update it, 
+        // but we definitely don't want to overwrite avatar_url if it's already set.
+        return { data: existingProfile, error: null };
+      }
+
+      // 2. If it doesn't exist, create it using metadata
+      const fullName = user.user_metadata?.full_name || user.user_metadata?.name || 'Anonymous';
+      const avatarUrl = user.user_metadata?.avatar_url || user.user_metadata?.picture || '';
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .insert({
+          id: user.id,
+          full_name: fullName,
+          avatar_url: avatarUrl,
+          email: user.email,
+          bio: '',
+          role: '',
+          updated_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+      
+      return { data, error };
+    } catch (err: any) {
+      console.error('Error in ensureProfileExists:', err.message);
+      return { data: null, error: err };
+    }
   },
 
   async updateProfile(profileData: {
@@ -48,6 +70,11 @@ export const profilesService = {
       // Sanitize data: remove fields that are known to be missing from the DB schema
       // to prevent "column not found" errors.
       const { availability, preferences, ...sanitizedData } = profileData;
+
+      // Ensure skills are lowercase and trimmed
+      if (sanitizedData.skills && Array.isArray(sanitizedData.skills)) {
+        sanitizedData.skills = sanitizedData.skills.map((s: string) => s.toLowerCase().trim()).filter(s => s !== '');
+      }
 
       const { data, error } = await supabase
         .from('profiles')
@@ -106,11 +133,10 @@ export const profilesService = {
       throw new Error('File size must be less than 1MB.');
     }
 
-    // 3. The image file should be stored using the user's unique ID as the filename: avatars/{user.id}
-    // Note: We don't necessarily need the extension if we want a fixed path, 
-    // but usually it's better to keep it or just use the ID. 
-    // The requirement says avatars/{user.id}.
-    const filePath = `${userId}`; 
+    // Use extension to ensure better compatibility with browsers and storage providers
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${userId}-${Date.now()}.${fileExt}`;
+    const filePath = `${userId}/${fileName}`; 
 
     // 4. The upload should replace the previous image if the user uploads a new one (use upsert).
     const { error: uploadError } = await supabase.storage
@@ -120,21 +146,31 @@ export const profilesService = {
         contentType: file.type
       });
 
-    if (uploadError) throw uploadError;
+    if (uploadError) {
+      console.error('Upload error:', uploadError);
+      throw uploadError;
+    }
 
     // 5. After upload, generate the public URL of the image.
     const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
-    const cleanUrl = data.publicUrl;
+    if (!data || !data.publicUrl) {
+      throw new Error('Failed to generate public URL for avatar');
+    }
+    
+    const publicUrl = data.publicUrl;
     // Add a cache buster to the returned URL to ensure the browser fetches the new image immediately
-    const publicUrlWithCacheBuster = `${cleanUrl}?t=${new Date().getTime()}`;
+    const publicUrlWithCacheBuster = `${publicUrl}?t=${new Date().getTime()}`;
 
     // 6. Save this public URL to the avatar_url column in the profiles table.
     const { error: updateError } = await supabase
       .from('profiles')
-      .update({ avatar_url: cleanUrl })
+      .update({ avatar_url: publicUrl })
       .eq('id', userId);
 
-    if (updateError) throw updateError;
+    if (updateError) {
+      console.error('Update profile error:', updateError);
+      throw updateError;
+    }
 
     return publicUrlWithCacheBuster;
   },
@@ -170,5 +206,27 @@ export const profilesService = {
     if (updateError) throw updateError;
 
     return filePath;
+  },
+
+  async searchUsersBySkills(searchTerm: string, currentUserId?: string) {
+    try {
+      if (!searchTerm || !searchTerm.trim()) return { data: [], error: null };
+
+      let query = supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url, skills, city, country')
+        .overlaps('skills', [searchTerm.toLowerCase().trim()])
+        .limit(10);
+
+      if (currentUserId) {
+        query = query.neq('id', currentUserId);
+      }
+
+      const { data, error } = await query;
+      return { data: data || [], error };
+    } catch (err: any) {
+      console.error("Unexpected error searching users:", err);
+      return { data: [], error: err };
+    }
   }
 };

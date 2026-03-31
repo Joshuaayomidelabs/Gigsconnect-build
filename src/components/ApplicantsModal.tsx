@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Loader2, Check, XCircle, User, ExternalLink } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { applicationsService } from '../services/applicationsService';
 import { formatDate } from '../utils/helpers';
 import { Link } from 'react-router-dom';
@@ -11,6 +12,7 @@ interface ApplicantsModalProps {
 }
 
 const ApplicantsModal: React.FC<ApplicantsModalProps> = ({ gig, onClose, highlightedAppId }) => {
+  const navigate = useNavigate();
   const [applicants, setApplicants] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState<string | null>(null);
@@ -81,7 +83,10 @@ const ApplicantsModal: React.FC<ApplicantsModalProps> = ({ gig, onClose, highlig
               >
                 <div className="flex flex-col sm:flex-row justify-between gap-6">
                   <div className="flex gap-4">
-                    <div className="w-14 h-14 rounded-2xl bg-white dark:bg-brand-dark-card border-2 border-gray-200 dark:border-gray-700 overflow-hidden flex-shrink-0">
+                    <div 
+                      className="w-14 h-14 rounded-2xl bg-white dark:bg-brand-dark-card border-2 border-gray-200 dark:border-gray-700 overflow-hidden flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+                      onClick={() => app.profiles?.user_id && (onClose(), navigate(`/profile/${app.profiles.user_id}`))}
+                    >
                       {app.profiles?.avatar_url ? (
                         <img src={app.profiles.avatar_url} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                       ) : (
@@ -91,7 +96,10 @@ const ApplicantsModal: React.FC<ApplicantsModalProps> = ({ gig, onClose, highlig
                       )}
                     </div>
                     <div>
-                      <h4 className="text-lg font-black text-gray-900 dark:text-white flex items-center gap-2">
+                      <h4 
+                        className="text-lg font-black text-gray-900 dark:text-white flex items-center gap-2 cursor-pointer hover:text-brand-purple transition-colors"
+                        onClick={() => app.profiles?.user_id && (onClose(), navigate(`/profile/${app.profiles.user_id}`))}
+                      >
                         {app.profiles?.full_name}
                       </h4>
                       <p className="text-xs font-bold text-brand-purple uppercase tracking-widest mb-2">{app.profiles?.role || 'Talent'}</p>

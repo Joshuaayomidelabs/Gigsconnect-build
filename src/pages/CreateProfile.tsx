@@ -90,6 +90,9 @@ const CreateProfile: React.FC = () => {
 
       const publicUrl = await profilesService.uploadAvatar(session.user.id, file);
       setFormData(prev => ({ ...prev, avatar_url: publicUrl }));
+      
+      // Notify other components (like Header) to refresh
+      window.dispatchEvent(new CustomEvent('profile-updated'));
     } catch (err: any) {
       alert(err.message);
     } finally {
@@ -118,6 +121,10 @@ const CreateProfile: React.FC = () => {
     try {
       const { error } = await profilesService.updateProfile(formData);
       if (error) throw error;
+      
+      // Notify other components (like Header) to refresh
+      window.dispatchEvent(new CustomEvent('profile-updated'));
+      
       navigate('/overview');
     } catch (err: any) {
       alert(err.message);
@@ -182,7 +189,12 @@ const CreateProfile: React.FC = () => {
                     <div className="relative group">
                       <div className="w-40 h-40 rounded-[2.5rem] bg-brand-gray dark:bg-brand-black border-8 border-brand-white dark:border-brand-dark-card shadow-2xl overflow-hidden flex items-center justify-center transition-transform duration-500 group-hover:scale-105">
                         {formData.avatar_url ? (
-                          <img src={formData.avatar_url} alt="Profile" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                          <img 
+                            src={formData.avatar_url.includes('?') ? formData.avatar_url : `${formData.avatar_url}?t=${Date.now()}`} 
+                            alt="Profile" 
+                            className="w-full h-full object-cover" 
+                            referrerPolicy="no-referrer" 
+                          />
                         ) : (
                           <User className="w-16 h-16 text-gray-300 dark:text-gray-600" />
                         )}

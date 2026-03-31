@@ -4,6 +4,7 @@ import { Loader2, Check } from 'lucide-react';
 import { supabase } from '../services/supabaseClient';
 import { africanCountries, getStatesForCountry, musicProfessions, experienceLevels } from '../utils/locations';
 import Logo from '../components/Logo';
+import PasswordInput from '../components/PasswordInput';
 
 const SignUp: React.FC = () => {
   const navigate = useNavigate();
@@ -32,6 +33,24 @@ const SignUp: React.FC = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [supabaseError, setSupabaseError] = useState<string | null>(null);
+
+  const getPasswordStrength = (password: string) => {
+    if (!password) return { value: 0, label: 'None' };
+    let strength = 0;
+    if (password.length >= 6) strength += 20;
+    if (password.length >= 10) strength += 20;
+    if (/[A-Z]/.test(password)) strength += 20;
+    if (/[0-9]/.test(password)) strength += 20;
+    if (/[^A-Za-z0-9]/.test(password)) strength += 20;
+
+    let label = 'Weak';
+    if (strength > 60) label = 'Strong';
+    else if (strength > 30) label = 'Medium';
+
+    return { value: strength, label };
+  };
+
+  const strength = getPasswordStrength(formData.password);
 
   useEffect(() => {
     if (formData.country) {
@@ -123,13 +142,13 @@ const SignUp: React.FC = () => {
       const { error: profileError } = await supabase
         .from('profiles')
         .upsert({
-          id: userId,
+          user_id: userId,
           full_name: formData.fullName,
           role: selectedProfessions[0] || 'Musician',
           skills: selectedProfessions,
           country: formData.country,
-          city: formData.cityTown,
-        });
+          city_town: formData.cityTown,
+        }, { onConflict: 'user_id' });
 
       if (profileError) {
         throw new Error(`Profile update failed: ${profileError.message}`);
@@ -208,31 +227,28 @@ const SignUp: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-black uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2 ml-1">
-                      Password <span className="text-red-500">*</span>
-                    </label>
-                    <input
+                    <PasswordInput
+                      label="Password"
                       name="password"
-                      type="password"
                       value={formData.password}
                       onChange={handleChange}
-                      className={`block w-full h-[54px] rounded-xl border-0 px-5 text-base text-brand-black dark:text-brand-white shadow-sm ring-1 ring-inset ${errors.password ? 'ring-red-300 focus:ring-red-500' : 'ring-brand-purple/10 focus:ring-brand-purple'} placeholder:text-gray-400 focus:ring-2 focus:ring-inset transition-all duration-200 bg-white dark:bg-brand-dark-card focus:bg-white dark:focus:bg-brand-dark-card`}
+                      error={errors.password}
+                      showStrength={formData.password.length > 0}
+                      strengthValue={strength.value}
+                      strengthLabel={strength.label}
+                      required
                     />
-                    {errors.password && <p className="mt-2 text-xs font-bold text-red-600 ml-1">{errors.password}</p>}
                   </div>
 
                   <div>
-                    <label className="block text-xs font-black uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2 ml-1">
-                      Confirm Password <span className="text-red-500">*</span>
-                    </label>
-                    <input
+                    <PasswordInput
+                      label="Confirm Password"
                       name="confirmPassword"
-                      type="password"
                       value={formData.confirmPassword}
                       onChange={handleChange}
-                      className={`block w-full h-[54px] rounded-xl border-0 px-5 text-base text-brand-black dark:text-brand-white shadow-sm ring-1 ring-inset ${errors.confirmPassword ? 'ring-red-300 focus:ring-red-500' : 'ring-brand-purple/10 focus:ring-brand-purple'} placeholder:text-gray-400 focus:ring-2 focus:ring-inset transition-all duration-200 bg-white dark:bg-brand-dark-card focus:bg-white dark:focus:bg-brand-dark-card`}
+                      error={errors.confirmPassword}
+                      required
                     />
-                    {errors.confirmPassword && <p className="mt-2 text-xs font-bold text-red-600 ml-1">{errors.confirmPassword}</p>}
                   </div>
                 </div>
               </section>

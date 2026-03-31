@@ -98,7 +98,12 @@ const PublicProfile: React.FC = () => {
               <div className="relative inline-block mb-6">
                 <div className="w-32 h-32 rounded-full bg-brand-gray dark:bg-brand-black border-4 border-brand-white dark:border-brand-dark-card shadow-lg overflow-hidden flex items-center justify-center mx-auto">
                   {profile.avatar_url ? (
-                    <img src={profile.avatar_url} alt={profile.full_name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                    <img 
+                      src={profile.avatar_url.includes('?') ? profile.avatar_url : `${profile.avatar_url}?t=${Date.now()}`} 
+                      alt={profile.full_name} 
+                      className="w-full h-full object-cover" 
+                      referrerPolicy="no-referrer" 
+                    />
                   ) : (
                     <User className="w-12 h-12 text-gray-400 dark:text-gray-600" />
                   )}

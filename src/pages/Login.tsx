@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { supabase } from '../services/supabaseClient';
 import Logo from '../components/Logo';
+import PasswordInput from '../components/PasswordInput';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -126,20 +127,15 @@ const Login: React.FC = () => {
                 {errors.email && <p className="mt-2 text-xs font-bold text-red-600 ml-1">{errors.email}</p>}
               </div>
 
-              <div>
-                <label className="block text-xs font-black uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2 ml-1">
-                  Password <span className="text-red-500">*</span>
-                </label>
-                <input
-                  name="password"
-                  type="password"
-                  autoComplete="current-password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  className={`block w-full h-[54px] rounded-xl border-0 px-5 text-base text-brand-black dark:text-brand-white shadow-sm ring-1 ring-inset ${errors.password ? 'ring-red-300 focus:ring-red-500' : 'ring-brand-purple/10 focus:ring-brand-purple'} placeholder:text-gray-400 focus:ring-2 focus:ring-inset transition-all duration-200 bg-white dark:bg-brand-dark-card focus:bg-white dark:focus:bg-brand-dark-card`}
-                />
-                {errors.password && <p className="mt-2 text-xs font-bold text-red-600 ml-1">{errors.password}</p>}
-              </div>
+              <PasswordInput
+                label="Password"
+                name="password"
+                autoComplete="current-password"
+                value={formData.password}
+                onChange={handleChange}
+                error={errors.password}
+                required
+              />
 
               <div className="flex items-center justify-between pt-1">
                 <div className="flex items-center">

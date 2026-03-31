@@ -19,7 +19,7 @@ const FeaturedGigs: React.FC = () => {
       try {
         const { data, error } = await supabase
           .from('gigs')
-          .select('*, profiles(*)')
+          .select('*, profiles(user_id, full_name, avatar_url, role)')
           .order('created_at', { ascending: false })
           .limit(4);
 
