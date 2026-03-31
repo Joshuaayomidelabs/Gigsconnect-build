@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
-import { X, MapPin, Calendar, Banknote, Briefcase, Clock, User, Shield, ArrowRight } from 'lucide-react';
+import { X, MapPin, Calendar, Banknote, Briefcase, Clock, User, Shield, ArrowRight, CheckCircle } from 'lucide-react';
 import { formatCurrency, formatDate } from '../utils/helpers';
 
 interface GigDetailsModalProps {
@@ -9,9 +9,10 @@ interface GigDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
   onApply: (id: string) => void;
+  isApplied?: boolean;
 }
 
-const GigDetailsModal: React.FC<GigDetailsModalProps> = ({ gig, isOpen, onClose, onApply }) => {
+const GigDetailsModal: React.FC<GigDetailsModalProps> = ({ gig, isOpen, onClose, onApply, isApplied = false }) => {
   const navigate = useNavigate();
   if (!gig) return null;
 
@@ -45,29 +46,31 @@ const GigDetailsModal: React.FC<GigDetailsModalProps> = ({ gig, isOpen, onClose,
               <X className="w-6 h-6" />
             </button>
 
-            {/* Header Visual */}
-            <div className="relative h-48 sm:h-64 flex-shrink-0">
-              <img
-                src={gig.image_url || 'https://images.unsplash.com/photo-1514525253361-bee8718a300a?auto=format&fit=crop&q=80&w=1200'}
-                alt={gig.title}
-                className="w-full h-full object-cover"
-                referrerPolicy="no-referrer"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-brand-black via-brand-black/20 to-transparent" />
+            {/* Header Visual - Stylized Gradient instead of potentially broken image */}
+            <div className="relative h-48 sm:h-64 flex-shrink-0 overflow-hidden bg-brand-black">
+              {/* Animated Gradient Background */}
+              <div className="absolute inset-0 bg-gradient-to-br from-brand-purple via-brand-purple-dark to-brand-black opacity-80" />
               
-              <div className="absolute bottom-8 left-8 right-8">
+              {/* Decorative Elements */}
+              <div className="absolute -top-24 -right-24 w-64 h-64 bg-brand-purple/20 rounded-full blur-3xl animate-pulse" />
+              <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-brand-purple/10 rounded-full blur-3xl" />
+              
+              {/* Shimmer Effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent skew-x-[-20deg] animate-[shimmer_3s_infinite]" />
+              
+              <div className="absolute bottom-8 left-8 right-8 z-10">
                 <div className="flex flex-wrap gap-3 mb-4">
-                  <span className="px-4 py-1.5 bg-brand-purple text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-glow">
+                  <span className="px-4 py-1.5 bg-white/10 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-widest rounded-full border border-white/20">
                     {gig.gig_category}
                   </span>
                   {gig.verified && (
-                    <span className="px-4 py-1.5 bg-green-500 text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-lg flex items-center gap-1.5">
+                    <span className="px-4 py-1.5 bg-green-500/20 backdrop-blur-md text-green-400 text-[10px] font-black uppercase tracking-widest rounded-full border border-green-500/30 flex items-center gap-1.5">
                       <Shield className="w-3 h-3" />
                       Verified
                     </span>
                   )}
                 </div>
-                <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight leading-tight">
+                <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight leading-tight drop-shadow-lg">
                   {gig.title}
                 </h2>
               </div>
@@ -118,16 +121,20 @@ const GigDetailsModal: React.FC<GigDetailsModalProps> = ({ gig, isOpen, onClose,
                     className="flex items-center gap-4 cursor-pointer hover:opacity-80 transition-opacity"
                     onClick={() => creator?.user_id && navigate(`/profile/${creator.user_id}`)}
                   >
-                    <div className="w-16 h-16 rounded-2xl bg-brand-purple/10 border-2 border-brand-purple/20 overflow-hidden shadow-lg">
+                    <div className="w-16 h-16 rounded-2xl bg-brand-purple/10 border-2 border-brand-purple/20 overflow-hidden shadow-lg flex items-center justify-center">
                       {creator?.avatar_url ? (
                         <img 
-                          src={creator.avatar_url.includes('?') ? creator.avatar_url : `${creator.avatar_url}?t=${Date.now()}`} 
+                          src={creator.avatar_url} 
                           alt="" 
                           referrerPolicy="no-referrer" 
                           className="w-full h-full object-cover" 
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = 'none';
+                            (e.target as HTMLImageElement).parentElement!.innerHTML = `<div class="text-xl font-black text-brand-purple">${creator?.full_name?.charAt(0).toUpperCase() || 'U'}</div>`;
+                          }}
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-xl font-black text-brand-purple">
+                        <div className="text-xl font-black text-brand-black dark:text-brand-white">
                           {creator?.full_name?.charAt(0).toUpperCase() || 'U'}
                         </div>
                       )}
@@ -161,11 +168,25 @@ const GigDetailsModal: React.FC<GigDetailsModalProps> = ({ gig, isOpen, onClose,
                 Close
               </button>
               <button
-                onClick={() => onApply(gig.id)}
-                className="flex-[2] px-10 py-4 rounded-2xl bg-brand-purple text-white font-black text-lg hover:bg-brand-purple-dark hover:shadow-glow hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 shadow-xl shadow-brand-purple/20"
+                onClick={() => !isApplied && onApply(gig.id)}
+                disabled={isApplied}
+                className={`flex-[2] px-10 py-4 rounded-2xl font-black text-lg transition-all flex items-center justify-center gap-3 shadow-xl ${
+                  isApplied
+                    ? 'bg-brand-gray dark:bg-brand-black text-gray-400 cursor-not-allowed border border-brand-gray dark:border-brand-black'
+                    : 'bg-brand-purple text-white hover:bg-brand-purple-dark hover:shadow-glow hover:scale-[1.02] active:scale-95 shadow-brand-purple/20'
+                }`}
               >
-                Apply for this Gig
-                <ArrowRight className="w-5 h-5" />
+                {isApplied ? (
+                  <>
+                    <CheckCircle className="w-5 h-5" />
+                    Applied
+                  </>
+                ) : (
+                  <>
+                    Apply for this Gig
+                    <ArrowRight className="w-5 h-5" />
+                  </>
+                )}
               </button>
             </div>
           </motion.div>
