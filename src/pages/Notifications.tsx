@@ -3,30 +3,29 @@ import { Bell, Check, ExternalLink, MessageSquare, Briefcase, Info, Loader2, XCi
 import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useNotifications } from '../hooks/useNotifications';
+import { useNotificationContext } from '../context/NotificationContext';
 import { notificationsService } from '../services/notificationsService';
 import { applicationsService } from '../services/applicationsService';
 
 const Notifications: React.FC = () => {
   const { user } = useAuth();
-  const { notifications, setNotifications, isLoading, error } = useNotifications(user?.id);
+  const { 
+    notifications, 
+    setNotifications, 
+    isLoading, 
+    error, 
+    markAsRead, 
+    markAllAsRead 
+  } = useNotificationContext();
 
   const [isProcessing, setIsProcessing] = useState<string | null>(null);
 
   const handleMarkAsRead = async (id: string) => {
-    const { error } = await notificationsService.markAsRead(id);
-    if (!error) {
-      setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
-    }
+    await markAsRead(id);
   };
 
   const handleMarkAllAsRead = async () => {
-    if (!user) return;
-
-    const { error } = await notificationsService.markAllAsRead(user.id);
-    if (!error) {
-      setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
-    }
+    await markAllAsRead();
   };
 
   const handleStatusUpdate = async (notificationId: string, link: string | undefined, metadata: any, status: 'Accepted' | 'Rejected') => {

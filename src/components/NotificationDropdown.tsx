@@ -3,14 +3,14 @@ import { Bell, Check, ExternalLink, MessageSquare, Briefcase, Info, X, User } fr
 import { motion, AnimatePresence } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useNotifications } from '../hooks/useNotifications';
+import { useNotificationContext } from '../context/NotificationContext';
 import { notificationsService } from '../services/notificationsService';
 import { supabase } from '../services/supabaseClient';
 
 const NotificationDropdown: React.FC = () => {
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
-  const { notifications, unreadCount, setNotifications, setUnreadCount } = useNotifications(user?.id);
+  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotificationContext();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -27,22 +27,11 @@ const NotificationDropdown: React.FC = () => {
   const handleToggle = () => setIsOpen(!isOpen);
 
   const handleMarkAsRead = async (id: string) => {
-    const { error } = await notificationsService.markAsRead(id);
-    if (!error) {
-      setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
-      setUnreadCount(prev => Math.max(0, prev - 1));
-    }
+    await markAsRead(id);
   };
 
   const handleMarkAllAsRead = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return;
-
-    const { error } = await notificationsService.markAllAsRead(session.user.id);
-    if (!error) {
-      setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
-      setUnreadCount(0);
-    }
+    await markAllAsRead();
   };
 
   const getIcon = (type: string) => {

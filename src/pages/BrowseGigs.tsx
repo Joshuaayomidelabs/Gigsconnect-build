@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Search, Filter, Loader2, AlertCircle, X, ChevronDown, Banknote } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { gigsService } from '../services/gigsService';
 import { profilesService } from '../services/profilesService';
+import { applicationsService } from '../services/applicationsService';
 import { supabase } from '../services/supabaseClient';
 import GigCard from '../components/GigCard';
 import { UserCard } from '../components/UserCard';
@@ -14,8 +16,27 @@ import { GIG_CATEGORIES } from '../utils/constants';
 const BrowseGigs: React.FC = () => {
   const navigate = useNavigate();
   const [gigs, setGigs] = useState<any[]>([]);
+  const [appliedGigIds, setAppliedGigIds] = useState<Set<string>>(new Set());
   const [users, setUsers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { user } = useAuth();
+
+  // Fetch applied gig IDs
+  useEffect(() => {
+    const fetchAppliedGigs = async () => {
+      if (!user?.id) return;
+      try {
+        const { data, error } = await applicationsService.getMyApplications(user.id);
+        if (!error && data) {
+          const ids = new Set(data.map((app: any) => app.gig_id));
+          setAppliedGigIds(ids);
+        }
+      } catch (err) {
+        console.error("Error fetching applied gigs:", err);
+      }
+    };
+    fetchAppliedGigs();
+  }, [user?.id]);
   const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -282,6 +303,7 @@ const BrowseGigs: React.FC = () => {
                     gig={gig} 
                     onViewDetails={handleViewDetails}
                     onApply={handleApply}
+                    initialIsApplied={appliedGigIds.has(gig.id)}
                   />
                 </motion.div>
               ))
@@ -301,6 +323,7 @@ const BrowseGigs: React.FC = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onApply={handleApply}
+        isApplied={selectedGig ? appliedGigIds.has(selectedGig.id) : false}
       />
     </div>
   );

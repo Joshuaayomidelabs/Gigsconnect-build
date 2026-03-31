@@ -37,7 +37,7 @@ const GigDetails: React.FC = () => {
           setHasAlreadyApplied(hasApplied);
           
           // Check if owner
-          if (data.user_id === session.user.id) {
+          if (data.poster_id?.user_id === session.user.id) {
             setIsOwner(true);
           }
           
@@ -76,8 +76,8 @@ const GigDetails: React.FC = () => {
         return;
       }
 
-      // Use gig.creator_id or gig.user_id as owner_id
-      const gigOwnerId = gig?.creator_id || gig?.user_id || null;
+      // Use gig.poster_id.user_id as owner_id
+      const gigOwnerId = gig?.poster_id?.user_id || null;
       const applicationMessage = message;
       const userPortfolioLink = portfolioLink;
 
@@ -171,20 +171,20 @@ const GigDetails: React.FC = () => {
             </div>
             <div 
               className="flex items-center gap-4 bg-brand-gray dark:bg-brand-black p-4 rounded-2xl border border-brand-gray dark:border-brand-black cursor-pointer hover:bg-brand-purple/5 dark:hover:bg-brand-purple/20 transition-all group"
-              onClick={() => gig.profiles?.user_id && navigate(`/profile/${gig.profiles.user_id}`)}
+              onClick={() => gig.poster_id?.user_id && navigate(`/profile/${gig.poster_id.user_id}`)}
             >
               <div className="w-12 h-12 rounded-full bg-brand-purple/10 dark:bg-brand-purple/20 border-2 border-brand-purple overflow-hidden group-hover:scale-105 transition-transform">
-                {gig.profiles?.avatar_url ? (
-                  <img src={gig.profiles.avatar_url} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
+                {gig.poster_id?.avatar_url ? (
+                  <img src={gig.poster_id.avatar_url} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-brand-purple font-bold">
-                    {gig.profiles?.full_name?.charAt(0).toUpperCase() || 'U'}
+                    {gig.poster_id?.full_name?.charAt(0).toUpperCase() || 'U'}
                   </div>
                 )}
               </div>
               <div>
                 <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">Posted by</p>
-                <p className="text-sm font-black text-brand-black dark:text-brand-white group-hover:text-brand-purple transition-colors">{gig.profiles?.full_name || 'Unknown'}</p>
+                <p className="text-sm font-black text-brand-black dark:text-brand-white group-hover:text-brand-purple transition-colors">{gig.poster_id?.full_name || 'Unknown'}</p>
               </div>
             </div>
           </div>

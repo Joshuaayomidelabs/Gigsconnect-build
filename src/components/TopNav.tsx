@@ -2,14 +2,14 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Bell } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-import { useNotifications } from "../hooks/useNotifications";
+import { useNotificationContext } from "../context/NotificationContext";
 import { supabase } from "../services/supabaseClient";
 import Logo from "./Logo";
 
 const TopNav: React.FC = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { user } = useAuth();
-  const { unreadCount } = useNotifications(user?.id);
+  const { unreadCount } = useNotificationContext();
   const navigate = useNavigate();
   const location = useLocation();
 

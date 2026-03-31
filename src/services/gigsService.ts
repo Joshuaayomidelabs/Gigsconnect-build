@@ -8,7 +8,7 @@ export const gigsService = {
     
     const { data, error } = await supabase
       .from('gigs')
-      .select('*, profiles(id, full_name, avatar_url, verification_status, is_verified)')
+      .select('*, poster_id(*)')
       .gte('created_at', threeDaysAgo.toISOString())
       .order('created_at', { ascending: false });
     return { data, error };
@@ -17,7 +17,7 @@ export const gigsService = {
   async getGigById(id: string) {
     const { data, error } = await supabase
       .from('gigs')
-      .select('*, profiles(id, full_name, avatar_url, verification_status, is_verified)')
+      .select('*, poster_id(*)')
       .eq('id', id)
       .single();
     return { data, error };
@@ -28,7 +28,7 @@ export const gigsService = {
       .from('gigs')
       .delete()
       .eq('id', id)
-      .eq('user_id', userId) // Security: Ensure only owner can delete
+      .eq('poster_id', userId) // Security: Ensure only owner can delete
       .select();
     
     return { data, error };
@@ -48,7 +48,7 @@ export const gigsService = {
     if (!error && data) {
       // Notify creator
       await notificationsService.createNotification({
-        recipient_id: data.creator_id || data.user_id,
+        recipient_id: data.poster_id,
         type: 'gig_new',
         title: 'Gig Posted Successfully',
         message: `Your gig "${data.title}" is now live!`,
@@ -62,8 +62,8 @@ export const gigsService = {
   async getMyGigs(userId: string) {
     const { data, error } = await supabase
       .from('gigs')
-      .select('*, profiles(id, full_name, avatar_url, verification_status, is_verified)')
-      .eq('user_id', userId)
+      .select('*, poster_id(*)')
+      .eq('poster_id', userId)
       .order('created_at', { ascending: false });
     return { data, error };
   },
@@ -76,7 +76,7 @@ export const gigsService = {
     // 1. Search gigs
     const { data: gigs, error: gigsError } = await supabase
       .from('gigs')
-      .select('*, profiles(id, full_name, avatar_url, verification_status, is_verified)')
+      .select('*, poster_id(*)')
       .or(`title.ilike.%${normalized}%,description.ilike.%${normalized}%`);
 
     if (gigsError) console.error("Error searching gigs:", gigsError);

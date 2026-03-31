@@ -82,6 +82,7 @@ const Dashboard: React.FC = () => {
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [recentGigs, setRecentGigs] = useState<any[]>([]);
+  const [appliedGigIds, setAppliedGigIds] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(true);
   const [visibleCount, setVisibleCount] = useState(8);
   const [selectedGig, setSelectedGig] = useState<any | null>(null);
@@ -92,6 +93,17 @@ const Dashboard: React.FC = () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         setUser(session.user);
+        
+        // Fetch applied gig IDs
+        const { data: applications } = await supabase
+          .from('gig_applications')
+          .select('gig_id')
+          .eq('applicant_id', session.user.id);
+        
+        if (applications) {
+          setAppliedGigIds(new Set(applications.map(app => app.gig_id)));
+        }
+
         const [profileRes, gigsRes] = await Promise.all([
           profilesService.getProfile(session.user.id),
           gigsService.getAllGigs()
@@ -208,7 +220,12 @@ const Dashboard: React.FC = () => {
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ delay: (i % 8) * 0.05 }}
                 >
-                  <GigCard gig={gig} onViewDetails={handleViewDetails} onApply={handleApply} />
+                  <GigCard 
+                    gig={gig} 
+                    onViewDetails={handleViewDetails} 
+                    onApply={handleApply} 
+                    initialIsApplied={appliedGigIds.has(gig.id)}
+                  />
                 </motion.div>
               ))}
             </AnimatePresence>
@@ -281,6 +298,7 @@ const Dashboard: React.FC = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onApply={handleApply}
+        isApplied={selectedGig ? appliedGigIds.has(selectedGig.id) : false}
       />
     </div>
   );

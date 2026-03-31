@@ -15,7 +15,7 @@ const GigDetailsModal: React.FC<GigDetailsModalProps> = ({ gig, isOpen, onClose,
   const navigate = useNavigate();
   if (!gig) return null;
 
-  const creator = Array.isArray(gig.profiles) ? gig.profiles[0] : gig.profiles;
+  const creator = gig.poster_id;
 
   return (
     <AnimatePresence>

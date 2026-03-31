@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 const FeaturedGigs: React.FC = () => {
   const navigate = useNavigate();
   const [gigs, setGigs] = useState<any[]>([]);
+  const [appliedGigIds, setAppliedGigIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [selectedGig, setSelectedGig] = useState<any | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -17,9 +18,23 @@ const FeaturedGigs: React.FC = () => {
   useEffect(() => {
     const fetchFeaturedGigs = async () => {
       try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session) {
+          // Fetch applied gig IDs
+          const { data: applications } = await supabase
+            .from('gig_applications')
+            .select('gig_id')
+            .eq('applicant_id', session.user.id);
+          
+          if (applications) {
+            setAppliedGigIds(new Set(applications.map(app => app.gig_id)));
+          }
+        }
+
         const { data, error } = await supabase
           .from('gigs')
-          .select('*, profiles(user_id, full_name, avatar_url, role)')
+          .select('*, poster:profiles(*)')
           .order('created_at', { ascending: false })
           .limit(4);
 
@@ -95,7 +110,12 @@ const FeaturedGigs: React.FC = () => {
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
             >
-              <GigCard gig={gig} showApply={false} onViewDetails={handleViewDetails} />
+              <GigCard 
+                gig={gig} 
+                showApply={false} 
+                onViewDetails={handleViewDetails} 
+                initialIsApplied={appliedGigIds.has(gig.id)}
+              />
             </motion.div>
           ))}
         </div>
@@ -106,6 +126,7 @@ const FeaturedGigs: React.FC = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onApply={handleApply}
+        isApplied={selectedGig ? appliedGigIds.has(selectedGig.id) : false}
       />
     </section>
   );

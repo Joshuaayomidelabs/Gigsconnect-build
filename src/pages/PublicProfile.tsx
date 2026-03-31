@@ -28,6 +28,7 @@ const PublicProfile: React.FC = () => {
   const navigate = useNavigate();
   const [profile, setProfile] = useState<any>(null);
   const [gigs, setGigs] = useState<any[]>([]);
+  const [appliedGigIds, setAppliedGigIds] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -37,6 +38,20 @@ const PublicProfile: React.FC = () => {
       
       try {
         setIsLoading(true);
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session) {
+          // Fetch applied gig IDs
+          const { data: applications } = await supabase
+            .from('gig_applications')
+            .select('gig_id')
+            .eq('applicant_id', session.user.id);
+          
+          if (applications) {
+            setAppliedGigIds(new Set(applications.map(app => app.gig_id)));
+          }
+        }
+
         const [profileRes, gigsRes] = await Promise.all([
           profilesService.getProfile(userId),
           gigsService.getMyGigs(userId)
@@ -264,9 +279,10 @@ const PublicProfile: React.FC = () => {
                   {gigs.map((gig) => (
                     <GigCard 
                       key={gig.id} 
-                      gig={{ ...gig, profiles: profile }} 
+                      gig={{ ...gig, poster: profile }} 
                       onViewDetails={(g) => navigate(`/gig/${g.id}`)}
                       showApply={false}
+                      initialIsApplied={appliedGigIds.has(gig.id)}
                     />
                   ))}
                 </div>

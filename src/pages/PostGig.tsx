@@ -41,8 +41,7 @@ const PostGig: React.FC = () => {
         location: formData.location,
         gig_category: formData.gig_category,
         deadline: formData.deadline, // HTML date input is already YYYY-MM-DD
-        user_id: session.user.id,
-        creator_id: session.user.id
+        poster_id: session.user.id
       });
 
       if (error) throw error;

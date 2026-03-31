@@ -21,6 +21,7 @@ import PublicProfile from './pages/PublicProfile';
 import ProtectedRoute from './components/ProtectedRoute';
 import { useAuth } from './context/AuthContext';
 import { DarkModeProvider } from './context/DarkModeContext';
+import { NotificationProvider } from './context/NotificationContext';
 
 import { Toaster } from 'sonner';
 
@@ -67,34 +68,36 @@ const App: React.FC = () => {
 
   return (
     <DarkModeProvider>
-      <div className="flex flex-col min-h-screen bg-brand-gray dark:bg-brand-black transition-colors">
-        <Toaster position="top-right" richColors />
-        <TopNav />
-        <main className={`flex-grow ${showBottomNav ? 'pb-20 lg:pb-0' : ''}`}>
-          <Routes>
-            <Route path="/" element={<Landing />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<SignUp />} />
-            
-            {/* Protected Routes */}
-            <Route path="/overview" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/browse" element={<ProtectedRoute><BrowseGigs /></ProtectedRoute>} />
-            <Route path="/gig/:id" element={<ProtectedRoute><GigDetails /></ProtectedRoute>} />
-            <Route path="/post" element={<ProtectedRoute><PostGig /></ProtectedRoute>} />
-            <Route path="/applications" element={<ProtectedRoute><MyApplications /></ProtectedRoute>} />
-            <Route path="/posted-gigs" element={<ProtectedRoute><MyPostedGigs /></ProtectedRoute>} />
-            <Route path="/edit-profile" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
-            <Route path="/create-profile" element={<ProtectedRoute><CreateProfile /></ProtectedRoute>} />
-            <Route path="/profile/:userId" element={<ProtectedRoute><PublicProfile /></ProtectedRoute>} />
-            <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
-            <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
-            
-            <Route path="*" element={<Navigate to="/" />} />
-          </Routes>
-        </main>
-        {showBottomNav && <BottomNav />}
-        {!showBottomNav && <Footer />}
-      </div>
+      <NotificationProvider>
+        <div className="flex flex-col min-h-screen bg-brand-gray dark:bg-brand-black transition-colors">
+          <Toaster position="top-right" richColors />
+          <TopNav />
+          <main className={`flex-grow ${showBottomNav ? 'pb-20 lg:pb-0' : ''}`}>
+            <Routes>
+              <Route path="/" element={<Landing />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<SignUp />} />
+              
+              {/* Protected Routes */}
+              <Route path="/overview" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+              <Route path="/browse" element={<ProtectedRoute><BrowseGigs /></ProtectedRoute>} />
+              <Route path="/gig/:id" element={<ProtectedRoute><GigDetails /></ProtectedRoute>} />
+              <Route path="/post" element={<ProtectedRoute><PostGig /></ProtectedRoute>} />
+              <Route path="/applications" element={<ProtectedRoute><MyApplications /></ProtectedRoute>} />
+              <Route path="/posted-gigs" element={<ProtectedRoute><MyPostedGigs /></ProtectedRoute>} />
+              <Route path="/edit-profile" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
+              <Route path="/create-profile" element={<ProtectedRoute><CreateProfile /></ProtectedRoute>} />
+              <Route path="/profile/:userId" element={<ProtectedRoute><PublicProfile /></ProtectedRoute>} />
+              <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
+              <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
+              
+              <Route path="*" element={<Navigate to="/" />} />
+            </Routes>
+          </main>
+          {showBottomNav && <BottomNav />}
+          {!showBottomNav && <Footer />}
+        </div>
+      </NotificationProvider>
     </DarkModeProvider>
   );
 };

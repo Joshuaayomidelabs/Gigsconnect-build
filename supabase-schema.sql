@@ -56,7 +56,7 @@ CREATE POLICY "Users can delete their own professions." ON user_professions FOR 
 -- 2. Create the 'gigs' table
 CREATE TABLE gigs (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-  user_id UUID REFERENCES auth.users(id) NOT NULL,
+  poster_id UUID REFERENCES profiles(user_id) NOT NULL,
   title TEXT NOT NULL,
   description TEXT NOT NULL,
   location TEXT NOT NULL,
@@ -71,9 +71,9 @@ ALTER TABLE gigs ENABLE ROW LEVEL SECURITY;
 
 -- Policies for gigs
 CREATE POLICY "Gigs are viewable by everyone." ON gigs FOR SELECT USING (true);
-CREATE POLICY "Users can insert their own gigs." ON gigs FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Users can update their own gigs." ON gigs FOR UPDATE USING (auth.uid() = user_id);
-CREATE POLICY "Users can delete their own gigs." ON gigs FOR DELETE USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert their own gigs." ON gigs FOR INSERT WITH CHECK (auth.uid() = poster_id);
+CREATE POLICY "Users can update their own gigs." ON gigs FOR UPDATE USING (auth.uid() = poster_id);
+CREATE POLICY "Users can delete their own gigs." ON gigs FOR DELETE USING (auth.uid() = poster_id);
 
 -- 3. Create the 'gig_applications' table
 CREATE TABLE gig_applications (
