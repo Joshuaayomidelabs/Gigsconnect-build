@@ -2,22 +2,38 @@ import { supabase } from './supabaseClient';
 
 export const profilesService = {
   async getProfile(userId: string) {
+    console.log('Fetching profile for userId:', userId);
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
-      .eq('id', userId)
-      .single();
+      .eq('id', userId)   // MUST match auth.users.id
+      .maybeSingle();
+    
+    if (error) console.error(error);
+    console.log(data);
+
+    if (data) {
+      // Map backend 'city_town' to frontend 'city'
+      data.city = data.city_town;
+    } else {
+      console.warn('No profile found for userId:', userId);
+    }
+    
     return { data, error };
   },
 
   async ensureProfileExists(user: any) {
     try {
+      console.log('Ensuring profile exists for User ID:', user.id);
       // 1. Check if profile already exists to avoid overwriting custom data
       const { data: existingProfile, error: fetchError } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', user.id)
-        .single();
+        .eq('id', user.id)   // MUST match auth.users.id
+        .maybeSingle();
+
+      if (fetchError) console.error(fetchError);
+      console.log(existingProfile);
 
       if (existingProfile) {
         // If profile exists but lacks some basic info, we could update it, 
@@ -28,20 +44,26 @@ export const profilesService = {
       // 2. If it doesn't exist, create it using metadata
       const fullName = user.user_metadata?.full_name || user.user_metadata?.name || 'Anonymous';
       const avatarUrl = user.user_metadata?.avatar_url || user.user_metadata?.picture || '';
+      const phone = user.user_metadata?.phone || '';
+      const country = user.user_metadata?.country || '';
+      const cityTown = user.user_metadata?.city || '';
 
       const { data, error } = await supabase
         .from('profiles')
         .insert({
-          id: user.id,
+          id: user.id,   // MUST match auth.users.id
           full_name: fullName,
           avatar_url: avatarUrl,
           email: user.email,
+          phone: phone,
+          country: country,
+          city_town: cityTown,
           bio: '',
           role: '',
           updated_at: new Date().toISOString(),
         })
         .select()
-        .single();
+        .maybeSingle();
       
       return { data, error };
     } catch (err: any) {
@@ -50,43 +72,61 @@ export const profilesService = {
     }
   },
 
-  async updateProfile(profileData: {
-    full_name?: string;
-    country?: string;
-    city?: string;
-    phone?: string;
-    bio?: string;
-    avatar_url?: string;
-    facebook_url?: string;
-    instagram_url?: string;
-    tiktok_url?: string;
-    portfolio_media?: any[];
-    [key: string]: any;
-  }) {
+  async updateProfile(profileData: any) {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not logged in');
+      if (!user) throw new Error('Not authenticated');
 
-      // Sanitize data: remove fields that are known to be missing from the DB schema
-      // to prevent "column not found" errors.
-      const { availability, preferences, ...sanitizedData } = profileData;
+      // Explicitly define allowed columns to prevent errors from extra fields
+      const allowedColumns = [
+        'full_name', 'phone', 'country', 
+        'genres', 'bio', 'avatar_url', 'username', 
+        'role', 'skills', 'facebook_url', 'instagram_url', 'tiktok_url', 
+        'portfolio_media', 'verification_status', 'verification_doc_path'
+      ];
 
-      // Ensure skills are lowercase and trimmed
-      if (sanitizedData.skills && Array.isArray(sanitizedData.skills)) {
-        sanitizedData.skills = sanitizedData.skills.map((s: string) => s.toLowerCase().trim()).filter(s => s !== '');
+      const sanitizedData: any = {};
+      
+      // Only include fields that are in allowedColumns and present in profileData
+      allowedColumns.forEach(col => {
+        if (profileData[col] !== undefined) {
+          sanitizedData[col] = profileData[col];
+        }
+      });
+
+      // Handle special mapping for city
+      if (profileData.city !== undefined) {
+        sanitizedData.city_town = profileData.city;
+      } else if (profileData.city_town !== undefined) {
+        sanitizedData.city_town = profileData.city_town;
       }
+
+      // Format skills if present
+      if (sanitizedData.skills && Array.isArray(sanitizedData.skills)) {
+        sanitizedData.skills = (sanitizedData.skills as string[])
+          .map((s: string) => s.toLowerCase().trim())
+          .filter((s: string) => s !== '');
+      }
+
+      sanitizedData.updated_at = new Date().toISOString();
+
+      console.log('Updating profile with data:', sanitizedData);
 
       const { data, error } = await supabase
         .from('profiles')
         .update(sanitizedData)
-        .eq('id', user.id)
+        .eq('id', user.id)   // MUST match auth.users.id
         .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error updating profile:', error);
+        throw error;
+      }
+
       return { data, error: null };
-    } catch (error: any) {
-      console.error('Error updating profile:', error.message);
-      return { data: null, error };
+    } catch (err: any) {
+      console.error('Unexpected error in updateProfile:', err);
+      return { data: null, error: err };
     }
   },
 
@@ -97,19 +137,37 @@ export const profilesService = {
     }
 
     const fileExt = file.name.split('.').pop();
-    const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
-    const filePath = `${userId}/${fileName}`;
+    const uniqueFileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+    const filePath = `portfolio/${userId}/${uniqueFileName}`;
 
-    const { error: uploadError } = await supabase.storage
-      .from('portfolio')
-      .upload(filePath, file, {
-        contentType: file.type
-      });
+    try {
+      const { error: uploadError } = await supabase.storage
+        .from('portfolio')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false,
+          contentType: file.type
+        });
 
-    if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('Portfolio upload error:', uploadError);
+        if (uploadError.message.includes('bucket not found')) {
+          throw new Error('Storage bucket "portfolio" not found. Please ensure it is created in Supabase storage.');
+        }
+        throw uploadError;
+      }
 
-    const { data } = supabase.storage.from('portfolio').getPublicUrl(filePath);
-    return data.publicUrl;
+      const { data } = supabase.storage.from('portfolio').getPublicUrl(filePath);
+      
+      if (!data || !data.publicUrl) {
+        throw new Error('Failed to generate public URL for portfolio item');
+      }
+
+      return data.publicUrl;
+    } catch (err: any) {
+      console.error('Unexpected error in uploadPortfolioMedia:', err);
+      throw err;
+    }
   },
 
   async deletePortfolioMedia(filePath: string) {
@@ -165,7 +223,7 @@ export const profilesService = {
     const { error: updateError } = await supabase
       .from('profiles')
       .update({ avatar_url: publicUrl })
-      .eq('id', userId);
+      .eq('id', userId);   // MUST match auth.users.id
 
     if (updateError) {
       console.error('Update profile error:', updateError);
@@ -201,7 +259,7 @@ export const profilesService = {
         verification_status: 'Pending',
         verification_doc_path: filePath
       })
-      .eq('id', userId);
+      .eq('id', userId);   // MUST match auth.users.id
 
     if (updateError) throw updateError;
 
@@ -214,7 +272,7 @@ export const profilesService = {
 
       let query = supabase
         .from('profiles')
-        .select('id, full_name, avatar_url, skills, city, country')
+        .select('id, full_name, avatar_url, skills, city_town, country')
         .overlaps('skills', [searchTerm.toLowerCase().trim()])
         .limit(10);
 
@@ -223,7 +281,14 @@ export const profilesService = {
       }
 
       const { data, error } = await query;
-      return { data: data || [], error };
+      
+      // Map city_town to city for frontend consistency
+      const mappedData = data?.map(user => ({
+        ...user,
+        city: user.city_town
+      })) || [];
+
+      return { data: mappedData, error };
     } catch (err: any) {
       console.error("Unexpected error searching users:", err);
       return { data: [], error: err };

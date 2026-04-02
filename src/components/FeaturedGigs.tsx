@@ -101,7 +101,7 @@ const FeaturedGigs: React.FC = () => {
           </Link>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
           {gigs.map((gig, index) => (
             <motion.div
               key={gig.id}

@@ -238,7 +238,7 @@ const BrowseGigs: React.FC = () => {
               </h2>
               <Loader2 className="w-5 h-5 animate-spin text-brand-purple" />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {[...Array(6)].map((_, i) => (
                 <GigCardSkeleton key={i} />
               ))}
@@ -289,7 +289,7 @@ const BrowseGigs: React.FC = () => {
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <AnimatePresence>
             {filteredGigs.length > 0 ? (
               filteredGigs.map((gig, i) => (

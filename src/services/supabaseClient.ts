@@ -7,6 +7,9 @@ export const getSupabase = (): SupabaseClient => {
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
     const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
+    console.log('Supabase URL:', supabaseUrl);
+    console.log('Supabase Anon Key:', supabaseAnonKey);
+
     if (!supabaseUrl || !supabaseAnonKey) {
       throw new Error(
         'Supabase URL or Anon Key is missing. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your environment variables (Settings > Secrets).'

@@ -14,34 +14,31 @@ export const Skeleton: React.FC<SkeletonProps> = ({ className = "" }) => {
 
 export const GigCardSkeleton: React.FC = () => {
   return (
-    <div className="bg-white dark:bg-brand-dark-card rounded-2xl p-6 border border-brand-gray dark:border-white/5 shadow-sm flex flex-col h-full min-h-[280px]">
-      <div className="flex justify-between items-start mb-5">
-        <div className="flex gap-2">
-          <Skeleton className="w-20 h-6 rounded-lg" />
-          <Skeleton className="w-20 h-6 rounded-lg" />
-        </div>
-        <Skeleton className="w-24 h-8 rounded-lg" />
+    <div className="bg-white dark:bg-brand-dark-card rounded-[1.5rem] p-6 border border-brand-gray dark:border-white/5 shadow-sm flex flex-col h-full min-h-[280px]">
+      <div className="flex justify-between items-start mb-4">
+        <Skeleton className="w-16 h-5 rounded-full" />
+        <Skeleton className="w-20 h-7 rounded-lg" />
       </div>
       
       <div className="mb-4">
-        <Skeleton className="w-3/4 h-7 mb-2" />
-        <div className="flex gap-4">
-          <Skeleton className="w-24 h-4" />
-          <Skeleton className="w-24 h-4" />
+        <Skeleton className="w-3/4 h-6 mb-3" />
+        <div className="flex gap-3">
+          <Skeleton className="w-20 h-4 rounded-lg" />
+          <Skeleton className="w-20 h-4 rounded-lg" />
         </div>
       </div>
       
       <div className="space-y-2 mb-6">
-        <Skeleton className="w-full h-4" />
-        <Skeleton className="w-5/6 h-4" />
+        <Skeleton className="w-full h-3" />
+        <Skeleton className="w-4/5 h-3" />
       </div>
       
-      <div className="mt-auto pt-5 border-t border-brand-gray dark:border-white/5 flex items-center justify-between">
+      <div className="mt-auto pt-4 border-t border-brand-gray dark:border-white/5 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Skeleton className="w-8 h-8 rounded-lg" />
-          <Skeleton className="w-24 h-4" />
+          <Skeleton className="w-20 h-3" />
         </div>
-        <Skeleton className="w-20 h-10 rounded-xl" />
+        <Skeleton className="w-16 h-8 rounded-xl" />
       </div>
     </div>
   );

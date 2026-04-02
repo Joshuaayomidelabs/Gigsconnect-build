@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Loader2, Check } from 'lucide-react';
 import { supabase } from '../services/supabaseClient';
-import { africanCountries, getStatesForCountry, musicProfessions, experienceLevels } from '../utils/locations';
+import { africanCountries, getStatesForCountry, musicProfessions } from '../utils/locations';
 import Logo from '../components/Logo';
 import PasswordInput from '../components/PasswordInput';
 
@@ -16,15 +16,12 @@ const SignUp: React.FC = () => {
 
   const [formData, setFormData] = useState({
     fullName: '',
-    stageName: '',
     email: '',
     phoneNumber: '',
     password: '',
     confirmPassword: '',
     country: '',
-    stateRegion: '',
     cityTown: '',
-    experienceLevel: '',
   });
   
   const [selectedProfessions, setSelectedProfessions] = useState<string[]>([]);
@@ -56,7 +53,6 @@ const SignUp: React.FC = () => {
     if (formData.country) {
       const states = getStatesForCountry(formData.country);
       setAvailableStates(states);
-      setFormData(prev => ({ ...prev, stateRegion: '' })); // Reset state when country changes
     } else {
       setAvailableStates([]);
     }
@@ -93,9 +89,7 @@ const SignUp: React.FC = () => {
     }
     if (!formData.phoneNumber.trim()) newErrors.phoneNumber = 'Phone Number is required';
     if (!formData.country) newErrors.country = 'Country is required';
-    if (!formData.stateRegion) newErrors.stateRegion = 'State/Region is required';
     if (!formData.cityTown.trim()) newErrors.cityTown = 'City/Town is required';
-    if (!formData.experienceLevel) newErrors.experienceLevel = 'Experience Level is required';
     if (selectedProfessions.length === 0) newErrors.professions = 'Select at least one profession';
     
     if (!formData.password) newErrors.password = 'Password is required';
@@ -137,18 +131,21 @@ const SignUp: React.FC = () => {
       
       const userId = authData.user?.id;
       if (!userId) throw new Error('Failed to create user account');
+      
+      console.log('Signup Successful - User ID:', userId);
 
       // 2. Insert into profiles
       const { error: profileError } = await supabase
         .from('profiles')
         .upsert({
-          user_id: userId,
+          id: userId,   // MUST match auth.users.id
           full_name: formData.fullName,
+          phone: formData.phoneNumber,
           role: selectedProfessions[0] || 'Musician',
           skills: selectedProfessions,
           country: formData.country,
           city_town: formData.cityTown,
-        }, { onConflict: 'user_id' });
+        }, { onConflict: 'id' });
 
       if (profileError) {
         throw new Error(`Profile update failed: ${profileError.message}`);
@@ -275,20 +272,6 @@ const SignUp: React.FC = () => {
                     {errors.fullName && <p className="mt-2 text-xs font-bold text-red-600 ml-1">{errors.fullName}</p>}
                   </div>
 
-                  <div>
-                    <label className="block text-xs font-black uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2 ml-1">
-                      Stage Name <span className="text-gray-400 dark:text-gray-500 font-normal">(Optional)</span>
-                    </label>
-                    <input
-                      name="stageName"
-                      type="text"
-                      value={formData.stageName}
-                      onChange={handleChange}
-                      className="block w-full h-[54px] rounded-xl border-0 px-5 text-base text-brand-black dark:text-brand-white shadow-sm ring-1 ring-inset ring-brand-purple/10 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-brand-purple transition-all duration-200 bg-white dark:bg-brand-dark-card focus:bg-white dark:focus:bg-brand-dark-card"
-                      placeholder="DJ Apollo"
-                    />
-                  </div>
-
                   <div className="sm:col-span-2">
                     <label className="block text-xs font-black uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2 ml-1">
                       Phone Number <span className="text-red-500">*</span>
@@ -329,25 +312,6 @@ const SignUp: React.FC = () => {
                       ))}
                     </select>
                     {errors.country && <p className="mt-2 text-xs font-bold text-red-600 ml-1">{errors.country}</p>}
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-black uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2 ml-1">
-                      State / Region <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      name="stateRegion"
-                      value={formData.stateRegion}
-                      onChange={handleChange}
-                      disabled={!formData.country}
-                      className={`block w-full h-[54px] rounded-xl border-0 px-5 text-base text-brand-black dark:text-brand-white shadow-sm ring-1 ring-inset ${errors.stateRegion ? 'ring-red-300 focus:ring-red-500' : 'ring-brand-purple/10 focus:ring-brand-purple'} focus:ring-2 focus:ring-inset transition-all duration-200 bg-white dark:bg-brand-dark-card focus:bg-white dark:focus:bg-brand-dark-card disabled:opacity-50 disabled:cursor-not-allowed`}
-                    >
-                      <option value="">Select state/region</option>
-                      {availableStates.map(state => (
-                        <option key={state} value={state}>{state}</option>
-                      ))}
-                    </select>
-                    {errors.stateRegion && <p className="mt-2 text-xs font-bold text-red-600 ml-1">{errors.stateRegion}</p>}
                   </div>
 
                   <div className="sm:col-span-2">
@@ -396,24 +360,6 @@ const SignUp: React.FC = () => {
                     ))}
                   </div>
                   {errors.professions && <p className="mt-2 text-xs font-bold text-red-600 ml-1">{errors.professions}</p>}
-                </div>
-
-                <div>
-                  <label className="block text-xs font-black uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2 ml-1">
-                    Experience Level <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    name="experienceLevel"
-                    value={formData.experienceLevel}
-                    onChange={handleChange}
-                    className={`block w-full h-[54px] rounded-xl border-0 px-5 text-base text-brand-black dark:text-brand-white shadow-sm ring-1 ring-inset ${errors.experienceLevel ? 'ring-red-300 focus:ring-red-500' : 'ring-brand-purple/10 focus:ring-brand-purple'} focus:ring-2 focus:ring-inset transition-all duration-200 bg-white dark:bg-brand-dark-card focus:bg-white dark:focus:bg-brand-dark-card`}
-                  >
-                    <option value="">Select experience level</option>
-                    {experienceLevels.map((level: any) => (
-                      <option key={level} value={level}>{level}</option>
-                    ))}
-                  </select>
-                  {errors.experienceLevel && <p className="mt-2 text-xs font-bold text-red-600 ml-1">{errors.experienceLevel}</p>}
                 </div>
               </section>
 

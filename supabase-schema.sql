@@ -4,13 +4,10 @@
 CREATE TABLE profiles (
   user_id UUID REFERENCES auth.users(id) PRIMARY KEY,
   full_name TEXT,
-  stage_name TEXT,
   email TEXT,
   phone TEXT,
   country TEXT,
-  state_region TEXT,
   city_town TEXT,
-  experience_level TEXT,
   genres TEXT,
   bio TEXT,
   avatar_url TEXT,
@@ -152,5 +149,5 @@ ALTER PUBLICATION supabase_realtime ADD TABLE gig_applications;
 
 -- Storage Policies for 'portfolio'
 -- CREATE POLICY "Portfolio media is publicly accessible." ON storage.objects FOR SELECT USING (bucket_id = 'portfolio');
--- CREATE POLICY "Users can upload their own portfolio media." ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'portfolio' AND auth.uid()::text = (storage.foldername(name))[1]);
--- CREATE POLICY "Users can delete their own portfolio media." ON storage.objects FOR DELETE USING (bucket_id = 'portfolio' AND auth.uid()::text = (storage.foldername(name))[1]);
+-- CREATE POLICY "Users can upload their own portfolio media." ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'portfolio' AND (auth.uid()::text = (storage.foldername(name))[1] OR ( (storage.foldername(name))[1] = 'portfolio' AND auth.uid()::text = (storage.foldername(name))[2] )));
+-- CREATE POLICY "Users can delete their own portfolio media." ON storage.objects FOR DELETE USING (bucket_id = 'portfolio' AND (auth.uid()::text = (storage.foldername(name))[1] OR ( (storage.foldername(name))[1] = 'portfolio' AND auth.uid()::text = (storage.foldername(name))[2] )));

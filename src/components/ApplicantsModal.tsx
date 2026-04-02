@@ -88,7 +88,7 @@ const ApplicantsModal: React.FC<ApplicantsModalProps> = ({ gig, onClose, highlig
                       onClick={() => app.profiles?.user_id && (onClose(), navigate(`/profile/${app.profiles.user_id}`))}
                     >
                       {app.profiles?.avatar_url ? (
-                        <img src={app.profiles.avatar_url} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                        <img src={app.profiles.avatar_url} alt={app.profiles.full_name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-brand-purple">
                           <User className="w-6 h-6" />

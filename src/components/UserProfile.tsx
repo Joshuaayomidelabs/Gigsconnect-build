@@ -15,11 +15,15 @@ export default function UserProfile({ userId }: UserProfileProps) {
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
-        .eq("id", userId)
-        .single();
+        .eq("id", userId)   // MUST match auth.users.id
+        .maybeSingle();
 
-      if (error) console.error("Error fetching user:", error);
-      else setUser(data);
+      console.log('UserProfile: Fetching user for User ID:', userId);
+      if (error) console.error(error);
+      console.log('UserProfile: User data found:', data);
+      if (data) {
+        setUser(data);
+      }
     };
 
     fetchUser();
@@ -70,7 +74,9 @@ export default function UserProfile({ userId }: UserProfileProps) {
       )}
 
       <div className="flex items-center space-x-1.5">
-        <span className="font-semibold text-gray-800 dark:text-gray-100">{user.full_name}</span>
+        <span className="font-semibold text-gray-800 dark:text-gray-100">
+          {user.full_name}
+        </span>
         {isVerified && (
           <span title="Verified">
             <CheckCircle

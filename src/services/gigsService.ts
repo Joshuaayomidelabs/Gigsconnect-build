@@ -19,7 +19,7 @@ export const gigsService = {
       .from('gigs')
       .select('*, poster_id(*)')
       .eq('id', id)
-      .single();
+      .maybeSingle();
     return { data, error };
   },
 
@@ -39,7 +39,7 @@ export const gigsService = {
       .from('gigs')
       .insert([gigData])
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error("Gig creation error:", error);

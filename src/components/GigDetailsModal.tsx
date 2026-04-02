@@ -125,17 +125,17 @@ const GigDetailsModal: React.FC<GigDetailsModalProps> = ({ gig, isOpen, onClose,
                       {creator?.avatar_url ? (
                         <img 
                           src={creator.avatar_url} 
-                          alt="" 
+                          alt={creator.full_name} 
                           referrerPolicy="no-referrer" 
                           className="w-full h-full object-cover" 
                           onError={(e) => {
                             (e.target as HTMLImageElement).style.display = 'none';
-                            (e.target as HTMLImageElement).parentElement!.innerHTML = `<div class="text-xl font-black text-brand-purple">${creator?.full_name?.charAt(0).toUpperCase() || 'U'}</div>`;
+                            (e.target as HTMLImageElement).parentElement!.innerHTML = `<div class="text-xl font-black text-brand-purple">${(creator?.full_name)?.charAt(0).toUpperCase() || 'U'}</div>`;
                           }}
                         />
                       ) : (
                         <div className="text-xl font-black text-brand-black dark:text-brand-white">
-                          {creator?.full_name?.charAt(0).toUpperCase() || 'U'}
+                          {(creator?.full_name)?.charAt(0).toUpperCase() || 'U'}
                         </div>
                       )}
                     </div>

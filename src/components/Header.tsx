@@ -23,6 +23,7 @@ const Header: React.FC = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       if (user) {
+        console.log('Header: Fetching profile for User ID:', user.id);
         const { data } = await profilesService.getProfile(user.id);
         setProfile(data);
       } else {

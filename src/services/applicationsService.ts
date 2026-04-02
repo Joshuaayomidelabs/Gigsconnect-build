@@ -12,8 +12,8 @@ export const applicationsService = {
     const { data, error } = await supabase
       .from('gig_applications')
       .insert([applicationData])
-      .select('*, gigs(title), applicant:profiles!applicant_id(user_id, full_name, avatar_url, role)')
-      .single();
+      .select('*, gigs(title), applicant:profiles!applicant_id(id, full_name, avatar_url, role)')
+      .maybeSingle();
 
     if (!error && data) {
       // Notify gig creator
@@ -42,7 +42,7 @@ export const applicationsService = {
       .update({ status })
       .eq('id', applicationId)
       .select('*, gigs(title), applicant_id')
-      .single();
+      .maybeSingle();
 
     if (!error && data) {
       // Notify applicant
@@ -87,7 +87,7 @@ export const applicationsService = {
   async getApplicationsForGig(gigId: string) {
     const { data, error } = await supabase
       .from('gig_applications')
-      .select('*, profiles(user_id, full_name, avatar_url, role)')
+      .select('*, profiles(id, full_name, avatar_url, role)')
       .eq('gig_id', gigId)
       .order('created_at', { ascending: false });
     return { data, error };

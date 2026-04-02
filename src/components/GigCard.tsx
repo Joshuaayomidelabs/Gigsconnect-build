@@ -51,10 +51,24 @@ const GigCard: React.FC<GigCardProps> = ({ gig, onApply, onViewDetails, onViewAp
       onClick={() => onViewDetails && onViewDetails(gig)}
       className={`group relative bg-white dark:bg-brand-dark-card rounded-[1.5rem] p-6 border transition-all duration-500 flex flex-col h-full cursor-pointer min-h-[280px] overflow-hidden ${
         isApplied 
-          ? 'border-brand-purple/30 bg-brand-purple/[0.02] dark:bg-brand-purple/[0.05] ring-4 ring-brand-purple/5 shadow-xl' 
+          ? 'border-brand-purple bg-brand-purple/[0.03] dark:bg-brand-purple/[0.08] ring-4 ring-brand-purple/10 shadow-xl' 
           : 'border-brand-gray dark:border-white/5 shadow-sm hover:shadow-2xl hover:border-brand-purple/40 hover:ring-1 hover:ring-brand-purple/20'
       }`}
     >
+      {/* Applied Badge - Top Right */}
+      {isApplied && (
+        <motion.div 
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="absolute top-0 right-0 z-20"
+        >
+          <div className="bg-brand-purple text-white px-4 py-1.5 rounded-bl-2xl text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-lg">
+            <CheckCircle className="w-3 h-3" />
+            Applied
+          </div>
+        </motion.div>
+      )}
+
       {/* Colorful Accent Gradient */}
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-brand-purple via-brand-purple-dark to-brand-purple opacity-70 group-hover:opacity-100 transition-opacity" />
       
@@ -114,11 +128,11 @@ const GigCard: React.FC<GigCardProps> = ({ gig, onApply, onViewDetails, onViewAp
                 referrerPolicy="no-referrer"
                 onError={(e) => {
                   (e.target as HTMLImageElement).style.display = 'none';
-                  (e.target as HTMLImageElement).parentElement!.innerText = creator?.full_name?.charAt(0).toUpperCase() || 'U';
+                  (e.target as HTMLImageElement).parentElement!.innerText = (creator?.full_name)?.charAt(0).toUpperCase() || 'U';
                 }}
               />
             ) : (
-              creator?.full_name?.charAt(0).toUpperCase() || 'U'
+              (creator?.full_name)?.charAt(0).toUpperCase() || 'U'
             )}
           </div>
           <div className="flex flex-col items-start">
@@ -132,17 +146,6 @@ const GigCard: React.FC<GigCardProps> = ({ gig, onApply, onViewDetails, onViewAp
             </div>
           </div>
         </button>
-        
-        {isApplied && (
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="flex items-center gap-1 px-2 py-0.5 bg-brand-purple/10 text-brand-purple rounded-md border border-brand-purple/20"
-          >
-            <CheckCircle className="w-2.5 h-2.5" />
-            <span className="text-[7px] font-black uppercase tracking-widest">Applied</span>
-          </motion.div>
-        )}
       </div>
 
       {/* Footer: Actions */}

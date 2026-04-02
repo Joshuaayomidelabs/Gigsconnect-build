@@ -57,12 +57,16 @@ const Login: React.FC = () => {
     setSupabaseError(null);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email: formData.email,
         password: formData.password,
       });
 
       if (error) throw error;
+      
+      if (data.user) {
+        console.log('Login Successful - User ID:', data.user.id);
+      }
 
       // Redirect back to original page or dashboard
       const from = state?.from || '/overview';

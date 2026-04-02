@@ -153,7 +153,9 @@ const PublicProfile: React.FC = () => {
                 )}
               </div>
 
-              <h1 className="text-2xl font-black text-brand-black dark:text-brand-white tracking-tight mb-1">{profile.full_name}</h1>
+              <h1 className="text-2xl font-black text-brand-black dark:text-brand-white tracking-tight mb-1">
+                {profile.full_name || 'Anonymous User'}
+              </h1>
               
               {profile.verification_status === 'Pending' && (
                 <div className="flex items-center justify-center gap-2 px-4 py-2 bg-yellow-50 dark:bg-yellow-900/10 text-yellow-600 dark:text-yellow-400 text-xs font-bold rounded-xl mb-4 border border-yellow-100 dark:border-yellow-900/20">
@@ -220,7 +222,7 @@ const PublicProfile: React.FC = () => {
                 About
               </h2>
               <p className="text-gray-700 dark:text-gray-200 text-lg leading-relaxed whitespace-pre-wrap">
-                {profile.bio || `${profile.full_name} hasn't added a bio yet.`}
+                {profile.bio || `${profile.full_name || 'This user'} hasn't added a bio yet.`}
               </p>
 
               {profile.skills && profile.skills.length > 0 && (

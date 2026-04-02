@@ -92,6 +92,7 @@ const Dashboard: React.FC = () => {
     const fetchData = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
+        console.log('Dashboard: Fetching data for User ID:', session.user.id);
         setUser(session.user);
         
         // Fetch applied gig IDs

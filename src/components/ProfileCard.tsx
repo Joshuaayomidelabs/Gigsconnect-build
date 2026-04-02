@@ -33,7 +33,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile }) => {
       </div>
       
       <div className="mb-4">
-        <h3 className="text-xl font-black text-brand-black dark:text-brand-white leading-tight mb-1">{profile?.full_name || 'Anonymous User'}</h3>
+        <h3 className="text-xl font-black text-brand-black dark:text-brand-white leading-tight mb-1">
+          {profile?.full_name || 'Anonymous User'}
+        </h3>
         <p className="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-widest">{profile?.role || 'Member'}</p>
       </div>
 

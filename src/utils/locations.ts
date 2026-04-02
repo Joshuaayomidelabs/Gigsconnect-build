@@ -35,7 +35,3 @@ export const musicProfessions = [
   "Choreographer", "MC", "Hype Man", "Band Leader", "Music Director", "Composer", 
   "Songwriter", "Arranger", "Session Musician", "Worship Leader", "Music Tutor", "Other"
 ];
-
-export const experienceLevels = [
-  "Beginner", "Intermediate", "Advanced", "Professional"
-];

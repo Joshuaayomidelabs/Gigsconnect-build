@@ -11,7 +11,6 @@ CREATE TABLE IF NOT EXISTS public.users (
   bio TEXT,
   location TEXT,
   genre TEXT,
-  experience_level TEXT,
   avatar_url TEXT,
   profileComplete BOOLEAN DEFAULT false,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
@@ -75,10 +74,10 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.gigs;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.users;
 
 -- Sample Data
-INSERT INTO public.users (id, email, name, stage_name, profileComplete)
+INSERT INTO public.users (id, email, name, profileComplete)
 VALUES 
-  ('11111111-1111-1111-1111-111111111111', 'newuser@example.com', 'New User', NULL, false),
-  ('22222222-2222-2222-2222-222222222222', 'alex@example.com', 'Alex Smith', 'DJ Alex', true)
+  ('11111111-1111-1111-1111-111111111111', 'newuser@example.com', 'New User', false),
+  ('22222222-2222-2222-2222-222222222222', 'alex@example.com', 'Alex Smith', true)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO public.gigs (title, description, location, price, currency, category, event_type, visibility, status, event_date, posted_by)

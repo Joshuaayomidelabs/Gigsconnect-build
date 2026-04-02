@@ -15,6 +15,7 @@ const EditProfile: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState('');
   const [formData, setFormData] = useState({
     full_name: '',
@@ -45,7 +46,7 @@ const EditProfile: React.FC = () => {
           bio: data.bio || '',
           phone: data.phone || '',
           role: data.role || '',
-          city: data.city || '',
+          city: data.city || data.city_town || '',
           country: data.country || '',
           skills: data.skills || [],
           avatar_url: data.avatar_url || '',
@@ -64,7 +65,7 @@ const EditProfile: React.FC = () => {
     fetchProfile();
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
@@ -170,8 +171,6 @@ const EditProfile: React.FC = () => {
   };
 
   const handleDeleteMedia = async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this item?')) return;
-
     try {
       setIsLoading(true);
       const itemToDelete = formData.portfolio_media.find(m => m.id === id);
@@ -203,9 +202,12 @@ const EditProfile: React.FC = () => {
     e.preventDefault();
     setIsLoading(true);
 
+    console.log('Submitting form data:', formData);
     try {
-      const { error } = await profilesService.updateProfile(formData);
-      if (error) throw error;
+      const result = await profilesService.updateProfile(formData);
+      console.log('Update result:', result);
+      
+      if (result.error) throw result.error;
       setSuccessMessage('Profile updated successfully!');
       setIsEditing(false);
       
@@ -216,7 +218,8 @@ const EditProfile: React.FC = () => {
       await fetchProfile();
       setTimeout(() => setSuccessMessage(''), 5000);
     } catch (err: any) {
-      alert(err.message);
+      console.error('Error in handleSubmit:', err);
+      alert(err.message || 'An unexpected error occurred. Please check the console for details.');
     } finally {
       setIsLoading(false);
     }
@@ -287,7 +290,9 @@ const EditProfile: React.FC = () => {
                     </div>
                   </div>
                   <div className="flex-grow pb-2">
-                    <h2 className="text-3xl font-black text-brand-black dark:text-brand-white tracking-tight">{formData.full_name || 'Anonymous User'}</h2>
+                    <h2 className="text-3xl font-black text-brand-black dark:text-brand-white tracking-tight">
+                      {formData.full_name || 'Anonymous User'}
+                    </h2>
                     <p className="text-brand-purple font-bold">@{formData.username || 'username'}</p>
                   </div>
                 </div>
@@ -328,6 +333,13 @@ const EditProfile: React.FC = () => {
                                 >
                                   <ExternalLink className="w-4 h-4 text-brand-purple" />
                                 </a>
+                                <button 
+                                  onClick={() => setShowDeleteConfirm(item.id)}
+                                  className="p-2 bg-red-500/80 backdrop-blur-sm text-brand-white rounded-lg hover:bg-red-600 transition-all"
+                                  title="Delete Item"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
                               </div>
                               {item.is_featured && (
                                 <div className="absolute bottom-2 left-2 px-2 py-1 bg-brand-purple text-brand-white text-[10px] font-black uppercase tracking-widest rounded-md">
@@ -381,7 +393,7 @@ const EditProfile: React.FC = () => {
                         <div>
                           <p className="text-[10px] uppercase font-black text-gray-500 dark:text-gray-400 tracking-tighter">Location</p>
                           <p className="text-sm font-bold">
-                            {formData.city && formData.country ? `${formData.city}, ${formData.country}` : (formData.city || formData.country || 'Not specified')}
+                            {[formData.city, formData.country].filter(Boolean).join(', ') || 'Not specified'}
                           </p>
                         </div>
                       </div>
@@ -720,7 +732,7 @@ const EditProfile: React.FC = () => {
                         </button>
                         <button 
                           type="button"
-                          onClick={() => handleDeleteMedia(item.id)}
+                          onClick={() => setShowDeleteConfirm(item.id)}
                           className="p-2 bg-red-500 text-brand-white rounded-lg hover:bg-red-600 transition-all"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -763,6 +775,43 @@ const EditProfile: React.FC = () => {
             </form>
           </motion.div>
 
+        )}
+      </AnimatePresence>
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {showDeleteConfirm && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-brand-black/60 backdrop-blur-sm">
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-brand-white dark:bg-brand-dark-card p-8 rounded-[2.5rem] max-w-sm w-full shadow-2xl border border-brand-gray dark:border-brand-black"
+            >
+              <div className="w-16 h-16 rounded-2xl bg-red-500/10 flex items-center justify-center mb-6">
+                <Trash2 className="w-8 h-8 text-red-500" />
+              </div>
+              <h3 className="text-2xl font-black text-brand-black dark:text-brand-white mb-3">Delete Item?</h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-8 font-medium leading-relaxed">This action cannot be undone. Are you sure you want to remove this from your portfolio?</p>
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => setShowDeleteConfirm(null)}
+                  className="flex-1 py-4 px-6 rounded-2xl border-2 border-brand-gray dark:border-brand-black text-brand-black dark:text-brand-white font-bold hover:bg-brand-gray dark:hover:bg-brand-black transition-all active:scale-95"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={() => {
+                    handleDeleteMedia(showDeleteConfirm);
+                    setShowDeleteConfirm(null);
+                  }}
+                  className="flex-1 py-4 px-6 rounded-2xl bg-red-500 text-brand-white font-bold hover:bg-red-600 transition-all shadow-lg shadow-red-500/20 active:scale-95"
+                >
+                  Delete
+                </button>
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </div>
