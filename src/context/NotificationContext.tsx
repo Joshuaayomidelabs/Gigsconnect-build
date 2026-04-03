@@ -18,14 +18,13 @@ const NotificationContext = createContext<NotificationContextType | undefined>(u
 export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const unreadCount = notifications.filter(n => !n.is_read).length;
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user?.id) {
       setNotifications([]);
-      setUnreadCount(0);
       setIsLoading(false);
       return;
     }
@@ -42,7 +41,6 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
 
         if (data) {
           setNotifications(data);
-          setUnreadCount(data.filter(n => !n.is_read).length);
         }
       } catch (err: any) {
         console.error("Unexpected notification error:", err);
@@ -56,8 +54,11 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
 
     // Subscribe to real-time updates
     const subscription = notificationsService.subscribeToNotifications(user.id, (newNotif) => {
-      setNotifications(prev => [newNotif, ...prev]);
-      setUnreadCount(prev => prev + 1);
+      setNotifications(prev => {
+        // Avoid duplicates
+        if (prev.some(n => n.id === newNotif.id)) return prev;
+        return [newNotif, ...prev];
+      });
       
       // Show toast notification
       toast.info(newNotif.title, {
@@ -78,7 +79,6 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
     const { error } = await notificationsService.markAsRead(id);
     if (!error) {
       setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
-      setUnreadCount(prev => Math.max(0, prev - 1));
     }
   };
 
@@ -87,7 +87,6 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
     const { error } = await notificationsService.markAllAsRead(user.id);
     if (!error) {
       setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
-      setUnreadCount(0);
     }
   };
 

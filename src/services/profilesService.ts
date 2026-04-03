@@ -239,17 +239,21 @@ export const profilesService = {
       throw new Error('File size must be less than 10MB.');
     }
 
-    const fileExt = file.name.split('.').pop();
-    const fileName = `verification_${userId}_${Date.now()}.${fileExt}`;
-    const filePath = `${userId}/${fileName}`;
+    const filePath = `${userId}/${file.name}`;
 
     const { error: uploadError } = await supabase.storage
-      .from('verification_docs')
+      .from('verification-docs')
       .upload(filePath, file, {
         contentType: file.type
       });
 
-    if (uploadError) throw uploadError;
+    if (uploadError) {
+      console.error('Verification doc upload error:', uploadError);
+      if (uploadError.message.includes('bucket not found')) {
+        throw new Error('Storage bucket "verification-docs" not found. Please ensure it is created in Supabase storage (private bucket recommended).');
+      }
+      throw uploadError;
+    }
 
     // We don't necessarily want public URLs for ID documents for security reasons.
     // But for this implementation, we'll store the path.

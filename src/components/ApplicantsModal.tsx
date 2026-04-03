@@ -85,10 +85,10 @@ const ApplicantsModal: React.FC<ApplicantsModalProps> = ({ gig, onClose, highlig
                   <div className="flex gap-4">
                     <div 
                       className="w-14 h-14 rounded-2xl bg-white dark:bg-brand-dark-card border-2 border-gray-200 dark:border-gray-700 overflow-hidden flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
-                      onClick={() => app.profiles?.user_id && (onClose(), navigate(`/profile/${app.profiles.user_id}`))}
+                      onClick={() => app.applicant?.id && (onClose(), navigate(`/profile/${app.applicant.id}`))}
                     >
-                      {app.profiles?.avatar_url ? (
-                        <img src={app.profiles.avatar_url} alt={app.profiles.full_name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                      {app.applicant?.avatar_url ? (
+                        <img src={app.applicant.avatar_url} alt={app.applicant.full_name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-brand-purple">
                           <User className="w-6 h-6" />
@@ -98,11 +98,11 @@ const ApplicantsModal: React.FC<ApplicantsModalProps> = ({ gig, onClose, highlig
                     <div>
                       <h4 
                         className="text-lg font-black text-gray-900 dark:text-white flex items-center gap-2 cursor-pointer hover:text-brand-purple transition-colors"
-                        onClick={() => app.profiles?.user_id && (onClose(), navigate(`/profile/${app.profiles.user_id}`))}
+                        onClick={() => app.applicant?.id && (onClose(), navigate(`/profile/${app.applicant.id}`))}
                       >
-                        {app.profiles?.full_name}
+                        {app.applicant?.full_name}
                       </h4>
-                      <p className="text-xs font-bold text-brand-purple uppercase tracking-widest mb-2">{app.profiles?.role || 'Talent'}</p>
+                      <p className="text-xs font-bold text-brand-purple uppercase tracking-widest mb-2">{app.applicant?.role || 'Talent'}</p>
                       <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2 italic">"{app.message}"</p>
                     </div>
                   </div>

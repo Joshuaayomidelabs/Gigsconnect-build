@@ -44,8 +44,7 @@ export const notificationsService = {
     const { data, error } = await supabase
       .from('notifications')
       .update({ is_read: true })
-      .eq('recipient_id', userId)
-      .eq('is_read', false);
+      .eq('recipient_id', userId);
     
     return { data, error };
   },
