@@ -22,56 +22,6 @@ export const profilesService = {
     return { data, error };
   },
 
-  async ensureProfileExists(user: any) {
-    try {
-      console.log('Ensuring profile exists for User ID:', user.id);
-      // 1. Check if profile already exists to avoid overwriting custom data
-      const { data: existingProfile, error: fetchError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)   // MUST match auth.users.id
-        .maybeSingle();
-
-      if (fetchError) console.error(fetchError);
-      console.log(existingProfile);
-
-      if (existingProfile) {
-        // If profile exists but lacks some basic info, we could update it, 
-        // but we definitely don't want to overwrite avatar_url if it's already set.
-        return { data: existingProfile, error: null };
-      }
-
-      // 2. If it doesn't exist, create it using metadata
-      const fullName = user.user_metadata?.full_name || user.user_metadata?.name || 'Anonymous';
-      const avatarUrl = user.user_metadata?.avatar_url || user.user_metadata?.picture || '';
-      const phone = user.user_metadata?.phone || '';
-      const country = user.user_metadata?.country || '';
-      const cityTown = user.user_metadata?.city || '';
-
-      const { data, error } = await supabase
-        .from('profiles')
-        .insert({
-          id: user.id,   // MUST match auth.users.id
-          full_name: fullName,
-          avatar_url: avatarUrl,
-          email: user.email,
-          phone: phone,
-          country: country,
-          city_town: cityTown,
-          bio: '',
-          role: '',
-          updated_at: new Date().toISOString(),
-        })
-        .select()
-        .maybeSingle();
-      
-      return { data, error };
-    } catch (err: any) {
-      console.error('Error in ensureProfileExists:', err.message);
-      return { data: null, error: err };
-    }
-  },
-
   async updateProfile(profileData: any) {
     try {
       const { data: { user } } = await supabase.auth.getUser();

@@ -123,6 +123,11 @@ const SignUp: React.FC = () => {
         options: {
           data: {
             full_name: formData.fullName,
+            phone: formData.phoneNumber,
+            role: selectedProfessions[0] || 'Musician',
+            skills: selectedProfessions,
+            country: formData.country,
+            city_town: formData.cityTown,
           }
         }
       });
@@ -134,24 +139,7 @@ const SignUp: React.FC = () => {
       
       console.log('Signup Successful - User ID:', userId);
 
-      // 2. Insert into profiles
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .upsert({
-          id: userId,   // MUST match auth.users.id
-          full_name: formData.fullName,
-          phone: formData.phoneNumber,
-          role: selectedProfessions[0] || 'Musician',
-          skills: selectedProfessions,
-          country: formData.country,
-          city_town: formData.cityTown,
-        }, { onConflict: 'id' });
-
-      if (profileError) {
-        throw new Error(`Profile update failed: ${profileError.message}`);
-      }
-
-      // Success! Redirect to onboarding
+      // Success! Redirect to onboarding or login
       navigate('/create-profile', { replace: true });
       
     } catch (error: any) {

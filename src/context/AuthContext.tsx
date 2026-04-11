@@ -33,7 +33,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setUser(initialSession?.user || null);
           if (initialSession?.user) {
             console.log('Auth Initialized - User ID:', initialSession.user.id);
-            profilesService.ensureProfileExists(initialSession.user);
           }
         }
       } catch (err: any) {
@@ -56,7 +55,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(currentSession?.user || null);
         if (currentSession?.user) {
           console.log('Auth State Changed - User ID:', currentSession.user.id);
-          profilesService.ensureProfileExists(currentSession.user);
         }
         setLoading(false);
       }
