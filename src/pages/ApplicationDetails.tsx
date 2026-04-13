@@ -142,7 +142,7 @@ const ApplicationDetails: React.FC = () => {
                   <button 
                     onClick={() => handleUpdateStatus('rejected')}
                     disabled={isUpdating}
-                    className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-red-600 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 transition-colors disabled:opacity-50"
+                    className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-brand-black dark:text-brand-white bg-brand-gray dark:bg-brand-black border border-brand-gray dark:border-brand-black hover:bg-brand-purple/10 dark:hover:bg-brand-purple/20 transition-colors disabled:opacity-50"
                   >
                     <XCircle className="w-5 h-5" />
                     Decline
@@ -150,7 +150,7 @@ const ApplicationDetails: React.FC = () => {
                   <button 
                     onClick={() => handleUpdateStatus('accepted')}
                     disabled={isUpdating}
-                    className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-white bg-green-600 hover:bg-green-700 transition-colors disabled:opacity-50 shadow-lg shadow-green-600/20"
+                    className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-brand-white bg-brand-purple hover:bg-brand-purple-hover transition-colors disabled:opacity-50 shadow-lg"
                   >
                     <CheckCircle2 className="w-5 h-5" />
                     Accept
@@ -159,8 +159,8 @@ const ApplicationDetails: React.FC = () => {
               ) : (
                 <div className={`px-6 py-3 rounded-xl font-bold flex items-center gap-2 ${
                   application.status === 'accepted' 
-                    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
-                    : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                    ? 'bg-brand-purple/10 text-brand-purple dark:bg-brand-purple/20' 
+                    : 'bg-brand-gray text-gray-600 dark:bg-brand-black dark:text-gray-400'
                 }`}>
                   {application.status === 'accepted' ? <CheckCircle2 className="w-5 h-5" /> : <XCircle className="w-5 h-5" />}
                   {application.status.charAt(0).toUpperCase() + application.status.slice(1)}

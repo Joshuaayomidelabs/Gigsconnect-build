@@ -159,7 +159,7 @@ const Notifications: React.FC = () => {
                         <button 
                           onClick={() => handleStatusUpdate(notif.id, notif.link, notif.metadata, 'Rejected')}
                           disabled={!!isProcessing}
-                          className="flex items-center gap-1 px-4 py-2 rounded-xl bg-brand-gray dark:bg-brand-black text-brand-black dark:text-brand-white text-xs font-bold hover:bg-brand-black/5 dark:hover:bg-brand-black/20 transition-all border border-brand-gray dark:border-brand-black disabled:opacity-50"
+                          className="flex items-center gap-1 px-4 py-2 rounded-xl bg-brand-gray dark:bg-brand-black text-brand-black dark:text-brand-white text-xs font-bold hover:bg-brand-purple/10 dark:hover:bg-brand-purple/20 transition-all border border-brand-gray dark:border-brand-black disabled:opacity-50"
                         >
                           {isProcessing === notif.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <XCircle className="w-3 h-3" />}
                           Reject
@@ -176,7 +176,7 @@ const Notifications: React.FC = () => {
                     )}
 
                     {(notif as any).is_processed && (
-                      <div className={`ml-auto px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 ${(notif as any).processed_status === 'Accepted' ? 'bg-green-50 dark:bg-green-900/10 text-green-600' : 'bg-red-50 dark:bg-red-900/10 text-red-600'}`}>
+                      <div className={`ml-auto px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 ${(notif as any).processed_status === 'Accepted' ? 'bg-brand-purple/10 text-brand-purple dark:bg-brand-purple/20' : 'bg-brand-gray text-gray-600 dark:bg-brand-black dark:text-gray-400'}`}>
                         <CheckCircle className="w-3 h-3" />
                         {(notif as any).processed_status}
                       </div>
