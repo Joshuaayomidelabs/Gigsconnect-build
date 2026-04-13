@@ -23,7 +23,7 @@ const FeaturedGigs: React.FC = () => {
         if (session) {
           // Fetch applied gig IDs
           const { data: applications } = await supabase
-            .from('gig_applications')
+            .from('applications')
             .select('gig_id')
             .eq('applicant_id', session.user.id);
           
