@@ -86,29 +86,35 @@ export const applicationsService = {
 
   async updateApplicationStatus(applicationId: string, status: string) {
     const { data, error } = await supabase
-      .from('applications')
+      .from("applications")
       .update({ status })
-      .eq('id', applicationId)
-      .select('*, gigs(title), applicant_id')
-      .maybeSingle();
+      .eq("id", applicationId)
+      .select(`
+        id,
+        gig_id,
+        applicant_id,
+        gigs(title)
+      `)
+      .single();
 
-    if (!error && data) {
-      // Notify applicant
-      await notificationsService.createNotification({
+    if (error) return { error };
+
+    // 🔥 NOTIFY APPLICANT
+    await supabase.from("notifications").insert([
+      {
         user_id: data.applicant_id,
-        type: 'application_update',
-        title: 'Application Update',
-        message: `Your application for "${(data as any).gigs.title}" has been ${status}.`,
-        link: '/applications',
-        reference_id: data.gig_id,
-        metadata: {
-          gig_title: (data as any).gigs.title,
-          status: status
-        }
-      });
-    }
+        title: "Application Update",
+        message:
+          status === "accepted"
+            ? `🎉 Your application for "${(data.gigs as any).title}" was accepted!`
+            : `Your application for "${(data.gigs as any).title}" was not accepted.`,
+        type: "application_update",
+        reference_id: data.id,
+        is_read: false,
+      },
+    ]);
 
-    return { data, error };
+    return { data };
   },
 
   async getApplicationsCountThisMonth(userId: string) {
