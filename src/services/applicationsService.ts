@@ -69,7 +69,7 @@ export const applicationsService = {
             message: `${applicant?.full_name || 'Someone'} applied to your gig`,
             type: "gig_application",
             reference_id: application.id,
-            link: `/application/${application.id}`, // now VALID
+            link: `/applications/${application.id}`, // now VALID
             is_read: false,
           },
         ]);

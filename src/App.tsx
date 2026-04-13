@@ -85,11 +85,11 @@ const App: React.FC = () => {
               <Route path="/gig/:id" element={<ProtectedRoute><GigDetails /></ProtectedRoute>} />
               <Route path="/post" element={<ProtectedRoute><PostGig /></ProtectedRoute>} />
               <Route path="/applications" element={<ProtectedRoute><MyApplications /></ProtectedRoute>} />
+              <Route path="/applications/:id" element={<ProtectedRoute><ApplicationDetails /></ProtectedRoute>} />
               <Route path="/posted-gigs" element={<ProtectedRoute><MyPostedGigs /></ProtectedRoute>} />
               <Route path="/edit-profile" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
               <Route path="/create-profile" element={<ProtectedRoute><CreateProfile /></ProtectedRoute>} />
               <Route path="/profile/:userId" element={<ProtectedRoute><PublicProfile /></ProtectedRoute>} />
-              <Route path="/application/:id" element={<ProtectedRoute><ApplicationDetails /></ProtectedRoute>} />
               <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
               <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
               

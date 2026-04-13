@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Bell, Check, ExternalLink, MessageSquare, Briefcase, Info, X, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useNotificationContext } from '../context/NotificationContext';
 import { notificationsService } from '../services/notificationsService';
@@ -9,6 +9,7 @@ import { supabase } from '../services/supabaseClient';
 
 const NotificationDropdown: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotificationContext();
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -127,11 +128,24 @@ const NotificationDropdown: React.FC = () => {
                       
                       <div className="flex items-center gap-2">
                         {notif.link && (
-                          <Link 
-                            to={notif.link}
+                          <button 
                             onClick={() => {
                               handleMarkAsRead(notif.id);
                               setIsOpen(false);
+
+                              switch (notif.type) {
+                                case "gig_application":
+                                  navigate(`/applications/${notif.reference_id}`);
+                                  break;
+
+                                case "application_update":
+                                  navigate(`/applications/${notif.reference_id}`);
+                                  break;
+
+                                default:
+                                  console.warn("Unknown notification type:", notif.type);
+                                  break;
+                              }
                             }}
                             className={`text-[10px] font-bold px-3 py-1.5 rounded-lg transition-all flex items-center gap-1 ${
                               notif.type === 'gig_application' 
@@ -141,7 +155,7 @@ const NotificationDropdown: React.FC = () => {
                           >
                             {notif.type === 'gig_application' ? 'View Application' : 'View Details'}
                             {notif.type !== 'gig_application' && <ExternalLink className="w-2.5 h-2.5" />}
-                          </Link>
+                          </button>
                         )}
                         
                         {notif.type === 'gig_application' && (

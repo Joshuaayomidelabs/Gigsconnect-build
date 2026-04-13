@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Bell, Check, ExternalLink, MessageSquare, Briefcase, Info, Loader2, XCircle, CheckCircle } from 'lucide-react';
 import { motion } from 'motion/react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useNotificationContext } from '../context/NotificationContext';
 import { notificationsService } from '../services/notificationsService';
@@ -9,6 +9,7 @@ import { applicationsService } from '../services/applicationsService';
 
 const Notifications: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { 
     notifications, 
     setNotifications, 
@@ -129,13 +130,28 @@ const Notifications: React.FC = () => {
 
                   <div className="flex flex-wrap items-center gap-4">
                     {notif.link && (
-                      <Link 
-                        to={notif.link}
-                        onClick={() => handleMarkAsRead(notif.id)}
+                      <button 
+                        onClick={() => {
+                          handleMarkAsRead(notif.id);
+
+                          switch (notif.type) {
+                            case "gig_application":
+                              navigate(`/applications/${notif.reference_id}`);
+                              break;
+
+                            case "application_update":
+                              navigate(`/applications/${notif.reference_id}`);
+                              break;
+
+                            default:
+                              console.warn("Unknown notification type:", notif.type);
+                              break;
+                          }
+                        }}
                         className="inline-flex items-center gap-2 text-sm font-bold text-brand-purple hover:underline"
                       >
                         View details <ExternalLink className="w-4 h-4" />
-                      </Link>
+                      </button>
                     )}
 
                     {notif.type === 'gig_application' && !notif.is_read && !(notif as any).is_processed && (
