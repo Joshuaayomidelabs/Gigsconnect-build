@@ -13,6 +13,7 @@ import {
   Instagram,
   Facebook,
   Twitter,
+  Linkedin,
   CheckCircle2,
   Music2,
   Clock
@@ -157,6 +158,12 @@ const PublicProfile: React.FC = () => {
                 {profile.full_name || 'Anonymous User'}
               </h1>
               
+              {profile.username && (
+                <p className="text-gray-500 dark:text-gray-400 font-medium mb-3">
+                  @{profile.username}
+                </p>
+              )}
+              
               {profile.verification_status === 'Pending' && (
                 <div className="flex items-center justify-center gap-2 px-4 py-2 bg-yellow-50 dark:bg-yellow-900/10 text-yellow-600 dark:text-yellow-400 text-xs font-bold rounded-xl mb-4 border border-yellow-100 dark:border-yellow-900/20">
                   <Clock className="w-4 h-4" />
@@ -188,10 +195,10 @@ const PublicProfile: React.FC = () => {
                 </div>
               )}
 
-              {(profile.instagram_url || profile.facebook_url || profile.tiktok_url) && (
+              {(profile.instagram_url || profile.facebook_url || profile.tiktok_url || profile.twitter_url || profile.linkedin_url) && (
                 <div className="pt-4 border-t border-brand-gray dark:border-brand-black">
                   <p className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] mb-4">Social Media</p>
-                  <div className="flex gap-3">
+                  <div className="flex flex-wrap gap-3">
                     {profile.instagram_url && (
                       <a href={profile.instagram_url} target="_blank" rel="noopener noreferrer" className="p-3 rounded-xl bg-brand-gray dark:bg-brand-black text-gray-500 dark:text-gray-400 hover:bg-brand-purple/5 dark:hover:bg-brand-purple/20 hover:text-brand-purple transition-all border border-transparent hover:border-brand-purple/10">
                         <Instagram className="w-5 h-5" />
@@ -200,6 +207,16 @@ const PublicProfile: React.FC = () => {
                     {profile.facebook_url && (
                       <a href={profile.facebook_url} target="_blank" rel="noopener noreferrer" className="p-3 rounded-xl bg-brand-gray dark:bg-brand-black text-gray-500 dark:text-gray-400 hover:bg-brand-purple/5 dark:hover:bg-brand-purple/20 hover:text-brand-purple transition-all border border-transparent hover:border-brand-purple/10">
                         <Facebook className="w-5 h-5" />
+                      </a>
+                    )}
+                    {profile.twitter_url && (
+                      <a href={profile.twitter_url} target="_blank" rel="noopener noreferrer" className="p-3 rounded-xl bg-brand-gray dark:bg-brand-black text-gray-500 dark:text-gray-400 hover:bg-brand-purple/5 dark:hover:bg-brand-purple/20 hover:text-brand-purple transition-all border border-transparent hover:border-brand-purple/10">
+                        <Twitter className="w-5 h-5" />
+                      </a>
+                    )}
+                    {profile.linkedin_url && (
+                      <a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer" className="p-3 rounded-xl bg-brand-gray dark:bg-brand-black text-gray-500 dark:text-gray-400 hover:bg-brand-purple/5 dark:hover:bg-brand-purple/20 hover:text-brand-purple transition-all border border-transparent hover:border-brand-purple/10">
+                        <Linkedin className="w-5 h-5" />
                       </a>
                     )}
                     {profile.tiktok_url && (

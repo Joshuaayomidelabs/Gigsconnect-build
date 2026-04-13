@@ -32,6 +32,7 @@ export const profilesService = {
         'full_name', 'phone', 'country', 
         'genres', 'bio', 'avatar_url', 'username', 
         'role', 'skills', 'facebook_url', 'instagram_url', 'tiktok_url', 
+        'twitter_url', 'linkedin_url',
         'portfolio_media', 'verification_status', 'verification_doc_path'
       ];
 

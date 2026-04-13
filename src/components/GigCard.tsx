@@ -27,8 +27,8 @@ const GigCard: React.FC<GigCardProps> = ({ gig, onApply, onViewDetails, onViewAp
 
   const goToProfile = (e: React.MouseEvent) => {
     e.stopPropagation();
-    // Access user_id from the nested profile object
-    const profileId = creator?.user_id;
+    // Access id from the nested profile object
+    const profileId = creator?.id || creator?.user_id;
     if (profileId) {
       navigate(`/profile/${profileId}`);
     }

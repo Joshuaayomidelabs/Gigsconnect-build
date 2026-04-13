@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Camera, Loader2, Save, MapPin, User, Briefcase, Globe, Edit3, Phone, CheckCircle2, Facebook, Instagram, Music2, Video, Image as ImageIcon, Trash2, Plus, ExternalLink, Play, ShieldCheck, Upload, AlertCircle } from 'lucide-react';
+import { Camera, Loader2, Save, MapPin, User, Briefcase, Globe, Edit3, Phone, CheckCircle2, Facebook, Instagram, Twitter, Linkedin, Music2, Video, Image as ImageIcon, Trash2, Plus, ExternalLink, Play, ShieldCheck, Upload, AlertCircle } from 'lucide-react';
 import { supabase } from '../services/supabaseClient';
 import { profilesService } from '../services/profilesService';
 import { motion, AnimatePresence } from 'motion/react';
@@ -30,6 +30,8 @@ const EditProfile: React.FC = () => {
     facebook_url: '',
     instagram_url: '',
     tiktok_url: '',
+    twitter_url: '',
+    linkedin_url: '',
     portfolio_media: [] as PortfolioItem[],
     verification_status: 'Unverified' as 'Unverified' | 'Pending' | 'Verified'
   });
@@ -53,6 +55,8 @@ const EditProfile: React.FC = () => {
           facebook_url: data.facebook_url || '',
           instagram_url: data.instagram_url || '',
           tiktok_url: data.tiktok_url || '',
+          twitter_url: data.twitter_url || '',
+          linkedin_url: data.linkedin_url || '',
           portfolio_media: data.portfolio_media || [],
           verification_status: data.verification_status || 'Unverified'
         });
@@ -410,7 +414,7 @@ const EditProfile: React.FC = () => {
 
                       <div className="pt-4 border-t border-brand-gray dark:border-brand-black">
                         <h3 className="text-[10px] font-black uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-4">Social Links</h3>
-                        <div className="flex gap-3">
+                        <div className="flex flex-wrap gap-3">
                           {formData.facebook_url && (
                             <a href={formData.facebook_url} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-xl bg-brand-white dark:bg-brand-dark-card flex items-center justify-center shadow-sm hover:bg-brand-purple/5 dark:hover:bg-brand-purple/20 hover:text-brand-purple transition-all">
                               <Facebook className="w-5 h-5" />
@@ -421,12 +425,22 @@ const EditProfile: React.FC = () => {
                               <Instagram className="w-5 h-5" />
                             </a>
                           )}
+                          {formData.twitter_url && (
+                            <a href={formData.twitter_url} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-xl bg-brand-white dark:bg-brand-dark-card flex items-center justify-center shadow-sm hover:bg-brand-purple/5 dark:hover:bg-brand-purple/20 hover:text-brand-purple transition-all">
+                              <Twitter className="w-5 h-5" />
+                            </a>
+                          )}
+                          {formData.linkedin_url && (
+                            <a href={formData.linkedin_url} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-xl bg-brand-white dark:bg-brand-dark-card flex items-center justify-center shadow-sm hover:bg-brand-purple/5 dark:hover:bg-brand-purple/20 hover:text-brand-purple transition-all">
+                              <Linkedin className="w-5 h-5" />
+                            </a>
+                          )}
                           {formData.tiktok_url && (
                             <a href={formData.tiktok_url} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-xl bg-brand-white dark:bg-brand-dark-card flex items-center justify-center shadow-sm hover:bg-brand-purple/5 dark:hover:bg-brand-purple/20 hover:text-brand-purple transition-all">
                               <Music2 className="w-5 h-5" />
                             </a>
                           )}
-                          {!formData.facebook_url && !formData.instagram_url && !formData.tiktok_url && (
+                          {!formData.facebook_url && !formData.instagram_url && !formData.tiktok_url && !formData.twitter_url && !formData.linkedin_url && (
                             <p className="text-xs text-gray-500 dark:text-gray-400 italic">No social links added.</p>
                           )}
                         </div>
@@ -645,8 +659,8 @@ const EditProfile: React.FC = () => {
               </div>
 
               {/* Social Links */}
-              <div className="bg-brand-white dark:bg-brand-dark-card rounded-3xl p-8 shadow-sm border border-brand-gray dark:border-brand-black grid grid-cols-1 md:grid-cols-3 gap-6 transition-colors">
-                <div className="md:col-span-3">
+              <div className="bg-brand-white dark:bg-brand-dark-card rounded-3xl p-8 shadow-sm border border-brand-gray dark:border-brand-black grid grid-cols-1 md:grid-cols-2 gap-6 transition-colors">
+                <div className="md:col-span-2">
                   <h3 className="text-lg font-bold text-brand-black dark:text-brand-white mb-4 border-b border-brand-gray dark:border-brand-black pb-2">Social Media Links</h3>
                 </div>
                 <div>
@@ -676,6 +690,32 @@ const EditProfile: React.FC = () => {
                   />
                 </div>
                 <div>
+                  <label className="block text-sm font-bold text-gray-500 dark:text-gray-400 mb-2 flex items-center gap-2">
+                    <Twitter className="w-4 h-4 text-brand-purple" />
+                    Twitter/X URL
+                  </label>
+                  <input 
+                    name="twitter_url"
+                    value={formData.twitter_url || ''}
+                    onChange={handleChange}
+                    placeholder="https://twitter.com/..."
+                    className="w-full p-4 rounded-2xl border border-brand-gray dark:border-brand-black focus:ring-2 focus:ring-brand-purple focus:border-transparent transition-all outline-none bg-brand-gray dark:bg-brand-black focus:bg-brand-white dark:focus:bg-brand-dark-card text-brand-black dark:text-brand-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-500 dark:text-gray-400 mb-2 flex items-center gap-2">
+                    <Linkedin className="w-4 h-4 text-brand-purple" />
+                    LinkedIn URL
+                  </label>
+                  <input 
+                    name="linkedin_url"
+                    value={formData.linkedin_url || ''}
+                    onChange={handleChange}
+                    placeholder="https://linkedin.com/in/..."
+                    className="w-full p-4 rounded-2xl border border-brand-gray dark:border-brand-black focus:ring-2 focus:ring-brand-purple focus:border-transparent transition-all outline-none bg-brand-gray dark:bg-brand-black focus:bg-brand-white dark:focus:bg-brand-dark-card text-brand-black dark:text-brand-white"
+                  />
+                </div>
+                <div className="md:col-span-2">
                   <label className="block text-sm font-bold text-gray-500 dark:text-gray-400 mb-2 flex items-center gap-2">
                     <Music2 className="w-4 h-4 text-brand-purple" />
                     TikTok URL

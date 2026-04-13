@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
-import { X, MapPin, Calendar, Banknote, Briefcase, Clock, User, Shield, ArrowRight, CheckCircle } from 'lucide-react';
+import { X, MapPin, Calendar, Banknote, Shield, CheckCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import { formatCurrency, formatDate } from '../utils/helpers';
 
 interface GigDetailsModalProps {
@@ -14,9 +14,12 @@ interface GigDetailsModalProps {
 
 const GigDetailsModal: React.FC<GigDetailsModalProps> = ({ gig, isOpen, onClose, onApply, isApplied = false }) => {
   const navigate = useNavigate();
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+
   if (!gig) return null;
 
   const creator = gig.poster_id;
+  const isLongDescription = gig.description && gig.description.length > 250;
 
   return (
     <AnimatePresence>
@@ -33,159 +36,143 @@ const GigDetailsModal: React.FC<GigDetailsModalProps> = ({ gig, isOpen, onClose,
 
           {/* Modal Content */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="relative w-full max-w-3xl bg-brand-white dark:bg-brand-dark-card rounded-[3rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+            className="relative w-full max-w-2xl bg-brand-white dark:bg-brand-dark-card rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]"
           >
             {/* Close Button */}
             <button
               onClick={onClose}
-              className="absolute top-6 right-6 z-10 p-3 rounded-2xl bg-brand-white/10 backdrop-blur-md text-white hover:bg-brand-white/20 transition-all active:scale-90 border border-white/20"
+              className="absolute top-4 right-4 z-10 p-2 rounded-full bg-brand-gray dark:bg-brand-black text-gray-500 hover:text-brand-black dark:hover:text-brand-white transition-colors"
             >
-              <X className="w-6 h-6" />
+              <X className="w-5 h-5" />
             </button>
 
-            {/* Header Visual - Stylized Gradient instead of potentially broken image */}
-            <div className="relative h-48 sm:h-64 flex-shrink-0 overflow-hidden bg-brand-black">
-              {/* Animated Gradient Background */}
-              <div className="absolute inset-0 bg-gradient-to-br from-brand-purple via-brand-purple-dark to-brand-black opacity-80" />
-              
-              {/* Decorative Elements */}
-              <div className="absolute -top-24 -right-24 w-64 h-64 bg-brand-purple/20 rounded-full blur-3xl animate-pulse" />
-              <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-brand-purple/10 rounded-full blur-3xl" />
-              
-              {/* Shimmer Effect */}
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent skew-x-[-20deg] animate-[shimmer_3s_infinite]" />
-              
-              <div className="absolute bottom-8 left-8 right-8 z-10">
-                <div className="flex flex-wrap gap-3 mb-4">
-                  <span className="px-4 py-1.5 bg-white/10 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-widest rounded-full border border-white/20">
-                    {gig.gig_category}
+            {/* Header Section */}
+            <div className="p-6 sm:p-8 border-b border-brand-gray dark:border-brand-black">
+              <div className="flex flex-wrap gap-2 mb-3">
+                <span className="px-3 py-1 bg-brand-purple/10 text-brand-purple text-xs font-bold uppercase tracking-wider rounded-full">
+                  {gig.gig_category}
+                </span>
+                {gig.verified && (
+                  <span className="px-3 py-1 bg-green-500/10 text-green-600 dark:text-green-400 text-xs font-bold uppercase tracking-wider rounded-full flex items-center gap-1">
+                    <Shield className="w-3 h-3" />
+                    Verified
                   </span>
-                  {gig.verified && (
-                    <span className="px-4 py-1.5 bg-green-500/20 backdrop-blur-md text-green-400 text-[10px] font-black uppercase tracking-widest rounded-full border border-green-500/30 flex items-center gap-1.5">
-                      <Shield className="w-3 h-3" />
-                      Verified
-                    </span>
-                  )}
-                </div>
-                <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight leading-tight drop-shadow-lg">
-                  {gig.title}
-                </h2>
+                )}
               </div>
+              <h2 className="text-2xl sm:text-3xl font-black text-brand-black dark:text-brand-white tracking-tight leading-tight pr-8">
+                {gig.title}
+              </h2>
             </div>
 
             {/* Scrollable Content */}
-            <div className="flex-grow overflow-y-auto p-8 sm:p-10 space-y-10 custom-scrollbar">
-              {/* Quick Stats */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="p-6 rounded-3xl bg-brand-gray dark:bg-brand-black border border-brand-gray dark:border-brand-black flex flex-col gap-1">
-                  <span className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">Budget</span>
-                  <div className="flex items-center gap-2 text-brand-purple font-black text-xl">
-                    <Banknote className="w-5 h-5" />
-                    {formatCurrency(gig.budget || 0, gig.currency || 'USD')}
-                  </div>
-                </div>
-                <div className="p-6 rounded-3xl bg-brand-gray dark:bg-brand-black border border-brand-gray dark:border-brand-black flex flex-col gap-1">
-                  <span className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">Location</span>
-                  <div className="flex items-center gap-2 text-brand-black dark:text-brand-white font-black text-lg">
-                    <MapPin className="w-5 h-5 text-brand-purple" />
-                    {gig.location}
-                  </div>
-                </div>
-                <div className="p-6 rounded-3xl bg-brand-gray dark:bg-brand-black border border-brand-gray dark:border-brand-black flex flex-col gap-1">
-                  <span className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">Deadline</span>
-                  <div className="flex items-center gap-2 text-brand-black dark:text-brand-white font-black text-lg">
-                    <Calendar className="w-5 h-5 text-brand-purple" />
-                    {gig.deadline ? formatDate(gig.deadline) : 'TBD'}
-                  </div>
-                </div>
-              </div>
-
-              {/* Description */}
-              <div className="space-y-4">
-                <h3 className="text-xl font-black text-brand-black dark:text-brand-white flex items-center gap-3">
-                  <Briefcase className="w-6 h-6 text-brand-purple" />
-                  About the Gig
-                </h3>
-                <p className="text-brand-gray-dark dark:text-gray-300 text-lg leading-relaxed whitespace-pre-wrap">
-                  {gig.description}
-                </p>
-              </div>
-
-              {/* Poster Info */}
-              <div className="pt-8 border-t border-brand-purple/5">
-                <div className="flex items-center justify-between bg-brand-gray dark:bg-brand-black p-6 rounded-[2rem] border border-brand-gray dark:border-brand-black">
-                  <div 
-                    className="flex items-center gap-4 cursor-pointer hover:opacity-80 transition-opacity"
-                    onClick={() => creator?.user_id && navigate(`/profile/${creator.user_id}`)}
-                  >
-                    <div className="w-16 h-16 rounded-2xl bg-brand-purple/10 border-2 border-brand-purple/20 overflow-hidden shadow-lg flex items-center justify-center">
-                      {creator?.avatar_url ? (
-                        <img 
-                          src={creator.avatar_url} 
-                          alt={creator.full_name} 
-                          referrerPolicy="no-referrer" 
-                          className="w-full h-full object-cover" 
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).style.display = 'none';
-                            (e.target as HTMLImageElement).parentElement!.innerHTML = `<div class="text-xl font-black text-brand-purple">${(creator?.full_name)?.charAt(0).toUpperCase() || 'U'}</div>`;
-                          }}
-                        />
-                      ) : (
-                        <div className="text-xl font-black text-brand-black dark:text-brand-white">
-                          {(creator?.full_name)?.charAt(0).toUpperCase() || 'U'}
-                        </div>
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1">Posted by</p>
-                      <h4 className="text-xl font-black text-brand-black dark:text-brand-white">{creator?.full_name || 'Anonymous'}</h4>
-                      <div className="flex items-center gap-2 mt-1 text-xs font-bold text-brand-purple">
-                        <Shield className="w-3.5 h-3.5" />
-                        Verified Creator
+            <div className="flex-grow overflow-y-auto p-6 sm:p-8 space-y-6 custom-scrollbar">
+              
+              {/* Compact Poster Info & Key Stats */}
+              <div className="flex flex-col sm:flex-row gap-6 justify-between items-start sm:items-center bg-brand-gray dark:bg-brand-black/50 p-4 rounded-2xl border border-brand-gray dark:border-brand-black">
+                {/* Poster */}
+                <div 
+                  className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+                  onClick={() => {
+                    const profileId = creator?.id || creator?.user_id;
+                    if (profileId) navigate(`/profile/${profileId}`);
+                  }}
+                >
+                  <div className="w-10 h-10 rounded-full bg-brand-purple/10 border border-brand-purple/20 overflow-hidden flex items-center justify-center flex-shrink-0">
+                    {creator?.avatar_url ? (
+                      <img 
+                        src={creator.avatar_url} 
+                        alt={creator.full_name} 
+                        referrerPolicy="no-referrer" 
+                        className="w-full h-full object-cover" 
+                      />
+                    ) : (
+                      <div className="text-sm font-black text-brand-purple">
+                        {(creator?.full_name)?.charAt(0).toUpperCase() || 'U'}
                       </div>
-                    </div>
+                    )}
                   </div>
-                  <div className="hidden sm:flex flex-col items-end">
-                    <span className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1">Posted on</span>
-                    <div className="flex items-center gap-2 text-brand-black dark:text-brand-white font-bold">
-                      <Clock className="w-4 h-4 text-brand-purple" />
-                      {formatDate(gig.created_at)}
-                    </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Posted by</p>
+                    <h4 className="text-sm font-black text-brand-black dark:text-brand-white">{creator?.full_name || 'Anonymous'}</h4>
                   </div>
+                </div>
+
+                {/* Stats Row */}
+                <div className="flex flex-wrap gap-4 sm:gap-6">
+                  <div className="flex items-center gap-2">
+                    <Banknote className="w-4 h-4 text-brand-purple" />
+                    <span className="text-sm font-bold text-brand-black dark:text-brand-white">
+                      {formatCurrency(gig.budget || 0, gig.currency || 'USD')}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-brand-purple" />
+                    <span className="text-sm font-bold text-brand-black dark:text-brand-white">
+                      {gig.location}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-brand-purple" />
+                    <span className="text-sm font-bold text-brand-black dark:text-brand-white">
+                      {gig.deadline ? formatDate(gig.deadline) : 'TBD'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Description with Read More */}
+              <div>
+                <h3 className="text-sm font-black text-gray-500 uppercase tracking-widest mb-2">
+                  Description
+                </h3>
+                <div className="relative">
+                  <p className={`text-brand-black dark:text-gray-300 text-sm sm:text-base leading-relaxed whitespace-pre-wrap ${!isDescriptionExpanded && isLongDescription ? 'line-clamp-4' : ''}`}>
+                    {gig.description}
+                  </p>
+                  
+                  {isLongDescription && (
+                    <button 
+                      onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+                      className="mt-2 flex items-center gap-1 text-brand-purple font-bold text-sm hover:underline"
+                    >
+                      {isDescriptionExpanded ? (
+                        <>Show Less <ChevronUp className="w-4 h-4" /></>
+                      ) : (
+                        <>Read More <ChevronDown className="w-4 h-4" /></>
+                      )}
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
 
-            {/* Footer Actions */}
-            <div className="p-8 bg-brand-gray dark:bg-brand-black/50 border-t border-brand-gray dark:border-brand-black flex flex-col sm:flex-row gap-4">
+            {/* Compact Footer Actions */}
+            <div className="p-4 sm:p-6 bg-brand-gray dark:bg-brand-black/80 border-t border-brand-gray dark:border-brand-black flex justify-end gap-3">
               <button
                 onClick={onClose}
-                className="flex-1 px-8 py-4 rounded-2xl border-2 border-brand-gray dark:border-brand-black text-brand-black dark:text-brand-white font-black hover:bg-brand-gray dark:hover:bg-brand-black transition-all active:scale-95"
+                className="px-6 py-2.5 rounded-xl border border-gray-300 dark:border-gray-700 text-brand-black dark:text-brand-white font-bold hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-sm"
               >
-                Close
+                Cancel
               </button>
               <button
                 onClick={() => !isApplied && onApply(gig.id)}
                 disabled={isApplied}
-                className={`flex-[2] px-10 py-4 rounded-2xl font-black text-lg transition-all flex items-center justify-center gap-3 shadow-xl ${
+                className={`px-8 py-2.5 rounded-xl font-black text-sm transition-all flex items-center justify-center gap-2 ${
                   isApplied
-                    ? 'bg-brand-gray dark:bg-brand-black text-gray-400 cursor-not-allowed border border-brand-gray dark:border-brand-black'
-                    : 'bg-brand-purple text-white hover:bg-brand-purple-dark hover:shadow-glow hover:scale-[1.02] active:scale-95 shadow-brand-purple/20'
+                    ? 'bg-gray-200 dark:bg-gray-800 text-gray-500 cursor-not-allowed'
+                    : 'bg-brand-purple text-white hover:bg-brand-purple-dark active:scale-95 shadow-md shadow-brand-purple/20'
                 }`}
               >
                 {isApplied ? (
                   <>
-                    <CheckCircle className="w-5 h-5" />
+                    <CheckCircle className="w-4 h-4" />
                     Applied
                   </>
                 ) : (
-                  <>
-                    Apply for this Gig
-                    <ArrowRight className="w-5 h-5" />
-                  </>
+                  'Accept Gig'
                 )}
               </button>
             </div>
