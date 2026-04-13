@@ -101,7 +101,7 @@ const NotificationDropdown: React.FC = () => {
                         </span>
                       </div>
                       
-                      {notif.type === 'application_received' && notif.metadata?.applicant_name && (
+                      {notif.type === 'gig_application' && notif.metadata?.applicant_name && (
                         <div className="flex items-center gap-2 mb-2">
                           <div className="w-6 h-6 rounded-full overflow-hidden bg-brand-purple-soft flex items-center justify-center">
                             {notif.metadata.applicant_avatar ? (
@@ -134,17 +134,17 @@ const NotificationDropdown: React.FC = () => {
                               setIsOpen(false);
                             }}
                             className={`text-[10px] font-bold px-3 py-1.5 rounded-lg transition-all flex items-center gap-1 ${
-                              notif.type === 'application_received' 
+                              notif.type === 'gig_application' 
                                 ? 'bg-brand-purple text-brand-white hover:bg-brand-purple-dark' 
                                 : 'text-brand-purple hover:bg-brand-purple-soft'
                             }`}
                           >
-                            {notif.type === 'application_received' ? 'View Application' : 'View Details'}
-                            {notif.type !== 'application_received' && <ExternalLink className="w-2.5 h-2.5" />}
+                            {notif.type === 'gig_application' ? 'View Application' : 'View Details'}
+                            {notif.type !== 'gig_application' && <ExternalLink className="w-2.5 h-2.5" />}
                           </Link>
                         )}
                         
-                        {notif.type === 'application_received' && (
+                        {notif.type === 'gig_application' && (
                           <Link 
                             to="/messages"
                             onClick={() => {
@@ -157,7 +157,7 @@ const NotificationDropdown: React.FC = () => {
                           </Link>
                         )}
 
-                        {!notif.is_read && notif.type !== 'application_received' && (
+                        {!notif.is_read && notif.type !== 'gig_application' && (
                           <button 
                             onClick={() => handleMarkAsRead(notif.id)}
                             className="text-[10px] font-bold text-gray-500 dark:text-gray-400 hover:text-brand-purple transition-colors ml-auto"

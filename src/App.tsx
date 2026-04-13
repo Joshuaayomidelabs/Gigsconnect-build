@@ -17,6 +17,7 @@ import CreateProfile from './pages/CreateProfile';
 import Notifications from './pages/Notifications';
 import GigDetails from './pages/GigDetails';
 import PublicProfile from './pages/PublicProfile';
+import ApplicationDetails from './pages/ApplicationDetails';
 
 import ProtectedRoute from './components/ProtectedRoute';
 import { useAuth } from './context/AuthContext';
@@ -88,6 +89,7 @@ const App: React.FC = () => {
               <Route path="/edit-profile" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
               <Route path="/create-profile" element={<ProtectedRoute><CreateProfile /></ProtectedRoute>} />
               <Route path="/profile/:userId" element={<ProtectedRoute><PublicProfile /></ProtectedRoute>} />
+              <Route path="/application/:id" element={<ProtectedRoute><ApplicationDetails /></ProtectedRoute>} />
               <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
               <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
               

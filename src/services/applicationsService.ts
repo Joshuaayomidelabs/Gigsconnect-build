@@ -62,6 +62,7 @@ export const applicationsService = {
             message: `Someone applied to your gig: ${gig.title}`,
             type: "gig_application",
             reference_id: gig_id,
+            link: `/application/${application.id}`,
             is_read: false,
           },
         ]);

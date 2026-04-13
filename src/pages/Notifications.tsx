@@ -55,7 +55,7 @@ const Notifications: React.FC = () => {
   const getIcon = (type: string) => {
     switch (type) {
       case 'gig_new': return <Briefcase className="w-6 h-6 text-brand-purple" />;
-      case 'application_received': return <Briefcase className="w-6 h-6 text-brand-purple" />;
+      case 'gig_application': return <Briefcase className="w-6 h-6 text-brand-purple" />;
       case 'message_new': return <MessageSquare className="w-6 h-6 text-brand-purple" />;
       case 'application_update': return <Check className="w-6 h-6 text-brand-purple" />;
       default: return <Info className="w-6 h-6 text-gray-500 dark:text-gray-400" />;
@@ -138,7 +138,7 @@ const Notifications: React.FC = () => {
                       </Link>
                     )}
 
-                    {notif.type === 'application_received' && !notif.is_read && !(notif as any).is_processed && (
+                    {notif.type === 'gig_application' && !notif.is_read && !(notif as any).is_processed && (
                       <div className="flex gap-2 ml-auto">
                         <button 
                           onClick={() => handleStatusUpdate(notif.id, notif.link, notif.metadata, 'Rejected')}
