@@ -48,11 +48,12 @@ export const gigsService = {
     if (!error && data) {
       // Notify creator
       await notificationsService.createNotification({
-        recipient_id: data.poster_id,
+        user_id: data.poster_id,
         type: 'gig_new',
         title: 'Gig Posted Successfully',
         message: `Your gig "${data.title}" is now live!`,
-        link: `/gig/${data.id}`
+        link: `/gig/${data.id}`,
+        reference_id: data.id
       });
     }
 

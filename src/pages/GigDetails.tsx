@@ -13,9 +13,6 @@ const GigDetails: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [message, setMessage] = useState('');
-  const [portfolioLink, setPortfolioLink] = useState('');
-  const [showApplyForm, setShowApplyForm] = useState(false);
   const [hasAlreadyApplied, setHasAlreadyApplied] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -56,8 +53,8 @@ const GigDetails: React.FC = () => {
     fetchGigAndStatus();
   }, [id, navigate]);
 
-  const handleApply = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleApply = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     console.log('Apply button clicked');
     
     setIsSubmitting(true);
@@ -76,24 +73,17 @@ const GigDetails: React.FC = () => {
         return;
       }
 
-      // Use gig.poster_id.user_id as owner_id
-      const gigOwnerId = gig?.poster_id?.user_id || null;
-      const applicationMessage = message;
-      const userPortfolioLink = portfolioLink;
-
       // Submit gig application using service
       const { data: appData, error: appError } = await applicationsService.applyToGig({
         gig_id: gig.id,
-        applicant_id: applicantId,
-        gig_owner_id: gigOwnerId,
-        message: applicationMessage || "",
-        portfolio_link: userPortfolioLink || undefined,
+        message: "I am interested in this gig.",
       });
 
       if (appError) {
         console.error("Application error:", appError);
         if (appError.code === '23505') {
           alert("You have already applied to this gig.");
+          setHasAlreadyApplied(true);
         } else {
           alert("Application failed: " + appError.message);
         }
@@ -235,104 +225,42 @@ const GigDetails: React.FC = () => {
             </div>
           </div>
 
-          {!showApplyForm ? (
-            <>
-              <div className="pt-8 flex flex-col items-center gap-4">
-                <button 
-                  id="main-apply-btn"
-                  onClick={() => !hasAlreadyApplied && setShowApplyForm(true)}
-                  disabled={hasAlreadyApplied}
-                  className={`w-full sm:w-auto px-12 py-5 rounded-2xl font-black transition-all shadow-xl active:scale-95 text-xl flex items-center justify-center gap-3 group ${
-                    hasAlreadyApplied 
-                      ? 'bg-brand-gray dark:bg-brand-dark-card text-gray-500 dark:text-gray-400 cursor-not-allowed' 
-                      : 'bg-brand-purple text-brand-white font-black hover:bg-brand-purple-hover shadow-brand-purple/20'
-                  }`}
-                >
-                  {hasAlreadyApplied ? 'Already Applied' : 'Apply for this Gig'}
-                  {!hasAlreadyApplied && <ArrowLeft className="w-6 h-6 rotate-180 group-hover:translate-x-1 transition-transform" />}
-                </button>
-                <p className="text-sm font-bold text-gray-500 dark:text-gray-400">
-                  {hasAlreadyApplied ? 'You have already submitted an application for this gig.' : 'Fast response expected • Secure payment'}
-                </p>
-              </div>
-
-              {/* Mobile Sticky Apply Button */}
-              {!hasAlreadyApplied && (
-                <div className="fixed bottom-24 left-4 right-4 z-40 sm:hidden animate-in fade-in slide-in-from-bottom-10 duration-500">
-                  <button 
-                    onClick={() => {
-                      setShowApplyForm(true);
-                      window.scrollTo({ top: document.getElementById('main-apply-btn')?.offsetTop ? document.getElementById('main-apply-btn')!.offsetTop - 100 : 0, behavior: 'smooth' });
-                    }}
-                    className="w-full py-4 rounded-2xl bg-brand-purple text-brand-white font-black shadow-2xl shadow-brand-purple/40 flex items-center justify-center gap-2 active:scale-95 border-2 border-brand-white/20 dark:border-brand-dark-card/20 backdrop-blur-md"
-                  >
-                    Apply Now
-                    <ArrowLeft className="w-5 h-5 rotate-180" />
-                  </button>
-                </div>
-              )}
-            </>
+          {!hasAlreadyApplied ? (
+            <div className="pt-8 flex flex-col items-center gap-4">
+              <button 
+                id="main-apply-btn"
+                onClick={handleApply}
+                disabled={isSubmitting}
+                className="w-full sm:w-auto px-12 py-5 rounded-2xl font-black transition-all shadow-xl active:scale-95 text-xl flex items-center justify-center gap-3 group bg-brand-purple text-brand-white hover:bg-brand-purple-hover shadow-brand-purple/20 disabled:opacity-70"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-6 h-6 animate-spin" />
+                    Applying...
+                  </>
+                ) : (
+                  <>
+                    Apply for this Gig
+                    <ArrowLeft className="w-6 h-6 rotate-180 group-hover:translate-x-1 transition-transform" />
+                  </>
+                )}
+              </button>
+              <p className="text-sm font-bold text-gray-500 dark:text-gray-400">
+                Fast response expected • Secure payment
+              </p>
+            </div>
           ) : (
-            <div className="bg-brand-purple/5 dark:bg-brand-purple/20 p-8 rounded-[2.5rem] border border-brand-purple/10 dark:border-brand-purple/20 space-y-6 animate-in fade-in slide-in-from-bottom-4">
-              <h3 className="text-2xl font-black text-brand-black dark:text-brand-white">Submit Your Application</h3>
-              {success ? (
-                <div className="flex flex-col items-center justify-center py-8 text-center">
-                  <CheckCircle className="w-16 h-16 text-green-500 mb-4" />
-                  <p className="text-green-700 dark:text-green-400 text-xl font-black mb-2">Application Sent!</p>
-                  <p className="text-green-600 dark:text-green-500">The creator has been notified. You can track this in your dashboard.</p>
-                  <button 
-                    onClick={() => navigate('/overview')}
-                    className="mt-8 px-8 py-3 bg-green-600 text-brand-white rounded-xl font-bold"
-                  >
-                    Go to Overview
-                  </button>
-                </div>
-              ) : (
-                <form onSubmit={handleApply} className="space-y-6">
-                  <div>
-                    <label className="block text-sm font-bold text-brand-black dark:text-brand-white mb-2">Why are you a good fit? *</label>
-                    <textarea 
-                      required
-                      value={message}
-                      onChange={(e) => setMessage(e.target.value)}
-                      rows={4}
-                      className="w-full p-4 rounded-2xl border border-brand-gray dark:border-brand-black focus:ring-2 focus:ring-brand-purple focus:border-transparent transition-all outline-none bg-brand-white dark:bg-brand-dark-card text-brand-black dark:text-brand-white resize-none"
-                      placeholder="Share your experience and why you want this gig..."
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-brand-black dark:text-brand-white mb-2">Portfolio Link (Optional)</label>
-                    <input 
-                      type="url"
-                      value={portfolioLink}
-                      onChange={(e) => setPortfolioLink(e.target.value)}
-                      className="w-full p-4 rounded-2xl border border-brand-gray dark:border-brand-black focus:ring-2 focus:ring-brand-purple focus:border-transparent transition-all outline-none bg-brand-white dark:bg-brand-dark-card text-brand-black dark:text-brand-white"
-                      placeholder="https://yourportfolio.com"
-                    />
-                  </div>
-                  <div className="flex gap-4 pt-4">
-                    <button 
-                      type="button"
-                      onClick={() => setShowApplyForm(false)}
-                      className="flex-1 py-4 rounded-2xl border border-brand-gray dark:border-brand-black text-brand-black dark:text-brand-white font-bold hover:bg-brand-purple/5 dark:hover:bg-brand-purple/20 transition-all"
-                    >
-                      Cancel
-                    </button>
-                    <button 
-                      type="submit"
-                      disabled={isSubmitting}
-                      className="flex-[2] py-4 rounded-2xl bg-brand-purple text-brand-white font-black hover:bg-brand-purple-hover transition-all shadow-lg flex items-center justify-center gap-2 active:scale-95 disabled:opacity-70"
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                          Submitting...
-                        </>
-                      ) : 'Submit Application'}
-                    </button>
-                  </div>
-                </form>
-              )}
+            <div className="pt-8 flex flex-col items-center gap-4">
+              <button 
+                disabled
+                className="w-full sm:w-auto px-12 py-5 rounded-2xl font-black transition-all shadow-xl text-xl flex items-center justify-center gap-3 bg-brand-gray dark:bg-brand-dark-card text-gray-500 dark:text-gray-400 cursor-not-allowed"
+              >
+                <CheckCircle className="w-6 h-6 text-green-500" />
+                Already Applied
+              </button>
+              <p className="text-sm font-bold text-gray-500 dark:text-gray-400">
+                You have already submitted an application for this gig.
+              </p>
             </div>
           )}
         </div>

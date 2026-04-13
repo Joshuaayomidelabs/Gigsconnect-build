@@ -2,38 +2,68 @@ import { supabase } from './supabaseClient';
 import { notificationsService } from './notificationsService';
 
 export const applicationsService = {
-  async applyToGig(applicationData: {
+  async applyToGig({
+    gig_id,
+    message,
+    portfolio_link,
+  }: {
     gig_id: string;
-    applicant_id: string;
-    gig_owner_id: string;
     message?: string;
     portfolio_link?: string;
   }) {
-    const { data, error } = await supabase
-      .from('gig_applications')
-      .insert([applicationData])
-      .select('*, gigs(title), applicant:profiles!applicant_id(id, full_name, avatar_url, role)')
-      .maybeSingle();
+    // 1. Get logged-in user (applicant)
+    const { data: userData } = await supabase.auth.getUser();
 
-    if (!error && data) {
-      // Notify gig creator
+    const applicant_id = userData?.user?.id;
+
+    if (!applicant_id) {
+      return { data: null, error: new Error("User not authenticated") };
+    }
+
+    // 2. Get gig + owner (poster_id)
+    const { data: gig, error: gigError } = await supabase
+      .from("gigs")
+      .select("poster_id, title")
+      .eq("id", gig_id)
+      .single();
+
+    if (gigError || !gig) {
+      return { data: null, error: new Error("Gig not found") };
+    }
+
+    const gigOwnerId = gig.poster_id;
+
+    // 3. Insert application (IMPORTANT: correct schema)
+    const { data: application, error: appError } = await supabase
+      .from("applications")
+      .insert([
+        {
+          gig_id,
+          applicant_id,
+          message,
+          portfolio_link,
+        },
+      ])
+      .select()
+      .single();
+
+    if (appError) {
+      return { data: null, error: appError };
+    }
+
+    // 4. Send notification to gig owner
+    if (gigOwnerId) {
       await notificationsService.createNotification({
-        recipient_id: applicationData.gig_owner_id,
-        type: 'application_received',
-        title: 'New Application',
-        message: `${(data as any).applicant?.full_name || 'Someone'} applied to your gig: ${(data as any).gigs.title}`,
-        link: `/posted-gigs?gigId=${data.gig_id}&appId=${data.id}`,
-        metadata: {
-          application_id: data.id,
-          applicant_name: (data as any).applicant?.full_name,
-          applicant_avatar: (data as any).applicant?.avatar_url,
-          gig_title: (data as any).gigs.title,
-          role: (data as any).applicant?.role
-        }
+        user_id: gigOwnerId, // recipient = owner
+        type: "gig_application",
+        title: "New Gig Application",
+        message: `Someone applied to your gig: ${gig.title}`,
+        link: `/posted-gigs?gigId=${application.gig_id}&appId=${application.id}`,
+        reference_id: gig_id,
       });
     }
 
-    return { data, error };
+    return { data: application, error: null };
   },
 
   async updateApplicationStatus(applicationId: string, status: string) {
@@ -47,11 +77,12 @@ export const applicationsService = {
     if (!error && data) {
       // Notify applicant
       await notificationsService.createNotification({
-        recipient_id: data.applicant_id,
+        user_id: data.applicant_id,
         type: 'application_update',
         title: 'Application Update',
         message: `Your application for "${(data as any).gigs.title}" has been ${status}.`,
         link: '/applications',
+        reference_id: data.gig_id,
         metadata: {
           gig_title: (data as any).gigs.title,
           status: status
