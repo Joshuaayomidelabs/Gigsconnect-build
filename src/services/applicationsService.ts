@@ -51,6 +51,13 @@ export const applicationsService = {
       return { data: null, error: appError };
     }
 
+    // Get applicant profile for notification
+    const { data: applicant } = await supabase
+      .from("profiles")
+      .select("full_name")
+      .eq("id", applicant_id)
+      .single();
+
     // 4. Send notification to gig owner
     if (gigOwnerId) {
       const { data: notifData, error: notifError } = await supabase
@@ -59,10 +66,10 @@ export const applicationsService = {
           {
             user_id: gig.poster_id, // VERY IMPORTANT
             title: "New Gig Application",
-            message: `Someone applied to your gig: ${gig.title}`,
+            message: `${applicant?.full_name || 'Someone'} applied to your gig`,
             type: "gig_application",
-            reference_id: gig_id,
-            link: `/application/${application.id}`,
+            reference_id: application.id,
+            link: `/application/${application.id}`, // now VALID
             is_read: false,
           },
         ]);
