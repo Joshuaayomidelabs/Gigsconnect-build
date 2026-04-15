@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { User, MapPin, CheckCircle2 } from 'lucide-react';
 import { motion } from 'motion/react';
+import VerificationBadge from './VerificationBadge';
 
 interface UserCardProps {
   user: {
@@ -46,16 +47,15 @@ export const UserCard: React.FC<UserCardProps> = ({ user }) => {
                 <User className="h-8 w-8 text-gray-400" />
               </div>
             )}
-            {((user as any).verification_status === 'Verified' || (user as any).is_verified) && (
-              <div className="absolute -bottom-1 -right-1 bg-brand-purple text-white p-1 rounded-full border-2 border-white shadow-sm">
-                <CheckCircle2 className="w-3 h-3" />
-              </div>
-            )}
           </div>
           
           <div className="flex-1 min-w-0">
-            <h3 className="font-bold text-gray-900 truncate text-lg">
+            <h3 className="font-bold text-gray-900 truncate text-lg flex items-center">
               {user.full_name}
+              <VerificationBadge 
+                isVerified={(user as any).is_verified} 
+                verificationStatus={(user as any).verification_status} 
+              />
             </h3>
             {location && (
               <div className="flex items-center text-gray-500 text-sm mt-1">

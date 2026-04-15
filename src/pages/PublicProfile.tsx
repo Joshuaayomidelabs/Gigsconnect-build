@@ -23,6 +23,7 @@ import { profilesService } from '../services/profilesService';
 import { gigsService } from '../services/gigsService';
 import { supabase } from '../services/supabaseClient';
 import GigCard from '../components/GigCard';
+import VerificationBadge from '../components/VerificationBadge';
 
 const PublicProfile: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();
@@ -147,15 +148,14 @@ const PublicProfile: React.FC = () => {
                     <User className="w-12 h-12 text-gray-400 dark:text-gray-600" />
                   )}
                 </div>
-                {(profile.verification_status === 'Verified' || profile.is_verified) && (
-                  <div className="absolute -bottom-1 -right-1 bg-brand-purple text-brand-white p-2 rounded-full border-4 border-brand-white dark:border-brand-dark-card shadow-lg" title="Verified Professional">
-                    <CheckCircle2 className="w-5 h-5" />
-                  </div>
-                )}
               </div>
 
-              <h1 className="text-2xl font-black text-brand-black dark:text-brand-white tracking-tight mb-1">
+              <h1 className="text-2xl font-black text-brand-black dark:text-brand-white tracking-tight mb-1 flex items-center justify-center">
                 {profile.full_name || 'Anonymous User'}
+                <VerificationBadge 
+                  isVerified={profile.is_verified} 
+                  verificationStatus={profile.verification_status} 
+                />
               </h1>
               
               {profile.username && (

@@ -5,6 +5,7 @@ import { gigsService } from '../services/gigsService';
 import { applicationsService } from '../services/applicationsService';
 import { supabase } from '../services/supabaseClient';
 import { formatCurrency, formatDate } from '../utils/helpers';
+import VerificationBadge from '../components/VerificationBadge';
 
 const GigDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -174,7 +175,13 @@ const GigDetails: React.FC = () => {
               </div>
               <div>
                 <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">Posted by</p>
-                <p className="text-sm font-black text-brand-black dark:text-brand-white group-hover:text-brand-purple transition-colors">{gig.poster_id?.full_name || 'Unknown'}</p>
+                <p className="text-sm font-black text-brand-black dark:text-brand-white group-hover:text-brand-purple transition-colors flex items-center">
+                  {gig.poster_id?.full_name || 'Unknown'}
+                  <VerificationBadge 
+                    isVerified={gig.poster_id?.is_verified} 
+                    verificationStatus={gig.poster_id?.verification_status} 
+                  />
+                </p>
               </div>
             </div>
           </div>

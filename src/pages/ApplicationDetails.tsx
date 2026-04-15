@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Loader2, User, FileText, Globe, CheckCircle2, XCircle } from 'lucide-react';
 import { supabase } from '../services/supabaseClient';
 import { applicationsService } from '../services/applicationsService';
+import VerificationBadge from '../components/VerificationBadge';
 
 const ApplicationDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -39,7 +40,9 @@ const ApplicationDetails: React.FC = () => {
               full_name,
               avatar_url,
               role,
-              bio
+              bio,
+              is_verified,
+              verification_status
             )
           `)
           .eq("id", id)
@@ -186,8 +189,12 @@ const ApplicationDetails: React.FC = () => {
                     )}
                   </div>
                   <div>
-                    <h4 className="font-black text-brand-black dark:text-brand-white group-hover:text-brand-purple transition-colors">
+                    <h4 className="font-black text-brand-black dark:text-brand-white group-hover:text-brand-purple transition-colors flex items-center">
                       {applicant?.full_name || 'Anonymous'}
+                      <VerificationBadge 
+                        isVerified={applicant?.is_verified} 
+                        verificationStatus={applicant?.verification_status} 
+                      />
                     </h4>
                     <p className="text-sm text-brand-purple font-bold">{applicant?.role || 'Professional'}</p>
                   </div>

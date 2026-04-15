@@ -85,9 +85,10 @@ export const applicationsService = {
   },
 
   async updateApplicationStatus(applicationId: string, status: string) {
+    const normalizedStatus = status.toLowerCase();
     const { data, error } = await supabase
       .from("applications")
-      .update({ status })
+      .update({ status: normalizedStatus })
       .eq("id", applicationId)
       .select(`
         id,
@@ -97,22 +98,30 @@ export const applicationsService = {
       `)
       .single();
 
-    if (error) return { error };
+    if (error) {
+      console.error("Error updating application status:", error);
+      return { error };
+    }
 
     // 🔥 NOTIFY APPLICANT
-    await supabase.from("notifications").insert([
+    const { error: notifError } = await supabase.from("notifications").insert([
       {
         user_id: data.applicant_id,
         title: "Application Update",
         message:
-          status === "accepted"
+          normalizedStatus === "accepted"
             ? `🎉 Your application for "${(data.gigs as any).title}" was accepted!`
             : `Your application for "${(data.gigs as any).title}" was not accepted.`,
         type: "application_update",
         reference_id: data.id,
+        link: `/applications/${data.id}`,
         is_read: false,
       },
     ]);
+
+    if (notifError) {
+      console.error("Error inserting notification:", notifError);
+    }
 
     return { data };
   },

@@ -3,6 +3,7 @@ import { MapPin, Calendar, ArrowRight, Trash2, Star, Clock, Loader2, Shield, Che
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { formatCurrency, formatDate } from '../utils/helpers';
+import VerificationBadge from './VerificationBadge';
 
 interface GigCardProps {
   gig: any;
@@ -136,13 +137,14 @@ const GigCard: React.FC<GigCardProps> = ({ gig, onApply, onViewDetails, onViewAp
             )}
           </div>
           <div className="flex flex-col items-start">
-            <div className="flex items-center gap-1">
+            <div className="flex items-center">
               <span className="text-[11px] font-black text-brand-black dark:text-brand-white group-hover/poster:text-brand-purple transition-colors">
                 {creator?.full_name || 'Anonymous'}
               </span>
-              {(creator?.verification_status === 'Verified' || creator?.is_verified) && (
-                <Shield className="w-2.5 h-2.5 text-brand-purple" />
-              )}
+              <VerificationBadge 
+                isVerified={creator?.is_verified} 
+                verificationStatus={creator?.verification_status} 
+              />
             </div>
           </div>
         </button>
