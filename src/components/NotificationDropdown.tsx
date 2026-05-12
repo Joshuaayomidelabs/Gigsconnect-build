@@ -25,7 +25,15 @@ const NotificationDropdown: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleToggle = () => setIsOpen(!isOpen);
+  const handleToggle = () => {
+    const newIsOpen = !isOpen;
+    setIsOpen(newIsOpen);
+    
+    // Auto-mark as read when opening the panel
+    if (newIsOpen && unreadCount > 0) {
+      handleMarkAllAsRead();
+    }
+  };
 
   const handleMarkAsRead = async (id: string) => {
     await markAsRead(id);
@@ -69,14 +77,6 @@ const NotificationDropdown: React.FC = () => {
           >
             <div className="p-4 border-b border-brand-gray dark:border-brand-black flex justify-between items-center bg-brand-gray dark:bg-brand-black/50">
               <h3 className="font-black text-brand-black dark:text-brand-white tracking-tight">Notifications</h3>
-              {unreadCount > 0 && (
-                <button 
-                  onClick={handleMarkAllAsRead}
-                  className="text-xs font-bold text-brand-purple hover:underline"
-                >
-                  Mark all as read
-                </button>
-              )}
             </div>
 
             <div className="max-h-[400px] overflow-y-auto divide-y divide-brand-gray dark:divide-brand-black">

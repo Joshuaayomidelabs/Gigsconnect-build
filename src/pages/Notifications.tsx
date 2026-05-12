@@ -20,6 +20,13 @@ const Notifications: React.FC = () => {
   } = useNotificationContext();
 
   const [isProcessing, setIsProcessing] = useState<string | null>(null);
+  
+  // Auto-mark as read when opening the page
+  useEffect(() => {
+    if (notifications.some(n => !n.is_read)) {
+      markAllAsRead();
+    }
+  }, [notifications, markAllAsRead]);
 
   const handleMarkAsRead = async (id: string) => {
     await markAsRead(id);
@@ -70,14 +77,6 @@ const Notifications: React.FC = () => {
           <h1 className="text-4xl font-black text-brand-black dark:text-brand-white tracking-tight mb-2">Notifications</h1>
           <p className="text-gray-500 dark:text-gray-400 text-lg">Stay updated with your music career.</p>
         </div>
-        {notifications.some(n => !n.is_read) && (
-          <button 
-            onClick={handleMarkAllAsRead}
-            className="px-6 py-2 bg-brand-white dark:bg-brand-dark-card border border-brand-gray dark:border-brand-black rounded-xl text-sm font-bold text-brand-purple hover:bg-brand-purple/5 transition-all shadow-sm"
-          >
-            Mark all as read
-          </button>
-        )}
       </header>
 
       {isLoading ? (

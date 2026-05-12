@@ -84,9 +84,13 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
 
   const markAllAsRead = async () => {
     if (!user?.id) return;
+    
+    // Optimistic update for instant UI response
+    setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+    
     const { error } = await notificationsService.markAllAsRead(user.id);
-    if (!error) {
-      setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+    if (error) {
+      console.error("Failed to mark all as read:", error);
     }
   };
 

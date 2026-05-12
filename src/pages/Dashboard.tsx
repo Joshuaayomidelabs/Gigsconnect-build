@@ -1,13 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Compass, PlusSquare, FileText, User, ArrowRight, Loader2, Zap, MapPin, CheckCircle2, TrendingUp, Award, MessageSquare } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { supabase } from '../services/supabaseClient';
 import { gigsService } from '../services/gigsService';
 import { profilesService } from '../services/profilesService';
+import { communityService } from '../services/communityService';
 import GigCard from '../components/GigCard';
 import ProfileCard from '../components/ProfileCard';
 import GigDetailsModal from '../components/GigDetailsModal';
+import PostCard from '../components/PostCard';
+import CommunityFeed from '../components/CommunityFeed';
+import GigsFeed from '../components/GigsFeed';
 
 const featuredCreators = [
   {
@@ -77,16 +81,58 @@ const CreatorBadge = ({ type }: { type: string }) => {
   );
 };
 
+const Toggle = ({ activeTab, setActiveTab }: { activeTab: 'community' | 'gigs', setActiveTab: (v: 'community' | 'gigs') => void }) => {
+  return (
+    <div className="flex w-[280px] mx-auto sm:mx-0 bg-gray-100 dark:bg-[#121214] rounded-full p-1 border border-gray-200 dark:border-[#1F1F23]/80 mb-6 relative">
+      <button
+        onClick={() => setActiveTab("community")}
+        className={`relative flex-1 py-2.5 text-sm font-bold rounded-full transition-all duration-200 z-10 outline-none ${
+          activeTab === "community" ? "text-gray-900 dark:text-white" : "text-[#9CA3AF] hover:text-gray-900 dark:hover:text-gray-200"
+        }`}
+      >
+        {activeTab === "community" && (
+          <motion.div
+            layoutId="dashboardTabIndicator"
+            className="absolute inset-0 bg-white dark:bg-[#27272A] rounded-full shadow-md z-[-1]"
+            transition={{ type: "spring", stiffness: 350, damping: 30 }}
+          />
+        )}
+        <span className="relative z-10 transition-transform duration-200 inline-block active:scale-95">Community</span>
+      </button>
+
+      <button
+        onClick={() => setActiveTab("gigs")}
+        className={`relative flex-1 py-2.5 text-sm font-bold rounded-full transition-all duration-200 z-10 outline-none ${
+          activeTab === "gigs" ? "text-gray-900 dark:text-white" : "text-[#9CA3AF] hover:text-gray-900 dark:hover:text-gray-200"
+        }`}
+      >
+        {activeTab === "gigs" && (
+          <motion.div
+            layoutId="dashboardTabIndicator"
+            className="absolute inset-0 bg-white dark:bg-[#27272A] rounded-full shadow-md z-[-1]"
+            transition={{ type: "spring", stiffness: 350, damping: 30 }}
+          />
+        )}
+        <span className="relative z-10 transition-transform duration-200 inline-block active:scale-95">Gigs</span>
+      </button>
+    </div>
+  );
+};
+
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
-  const [recentGigs, setRecentGigs] = useState<any[]>([]);
+  const [gigs, setGigs] = useState<any[]>([]);
+  const [posts, setPosts] = useState<any[]>([]);
   const [appliedGigIds, setAppliedGigIds] = useState<Set<string>>(new Set());
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [visibleCount, setVisibleCount] = useState(8);
   const [selectedGig, setSelectedGig] = useState<any | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<'community' | 'gigs'>('community');
+
+  console.log("ACTIVE TAB:", activeTab);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -105,14 +151,16 @@ const Dashboard: React.FC = () => {
           setAppliedGigIds(new Set(applications.map(app => app.gig_id)));
         }
 
-        const [profileRes, gigsRes] = await Promise.all([
+        const [profileRes, gigsRes, postsRes] = await Promise.all([
           profilesService.getProfile(session.user.id),
-          gigsService.getAllGigs()
+          gigsService.getAllGigs(),
+          communityService.getFeed(session.user.id)
         ]);
         if (profileRes.data) setProfile(profileRes.data);
-        if (gigsRes.data) setRecentGigs(gigsRes.data);
+        if (gigsRes.data) setGigs(gigsRes.data);
+        if (postsRes.data) setPosts(postsRes.data);
       }
-      setIsLoading(false);
+      setLoading(false);
     };
     fetchData();
   }, []);
@@ -126,7 +174,7 @@ const Dashboard: React.FC = () => {
     navigate(`/gig/${id}`);
   };
 
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-brand-gray dark:bg-brand-black transition-colors">
         <Loader2 className="w-10 h-10 animate-spin text-brand-purple" />
@@ -153,11 +201,14 @@ const Dashboard: React.FC = () => {
 
         {/* Center Column: Main Feed */}
         <div className="lg:col-span-6 space-y-6">
-          <header className="flex justify-between items-center lg:items-end mb-2 px-2">
+          <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2 px-2 gap-4">
             <div>
               <h1 className="text-3xl lg:text-4xl font-black text-brand-black dark:text-brand-white tracking-tight">Feed</h1>
               <p className="text-gray-700 dark:text-gray-200 text-sm lg:text-base font-medium">Latest opportunities for you</p>
             </div>
+            
+            {/* Toggle Switch */}
+            <Toggle activeTab={activeTab} setActiveTab={setActiveTab} />
           </header>
 
           {/* Featured Creators (Horizontal Scroll) */}
@@ -211,50 +262,51 @@ const Dashboard: React.FC = () => {
           </section>
 
           {/* Feed Items */}
-          <section className="space-y-4 lg:space-y-6">
-            <AnimatePresence mode="popLayout">
-              {recentGigs.slice(0, visibleCount).map((gig, i) => (
-                <motion.div
-                  key={gig.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ delay: (i % 8) * 0.05 }}
-                >
-                  <GigCard 
-                    gig={gig} 
-                    onViewDetails={handleViewDetails} 
-                    onApply={handleApply} 
-                    initialIsApplied={appliedGigIds.has(gig.id)}
-                  />
-                </motion.div>
-              ))}
-            </AnimatePresence>
-            
-            {recentGigs.length === 0 && !isLoading && (
-              <div className="bg-brand-white dark:bg-brand-dark-card rounded-[2.5rem] p-12 text-center border border-dashed border-brand-gray dark:border-brand-dark-card mx-2">
-                <Compass className="w-12 h-12 text-brand-purple mx-auto mb-4 opacity-50" />
-                <h3 className="text-lg font-bold text-brand-black dark:text-brand-white">No gigs found</h3>
-                <p className="text-gray-700 dark:text-gray-200 text-sm mb-6">Try broadening your search or check back later.</p>
-                <Link to="/browse" className="inline-flex items-center gap-2 text-brand-purple font-bold hover:underline">
-                  Browse all gigs
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-              </div>
-            )}
-          </section>
-
-          {/* Load More Button */}
-          {visibleCount < recentGigs.length && (
-            <div className="py-8 text-center">
-              <button 
-                onClick={() => setVisibleCount(prev => prev + 8)}
-                className="text-brand-purple font-black text-sm uppercase tracking-widest hover:underline active:scale-95 transition-transform"
+          <AnimatePresence mode="wait">
+            {activeTab === "community" ? (
+              <motion.div
+                key="community"
+                initial={{ opacity: 0, x: 50 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -50 }}
+                transition={{ duration: 0.3 }}
+                drag="x"
+                dragConstraints={{ left: 0, right: 0 }}
+                onDragEnd={(event, info) => {
+                  if (info.offset.x < -50) {
+                    setActiveTab("gigs"); // swipe left
+                  }
+                }}
               >
-                Load more opportunities
-              </button>
-            </div>
-          )}
+                <CommunityFeed />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="gigs"
+                initial={{ opacity: 0, x: -50 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 50 }}
+                transition={{ duration: 0.3 }}
+                drag="x"
+                dragConstraints={{ left: 0, right: 0 }}
+                onDragEnd={(event, info) => {
+                  if (info.offset.x > 50) {
+                    setActiveTab("community"); // swipe right
+                  }
+                }}
+              >
+                <GigsFeed
+                  gigs={gigs}
+                  visibleCount={visibleCount}
+                  setVisibleCount={setVisibleCount}
+                  loading={loading}
+                  handleViewDetails={handleViewDetails}
+                  handleApply={handleApply}
+                  appliedGigIds={appliedGigIds}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Right Column: Suggestions & Trending (Hidden on mobile) */}

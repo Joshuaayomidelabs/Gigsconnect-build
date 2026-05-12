@@ -82,7 +82,7 @@ const GigDetails: React.FC = () => {
 
       if (appError) {
         console.error("Application error:", appError);
-        if (appError.code === '23505') {
+        if ((appError as any).code === '23505') {
           alert("You have already applied to this gig.");
           setHasAlreadyApplied(true);
         } else {

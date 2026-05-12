@@ -1,13 +1,32 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Loader2, Music, MapPin, Banknote, Calendar, FileText } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { Loader2, Music, MapPin, Banknote, Calendar, FileText, Image as ImageIcon, Shield, Video, Mic, Smile, X, Save, Globe } from 'lucide-react';
+import { toast } from 'sonner';
+import TextareaAutosize from 'react-textarea-autosize';
+import { FFmpeg } from '@ffmpeg/ffmpeg';
+import { fetchFile, toBlobURL } from '@ffmpeg/util';
 import { gigsService } from '../services/gigsService';
+import { communityService } from '../services/communityService';
+import { profilesService } from '../services/profilesService';
 import { supabase } from '../services/supabaseClient';
+import { useAuth } from '../context/AuthContext';
 import { GIG_CATEGORIES } from '../utils/constants';
 
 const PostGig: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { user } = useAuth();
+  const [profile, setProfile] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const postMode = location.state?.initialMode === 'gig' ? 'gig' : 'post';
+  
+  useEffect(() => {
+    if (user) {
+      profilesService.getProfile(user.id).then(({ data }) => setProfile(data));
+    }
+  }, [user]);
+
+  // Gig Form State
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -18,6 +37,20 @@ const PostGig: React.FC = () => {
     deadline: ''
   });
 
+  // Post Form State
+  const [postContent, setPostContent] = useState('');
+  const [isAvailableForGigs, setIsAvailableForGigs] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [videoPreview, setVideoPreview] = useState<string | null>(null);
+
+  const [uploadPhase, setUploadPhase] = useState<'preparing' | 'compressing' | 'uploading' | 'publishing' | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
+
   const getCurrencySymbol = (currency: string) => (currency === "USD" ? "$" : "₦");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -25,7 +58,188 @@ const PostGig: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setImageFile(file);
+      // Clear video to maintain single media focus for MVP cleanly
+      setVideoFile(null);
+      setVideoPreview(null);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const validTypes = ['video/mp4', 'video/quicktime', 'video/webm'];
+      if (!validTypes.includes(file.type)) {
+        toast.error("Please upload an mp4, mov, or webm video file.");
+        return;
+      }
+      setVideoFile(file);
+      // Clear image
+      setImageFile(null);
+      setImagePreview(null);
+      const url = URL.createObjectURL(file);
+      setVideoPreview(url);
+    }
+  };
+
+  const handlePostSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!postContent.trim() && !imageFile && !videoFile) return;
+    
+    setIsLoading(true);
+    console.log("Initiating community post creation...");
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('You must be logged in to post');
+
+      let imageUrl = null;
+      let videoUrl = null;
+
+      if (imageFile) {
+        toast.loading("Uploading image...", { id: "upload-toast" });
+        const fileExt = imageFile.name.split('.').pop();
+        const fileName = `${Math.random()}.${fileExt}`;
+        const filePath = `${session.user.id}/${fileName}`;
+        
+        // We assume a 'posts' bucket exists, or we use 'portfolio' bucket as fallback
+        const { error: uploadError, data } = await supabase.storage
+          .from('portfolio')
+          .upload(filePath, imageFile);
+          
+        if (uploadError) {
+          console.error('Image upload error:', uploadError);
+          // Continue without image if upload fails for MVP
+        } else if (data) {
+          const { data: publicUrlData } = supabase.storage
+            .from('portfolio')
+            .getPublicUrl(filePath);
+          imageUrl = publicUrlData.publicUrl;
+        }
+      }
+
+      if (videoFile) {
+        setUploadPhase('preparing');
+        toast.loading("Preparing video for upload...", { id: "upload-toast" });
+
+        // Compress video
+        setUploadPhase('compressing');
+        let fileToUpload = videoFile;
+        try {
+          const ffmpeg = new FFmpeg();
+          
+          ffmpeg.on('progress', ({ progress }) => {
+            setUploadProgress(Math.round(progress * 100));
+          });
+
+          // Single-threaded core allows us to avoid SharedArrayBuffer issues
+          const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
+          await ffmpeg.load({
+            coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
+            wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
+          });
+
+          const inputName = `input_${Date.now()}.mp4`;
+          const outputName = `output_${Date.now()}.mp4`;
+
+          await ffmpeg.writeFile(inputName, await fetchFile(videoFile));
+
+          // Simple fast compression - 720p max, preset ultrafast
+          await ffmpeg.exec([
+            '-i', inputName,
+            '-vf', 'scale=-2:720',
+            '-c:v', 'libx264',
+            '-crf', '28',
+            '-preset', 'ultrafast',
+            '-c:a', 'aac',
+            outputName
+          ]);
+
+          const outputData = await ffmpeg.readFile(outputName);
+          const blob = new Blob([new Uint8Array(outputData as any)], { type: 'video/mp4' });
+          fileToUpload = new File([blob], outputName, { type: 'video/mp4' });
+        } catch (compressErr) {
+          console.error("Compression failed, falling back to original file:", compressErr);
+          // Fallback to original
+          fileToUpload = videoFile;
+        }
+
+        setUploadPhase('uploading');
+        setUploadProgress(0); // Reset for UI transition
+        toast.loading("Uploading compressed video...", { id: "upload-toast" });
+        
+        const fileExt = fileToUpload.name.split('.').pop() || 'mp4';
+        const fileName = `${Math.random()}.${fileExt}`;
+        const filePath = `${session.user.id}/${fileName}`;
+        
+        const { error: uploadError, data } = await supabase.storage
+          .from('post-videos')
+          .upload(filePath, fileToUpload);
+          
+        if (uploadError) {
+          console.error('Video upload error:', uploadError);
+          if (uploadError.message.includes('row-level security') || uploadError.message.includes('RLS')) {
+            throw new Error('Supabase configuration needed: Please create the "post-videos" storage bucket and allow Insert/Select RLS policies.');
+          }
+          throw new Error('Failed to upload video: ' + uploadError.message);
+        } else if (data) {
+          const { data: publicUrlData } = supabase.storage
+            .from('post-videos')
+            .getPublicUrl(filePath);
+          videoUrl = publicUrlData.publicUrl;
+        }
+      }
+
+      setUploadPhase('publishing');
+      toast.loading("Saving post to community...", { id: "upload-toast" });
+      console.log("Saving post to database...");
+      const { data, error } = await communityService.createPost({
+        user_id: session.user.id,
+        text: postContent,
+        image_urls: imageUrl ? [imageUrl] : undefined,
+        video_url: videoUrl ? videoUrl : undefined,
+        is_available_for_gigs: isAvailableForGigs
+      });
+
+      if (error) {
+        console.error("Database error creating post:", error);
+        throw new Error(error.message || 'Failed to create post');
+      }
+
+      console.log("Successfully created post:", data);
+      toast.success("Post shared with your community!", { id: "upload-toast" });
+      
+      // Clear composer state only after successful save confirmation
+      setPostContent('');
+      setImageFile(null);
+      setImagePreview(null);
+      setVideoFile(null);
+      setVideoPreview(null);
+      setIsAvailableForGigs(false);
+
+      setUploadPhase(null);
+      setUploadProgress(0);
+
+      // Safely navigate away now that persistence and state clear are verified
+      navigate('/overview');
+    } catch (err: any) {
+      console.error("Post creation error:", err);
+      toast.error(err.message || 'Error publishing post', { id: "upload-toast" });
+    } finally {
+      setIsLoading(false);
+      setUploadPhase(null);
+    }
+  };
+
+  const handleGigSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
@@ -54,13 +268,195 @@ const PostGig: React.FC = () => {
   };
 
   return (
-    <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8 max-w-3xl mx-auto min-h-screen bg-brand-gray dark:bg-brand-black transition-colors duration-500">
-      <section className="mb-10 text-center">
-        <h1 className="text-4xl font-black text-brand-black dark:text-brand-white tracking-tight mb-4">Post a New <span className="text-brand-purple">Gig</span></h1>
-        <p className="text-gray-500 dark:text-gray-400 text-lg">Find the perfect talent for your musical project.</p>
+    <div className="pt-24 pb-24 px-4 sm:px-6 lg:px-8 max-w-[640px] mx-auto min-h-screen transition-colors duration-500">
+      <section className="mb-6">
+        <h1 className="text-3xl font-black text-brand-black dark:text-brand-white tracking-tight">
+          Create <span className="text-brand-purple">{postMode === 'gig' ? 'Gig' : 'Post'}</span>
+        </h1>
       </section>
 
-      <form onSubmit={handleSubmit} className="bg-brand-white dark:bg-brand-dark-card rounded-3xl shadow-xl border border-brand-gray dark:border-brand-black p-8 space-y-6 transition-colors">
+      {postMode === 'post' ? (
+        <form onSubmit={handlePostSubmit} className="bg-white dark:bg-[#0F0F12] sm:rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 dark:border-[#1F1F23] p-4 sm:p-6 transition-all duration-300">
+          
+          {/* 1. HEADER SECTION */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-800 shrink-0 border border-gray-100 dark:border-[#1F1F23]">
+                <img
+                  src={profile?.avatar_url || 'https://picsum.photos/seed/default/100'}
+                  alt={profile?.full_name || 'User'}
+                  className="w-full h-full object-cover"
+                  referrerPolicy="no-referrer"
+                />
+              </div>
+              <div className="flex flex-col">
+                <span className="font-bold text-[15px] text-gray-900 dark:text-white leading-tight">
+                  {profile?.full_name || 'Anonymous User'}
+                </span>
+                <span className="text-[12px] text-gray-500 font-medium">Posting to Community</span>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#6C2BD9]/10 text-[#6C2BD9] text-[12px] font-bold border border-[#6C2BD9]/20">
+              <Globe className="w-3.5 h-3.5" />
+              Public
+            </div>
+          </div>
+
+          {/* 2. MAIN TEXT INPUT */}
+          <div className="mb-4">
+            <TextareaAutosize
+              minRows={3}
+              value={postContent}
+              onChange={(e) => setPostContent(e.target.value)}
+              placeholder="Share your sound, idea, or moment..."
+              className="w-full text-[18px] sm:text-[20px] text-gray-900 dark:text-gray-100 placeholder:text-gray-400 bg-transparent border-none outline-none resize-none leading-relaxed"
+            />
+          </div>
+
+          {/* 4. MEDIA PREVIEW SECTION */}
+          {imagePreview && (
+            <div className="relative rounded-[20px] overflow-hidden border border-gray-100 dark:border-[#1F1F23] mb-4 group">
+              <img src={imagePreview} alt="Preview" className="w-full h-auto max-h-[400px] object-cover" />
+              <button 
+                type="button"
+                onClick={() => { setImageFile(null); setImagePreview(null); }}
+                className="absolute top-3 right-3 p-2 bg-[#0F0F12]/60 backdrop-blur-md text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-[#0F0F12]/80 shadow-sm"
+                aria-label="Remove image"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+
+          {videoPreview && (
+            <div className="relative rounded-[20px] overflow-hidden border border-gray-100 dark:border-[#1F1F23] mb-4 group bg-black/5 dark:bg-white/5">
+              <video 
+                src={videoPreview} 
+                controls 
+                className="w-full h-auto max-h-[400px] object-contain rounded-[20px]" 
+              />
+              <button 
+                type="button"
+                onClick={() => { setVideoFile(null); setVideoPreview(null); }}
+                className="absolute top-3 right-3 p-2 bg-[#0F0F12]/60 backdrop-blur-md text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-[#0F0F12]/80 shadow-sm z-10"
+                aria-label="Remove video"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+
+          {/* 3. MEDIA ACTION BAR */}
+          <div className="flex items-center justify-between py-3 border-t border-b border-gray-100 dark:border-[#1F1F23] mb-4">
+            <div className="flex items-center gap-1 sm:gap-2">
+              <input 
+                type="file" 
+                accept="image/*" 
+                className="hidden" 
+                ref={fileInputRef}
+                onChange={handleImageChange}
+              />
+              <input 
+                type="file" 
+                accept="video/mp4,video/quicktime,video/webm" 
+                className="hidden" 
+                ref={videoInputRef}
+                onChange={handleVideoChange}
+              />
+              <button 
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="p-2 sm:p-2.5 rounded-full text-[#9CA3AF] hover:text-[#A78BFA] hover:bg-[#6C2BD9]/10 active:text-[#6C2BD9] transition-all duration-200 active:scale-105"
+                aria-label="Add image"
+              >
+                <ImageIcon className="w-[22px] h-[22px]" />
+              </button>
+              <button 
+                type="button"
+                onClick={() => videoInputRef.current?.click()}
+                className="p-2 sm:p-2.5 rounded-full text-[#9CA3AF] hover:text-[#A78BFA] hover:bg-[#6C2BD9]/10 active:text-[#6C2BD9] transition-all duration-200 active:scale-105"
+                aria-label="Add video"
+              >
+                <Video className="w-[22px] h-[22px]" />
+              </button>
+              <button 
+                type="button"
+                className="p-2 sm:p-2.5 rounded-full text-[#9CA3AF] hover:text-[#A78BFA] hover:bg-[#6C2BD9]/10 active:text-[#6C2BD9] transition-all duration-200 active:scale-105"
+                title="Coming soon"
+              >
+                <Mic className="w-[22px] h-[22px]" />
+              </button>
+              <button 
+                type="button"
+                className="p-2 sm:p-2.5 rounded-full text-[#9CA3AF] hover:text-[#A78BFA] hover:bg-gray-100 dark:hover:bg-[#1F1F23] active:text-[#6C2BD9] transition-all duration-200 active:scale-105"
+                title="Location"
+              >
+                <MapPin className="w-[22px] h-[22px]" />
+              </button>
+              <button 
+                type="button"
+                className="p-2 sm:p-2.5 rounded-full text-[#9CA3AF] hover:text-[#A78BFA] hover:bg-gray-100 dark:hover:bg-[#1F1F23] active:text-[#6C2BD9] transition-all duration-200 active:scale-105"
+                title="Emoji"
+              >
+                <Smile className="w-[22px] h-[22px]" />
+              </button>
+            </div>
+
+            {/* Toggle Available for Gigs */}
+            <label className="flex items-center gap-2 cursor-pointer p-1.5 rounded-full hover:bg-gray-50 dark:hover:bg-[#1F1F23]/50 transition-colors border border-transparent hover:border-gray-100 dark:hover:border-[#1F1F23]">
+              <div className="relative">
+                <input 
+                  type="checkbox" 
+                  className="sr-only"
+                  checked={isAvailableForGigs}
+                  onChange={(e) => setIsAvailableForGigs(e.target.checked)}
+                />
+                <div className={`block w-9 h-5 rounded-full transition-colors duration-200 ${isAvailableForGigs ? 'bg-[#6C2BD9]' : 'bg-gray-300 dark:bg-gray-700'}`}></div>
+                <div className={`absolute left-0.5 top-0.5 bg-white w-4 h-4 rounded-full transition-transform duration-200 ${isAvailableForGigs ? 'transform translate-x-4' : ''} shadow-sm`}></div>
+              </div>
+              <Shield className={`w-4 h-4 transition-colors duration-200 ${isAvailableForGigs ? 'text-[#6C2BD9]' : 'text-[#9CA3AF]'}`} />
+            </label>
+          </div>
+
+          {/* 5. ACTION FOOTER */}
+          <div className="flex items-center justify-between pt-2">
+            <button
+              type="button"
+              className="flex items-center gap-1.5 px-4 py-2 text-[14px] font-bold text-[#9CA3AF] hover:text-[#A78BFA] active:text-[#6C2BD9] transition-all duration-200 active:scale-[0.98]"
+            >
+              <Save className="w-4 h-4" />
+              Draft
+            </button>
+
+            <button 
+              type="submit"
+              disabled={isLoading || (!postContent.trim() && !imageFile && !videoFile)}
+              className="px-8 py-3 rounded-[14px] bg-[#6C2BD9] text-white font-bold hover:bg-[#A78BFA] active:bg-[#4C1D95] transition-all duration-200 shadow-md shadow-[#6C2BD9]/20 flex items-center justify-center gap-2 active:scale-[0.98] disabled:bg-[#1F1F23] disabled:text-[#9CA3AF] disabled:shadow-none disabled:cursor-not-allowed min-w-[140px] relative overflow-hidden"
+            >
+              {uploadPhase === 'compressing' && (
+                <div 
+                  className="absolute left-0 top-0 bottom-0 bg-white/20 transition-all duration-200" 
+                  style={{ width: `${uploadProgress}%` }}
+                />
+              )}
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin relative z-10" />
+                  <span className="relative z-10">
+                    {uploadPhase === 'compressing' ? `Compressing ${uploadProgress}%` : 
+                     uploadPhase === 'uploading' ? 'Uploading...' : 
+                     uploadPhase === 'publishing' ? 'Publishing...' : 'Processing...'}
+                  </span>
+                </>
+              ) : (
+                'Publish'
+              )}
+            </button>
+          </div>
+        </form>
+      ) : (
+        <form onSubmit={handleGigSubmit} className="bg-brand-white dark:bg-brand-dark-card rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-brand-gray dark:border-brand-black p-8 space-y-6 transition-colors">
         <div>
           <label className="block text-sm font-bold text-brand-black dark:text-brand-white mb-2 flex items-center gap-2">
             <Music className="w-4 h-4 text-brand-purple" />
@@ -190,6 +586,7 @@ const PostGig: React.FC = () => {
           </button>
         </div>
       </form>
+      )}
     </div>
   );
 };

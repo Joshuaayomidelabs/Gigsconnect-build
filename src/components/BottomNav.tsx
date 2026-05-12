@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { Home, Search, PlusCircle, MessageCircle, User } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useAuth } from '../context/AuthContext';
 import { profilesService } from '../services/profilesService';
+import CreateHubModal from './CreateHubModal';
 
 const BottomNav: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [profile, setProfile] = useState<any>(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -41,57 +44,64 @@ const BottomNav: React.FC = () => {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-brand-white/70 dark:bg-brand-black/70 backdrop-blur-2xl border-t border-brand-gray dark:border-brand-dark-card px-6 pb-safe pt-2 lg:hidden transition-colors">
-      <div className="max-w-md mx-auto flex items-center justify-between h-16">
-        {navItems.map((item) => {
-          const isActive = location.pathname === item.path;
-          
-          if (item.isAction) {
+    <>
+      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-brand-white/70 dark:bg-brand-black/70 backdrop-blur-2xl border-t border-brand-gray dark:border-brand-dark-card px-6 pb-safe pt-2 lg:hidden transition-colors">
+        <div className="max-w-md mx-auto flex items-center justify-between h-16">
+          {navItems.map((item) => {
+            const isActive = location.pathname === item.path;
+            
+            if (item.isAction) {
+              return (
+                <button
+                  key={item.path}
+                  onClick={() => setIsCreateModalOpen(true)}
+                  className="relative -top-6 flex flex-col items-center justify-center"
+                >
+                  <div className="w-14 h-14 rounded-full bg-brand-purple flex items-center justify-center text-brand-white shadow-lg shadow-purple-500/30 border-4 border-brand-white dark:border-brand-black active:scale-90 transition-all duration-300">
+                    {React.cloneElement(item.icon as React.ReactElement, { className: 'w-7 h-7' })}
+                  </div>
+                </button>
+              );
+            }
+
             return (
               <NavLink
                 key={item.path}
                 to={item.path}
-                className="relative -top-6 flex flex-col items-center justify-center"
+                className="flex flex-col items-center justify-center gap-1 group relative flex-1"
               >
-                <div className="w-14 h-14 rounded-full bg-brand-purple flex items-center justify-center text-brand-white shadow-lg shadow-purple-500/30 border-4 border-brand-white dark:border-brand-black active:scale-90 transition-all duration-300">
-                  {React.cloneElement(item.icon as React.ReactElement, { className: 'w-7 h-7' })}
+                <div className={`p-2.5 rounded-2xl transition-all duration-300 overflow-hidden ${
+                  isActive 
+                    ? 'text-brand-purple bg-brand-purple/5 dark:bg-brand-purple/10' 
+                    : 'text-gray-500 dark:text-gray-400 group-hover:text-brand-purple group-hover:bg-brand-purple/5 dark:group-hover:bg-brand-purple/10'
+                } ${item.isProfile ? 'w-10 h-10 flex items-center justify-center' : ''}`}>
+                  {item.isProfile ? (
+                    <div className={`w-full h-full rounded-full overflow-hidden flex items-center justify-center ${isActive ? 'ring-2 ring-brand-purple' : ''}`}>
+                      {item.icon}
+                    </div>
+                  ) : (
+                    React.cloneElement(item.icon as React.ReactElement, { 
+                      className: `w-5 h-5 transition-all duration-300 ${isActive ? 'scale-110 stroke-[2.5px]' : 'group-active:scale-90'}` 
+                    })
+                  )}
                 </div>
+                {isActive && (
+                  <motion.div 
+                    layoutId="nav-indicator"
+                    className="absolute -bottom-1 w-1 h-1 rounded-full bg-brand-purple shadow-[0_0_8px_rgba(75,0,130,0.5)]"
+                  />
+                )}
               </NavLink>
             );
-          }
+          })}
+        </div>
+      </nav>
 
-          return (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              className="flex flex-col items-center justify-center gap-1 group relative flex-1"
-            >
-              <div className={`p-2.5 rounded-2xl transition-all duration-300 overflow-hidden ${
-                isActive 
-                  ? 'text-brand-purple bg-brand-purple/5 dark:bg-brand-purple/10' 
-                  : 'text-gray-500 dark:text-gray-400 group-hover:text-brand-purple group-hover:bg-brand-purple/5 dark:group-hover:bg-brand-purple/10'
-              } ${item.isProfile ? 'w-10 h-10 flex items-center justify-center' : ''}`}>
-                {item.isProfile ? (
-                  <div className={`w-full h-full rounded-full overflow-hidden flex items-center justify-center ${isActive ? 'ring-2 ring-brand-purple' : ''}`}>
-                    {item.icon}
-                  </div>
-                ) : (
-                  React.cloneElement(item.icon as React.ReactElement, { 
-                    className: `w-5 h-5 transition-all duration-300 ${isActive ? 'scale-110 stroke-[2.5px]' : 'group-active:scale-90'}` 
-                  })
-                )}
-              </div>
-              {isActive && (
-                <motion.div 
-                  layoutId="nav-indicator"
-                  className="absolute -bottom-1 w-1 h-1 rounded-full bg-brand-purple shadow-[0_0_8px_rgba(75,0,130,0.5)]"
-                />
-              )}
-            </NavLink>
-          );
-        })}
-      </div>
-    </nav>
+      <CreateHubModal 
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+      />
+    </>
   );
 };
 
