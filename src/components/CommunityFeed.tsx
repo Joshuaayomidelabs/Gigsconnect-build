@@ -106,7 +106,7 @@ export default function CommunityFeed() {
                 <div className="h-4 bg-gray-200 dark:bg-[#1A1A1E] rounded w-[80%]"></div>
               </div>
               <div className="w-full">
-                <div className="w-full aspect-[4/5] sm:rounded-[24px] bg-gray-200 dark:bg-[#1A1A1E]"></div>
+                <div className="w-full aspect-[4/5] sm:rounded-[24px] bg-gray-200 dark:bg-[#1A1A1E] overflow-hidden"></div>
               </div>
               <div className="px-4 sm:px-5 pt-3 pb-4 flex items-center justify-between">
                 <div className="flex gap-2">

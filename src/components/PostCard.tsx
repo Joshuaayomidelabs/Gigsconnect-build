@@ -262,7 +262,7 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
         {/* MEDIA */}
         {(post.image_urls?.length || post.video_url) ? (
           <div className="w-full">
-            <div className="relative w-full aspect-[4/5] bg-brand-gray dark:bg-[#0A0A0C] group/media">
+            <div className="relative w-full aspect-[4/5] bg-[#0A0A0C] group/media overflow-hidden">
               {post.image_urls && post.image_urls.length > 0 && (
                 <div className="absolute inset-0 flex overflow-x-auto snap-x snap-mandatory no-scrollbar h-full w-full">
                   {post.image_urls.map((url, i) => (
@@ -270,7 +270,7 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
                       <img
                         src={url}
                         alt={`Post media ${i + 1}`}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover object-center"
                         referrerPolicy="no-referrer"
                         loading={i === 0 ? "lazy" : "eager"}
                       />
@@ -282,11 +282,10 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
                 <video 
                   ref={videoRef}
                   src={post.video_url} 
-                  controls 
                   loop
                   muted
                   playsInline
-                  className="absolute inset-0 w-full h-full object-cover"
+                  className="absolute inset-0 w-full h-full object-cover object-center"
                 />
               )}
               {post.image_urls && post.image_urls.length > 1 && (
@@ -326,9 +325,6 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
           </div>
 
           <div className="flex items-center gap-4">
-            <button className="px-4 py-1.5 bg-brand-black dark:bg-white text-white dark:text-black text-[13px] font-bold rounded-lg hover:opacity-80 transition-opacity shadow-sm">
-              Book Artist
-            </button>
             <button 
               className="active:opacity-50 transition-opacity text-gray-900 dark:text-white"
               aria-label="Save"
@@ -364,16 +360,6 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
             )}
           </div>
         )}
-
-        {/* CREATOR TAGS */}
-        <div className="px-3 sm:px-4 flex flex-wrap gap-2 mb-3 mt-1">
-          <span className="px-3 py-1 bg-gray-100 dark:bg-[#1A1A1E] text-[11px] font-semibold rounded-full text-gray-700 dark:text-gray-300">
-            🎶 Music Production
-          </span>
-          <span className="px-3 py-1 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 text-[11px] font-semibold rounded-full border border-green-200 dark:border-green-800">
-            Available for gigs
-          </span>
-        </div>
 
         {/* VIEW ALL COMMENTS */}
         {commentsCount > 0 && (
