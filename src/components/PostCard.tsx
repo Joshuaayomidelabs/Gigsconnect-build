@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Heart, MessageCircle, Send, MoreHorizontal, Trash2, X, Loader2, Bookmark, BadgeCheck } from 'lucide-react';
+import { Heart, MessageCircle, Send, MoreHorizontal, Trash2, X, Loader2, Bookmark, BadgeCheck, Play } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { communityService } from '../services/communityService';
@@ -64,6 +64,8 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [hasFetchedComments, setHasFetchedComments] = useState(false);
   const [isLoadingComments, setIsLoadingComments] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [showHeart, setShowHeart] = useState(false);
 
   const isOwner = user?.id === post.user_id;
 
@@ -95,8 +97,42 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
     );
 
     observer.observe(videoRef.current);
-    return () => observer.disconnect();
+    
+    // Add event listeners for play/pause state
+    const handlePlay = () => setIsPlaying(true);
+    const handlePause = () => setIsPlaying(false);
+    
+    const videoEl = videoRef.current;
+    videoEl.addEventListener('play', handlePlay);
+    videoEl.addEventListener('pause', handlePause);
+
+    return () => {
+      observer.disconnect();
+      videoEl.removeEventListener('play', handlePlay);
+      videoEl.removeEventListener('pause', handlePause);
+    };
   }, [post.video_url]);
+
+  const handleVideoPress = () => {
+    if (videoRef.current) {
+      if (videoRef.current.paused) {
+        videoRef.current.play().catch(e => console.log('Autoplay prevented:', e));
+      } else {
+        videoRef.current.pause();
+      }
+    }
+  };
+
+  const handleDoubleTap = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!isLiked) {
+      handleLike();
+    }
+    setShowHeart(true);
+    setTimeout(() => {
+      setShowHeart(false);
+    }, 1000);
+  };
 
   const handleLike = async () => {
     if (!user) {
@@ -262,7 +298,10 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
         {/* MEDIA */}
         {(post.image_urls?.length || post.video_url) ? (
           <div className="w-full">
-            <div className="relative w-full aspect-[4/5] bg-[#0A0A0C] group/media overflow-hidden">
+            <div 
+              className="relative w-full aspect-[4/5] bg-[#0A0A0C] group/media overflow-hidden"
+              onDoubleClick={handleDoubleTap}
+            >
               {post.image_urls && post.image_urls.length > 0 && (
                 <div className="absolute inset-0 flex overflow-x-auto snap-x snap-mandatory no-scrollbar h-full w-full">
                   {post.image_urls.map((url, i) => (
@@ -279,18 +318,33 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
                 </div>
               )}
               {post.video_url && (
-                <video 
-                  ref={videoRef}
-                  src={post.video_url} 
-                  loop
-                  muted
-                  playsInline
-                  className="absolute inset-0 w-full h-full object-cover object-center"
-                />
+                <div className="absolute inset-0 w-full h-full cursor-pointer" onClick={handleVideoPress}>
+                  <video 
+                    ref={videoRef}
+                    src={post.video_url} 
+                    loop
+                    playsInline
+                    className="absolute inset-0 w-full h-full object-cover object-center"
+                  />
+                  {!isPlaying && (
+                    <div className="absolute inset-0 bg-black/30 flex items-center justify-center transition-opacity z-10">
+                      <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center">
+                        <Play className="w-8 h-8 text-white fill-white ml-1" />
+                      </div>
+                    </div>
+                  )}
+                </div>
               )}
               {post.image_urls && post.image_urls.length > 1 && (
                 <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-md px-2 py-1 rounded-full text-white text-[10px] font-bold tracking-wide">
                   1/{post.image_urls.length}
+                </div>
+              )}
+              
+              {/* Double-tap heart animation overlay */}
+              {showHeart && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-50 animate-in zoom-in-50 fade-in duration-300">
+                  <Heart className="w-24 h-24 text-white fill-white drop-shadow-2xl opacity-90" />
                 </div>
               )}
             </div>
