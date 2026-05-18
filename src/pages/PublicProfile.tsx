@@ -26,12 +26,11 @@ import {
 import { motion } from 'motion/react';
 import { toast } from 'sonner';
 import { profilesService } from '../services/profilesService';
-import { gigsService } from '../services/gigsService';
 import { followsService } from '../services/followsService';
 import { supabase } from '../services/supabaseClient';
 import { useAuth } from '../context/AuthContext';
-import GigCard from '../components/GigCard';
 import VerificationBadge from '../components/VerificationBadge';
+import FollowListModal from '../components/FollowListModal';
 
 const PublicProfile: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();
@@ -39,13 +38,14 @@ const PublicProfile: React.FC = () => {
   const { user: currentUser } = useAuth();
   
   const [profile, setProfile] = useState<any>(null);
-  const [gigs, setGigs] = useState<any[]>([]);
   const [appliedGigIds, setAppliedGigIds] = useState<Set<string>>(new Set());
   
   // Social Stats State
   const [stats, setStats] = useState({ followers: 0, following: 0 });
   const [isFollowing, setIsFollowing] = useState(false);
-  const [activeTab, setActiveTab] = useState<'gigs' | 'saved'>('gigs');
+  const [activeTab, setActiveTab] = useState<'portfolio'>('portfolio');
+  const [showFollowersModal, setShowFollowersModal] = useState(false);
+  const [showFollowingModal, setShowFollowingModal] = useState(false);
 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -73,9 +73,8 @@ const PublicProfile: React.FC = () => {
           }
         }
 
-        const [profileRes, gigsRes, statsData] = await Promise.all([
+        const [profileRes, statsData] = await Promise.all([
           profilesService.getProfile(userId),
-          gigsService.getMyGigs(userId),
           followsService.getFollowStats(userId)
         ]);
 
@@ -83,7 +82,6 @@ const PublicProfile: React.FC = () => {
         
         if (isMounted) {
           setProfile(profileRes.data);
-          setGigs(gigsRes.data || []);
           setStats(statsData);
         }
 
@@ -232,11 +230,7 @@ const PublicProfile: React.FC = () => {
 
           {/* Social Stats Row */}
           <div className="flex items-center justify-center sm:justify-start gap-10 py-5 border-t border-brand-gray dark:border-[#1F1F23] mb-6">
-            <div className="flex flex-col items-center sm:items-start group cursor-pointer" onClick={() => setActiveTab('gigs')}>
-              <span className="text-xl font-black text-brand-black dark:text-brand-white group-hover:text-brand-purple transition-colors">{gigs.length}</span>
-              <span className="text-[11px] uppercase tracking-wider font-bold text-gray-500">Gigs</span>
-            </div>
-            <div className="flex flex-col items-center sm:items-start group cursor-pointer" onClick={() => toast('Followers list coming soon!')}>
+            <div className="flex flex-col items-center sm:items-start group cursor-pointer" onClick={() => setShowFollowersModal(true)}>
               <span className="text-xl font-black text-brand-black dark:text-brand-white group-hover:text-brand-purple transition-colors">
                 {stats.followers >= 1000 ? (stats.followers / 1000).toFixed(1) + 'K' : stats.followers}
               </span>
@@ -244,7 +238,7 @@ const PublicProfile: React.FC = () => {
                 {stats.followers === 0 ? "No followers yet" : "Followers"}
               </span>
             </div>
-            <div className="flex flex-col items-center sm:items-start group cursor-pointer" onClick={() => toast('Following list coming soon!')}>
+            <div className="flex flex-col items-center sm:items-start group cursor-pointer" onClick={() => setShowFollowingModal(true)}>
               <span className="text-xl font-black text-brand-black dark:text-brand-white group-hover:text-brand-purple transition-colors">
                 {stats.following >= 1000 ? (stats.following / 1000).toFixed(1) + 'K' : stats.following}
               </span>
@@ -307,92 +301,55 @@ const PublicProfile: React.FC = () => {
           </div>
         </div>
 
-        {/* Content Tabs */}
-        <div className="flex border-b border-gray-100 dark:border-[#1F1F23] mb-6">
-          <button 
-            onClick={() => setActiveTab('gigs')}
-            className={`flex-1 py-4 text-sm font-bold flex items-center justify-center gap-2 transition-all relative ${
-              activeTab === 'gigs' ? 'text-brand-black dark:text-brand-white' : 'text-[#9CA3AF] hover:text-gray-600 dark:hover:text-gray-300'
-            }`}
-          >
-            <LayoutGrid className="w-4 h-4" />
-            <span className="hidden sm:inline">Gigs / Posts</span>
-            <span className="sm:hidden">Gigs</span>
-            {activeTab === 'gigs' && (
-              <motion.div layoutId="profileTabIndicator" className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6C2BD9]" />
-            )}
-          </button>
-          
-          <button 
-            onClick={() => setActiveTab('saved')}
-            className={`flex-1 py-4 text-sm font-bold flex items-center justify-center gap-2 transition-all relative ${
-              activeTab === 'saved' ? 'text-brand-black dark:text-brand-white' : 'text-[#9CA3AF] hover:text-gray-600 dark:hover:text-gray-300'
-            }`}
-          >
-            <Bookmark className="w-4 h-4" />
-            <span className="hidden sm:inline">Saved / Portfolio</span>
-            <span className="sm:hidden">Saved</span>
-            {activeTab === 'saved' && (
-              <motion.div layoutId="profileTabIndicator" className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6C2BD9]" />
-            )}
-          </button>
-        </div>
-
         {/* Content Render */}
         <div className="mb-12 min-h-[300px]">
-          {activeTab === 'gigs' && (
-            gigs.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {gigs.map((gig) => (
-                  <GigCard 
-                    key={gig.id} 
-                    gig={{ ...gig, poster: profile }} 
-                    onViewDetails={(g) => navigate(`/gig/${g.id}`)}
-                    showApply={false}
-                    initialIsApplied={appliedGigIds.has(gig.id)}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="bg-brand-white dark:bg-brand-dark-card rounded-3xl p-12 text-center border border-brand-gray dark:border-[#1F1F23]">
-                <Briefcase className="w-10 h-10 text-[#9CA3AF] dark:text-gray-600 mx-auto mb-3" />
-                <p className="text-gray-700 dark:text-gray-400 font-medium text-sm">No gigs posted yet.</p>
-              </div>
-            )
-          )}
-
-          {activeTab === 'saved' && (
-            profile.portfolio_media && profile.portfolio_media.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4">
-                {profile.portfolio_media.map((item: any, index: number) => (
-                  <div key={index} className="relative aspect-square rounded-xl overflow-hidden bg-brand-gray dark:bg-brand-black border border-brand-gray dark:border-[#1F1F23] group">
-                    {item.type === 'video' ? (
-                      <video 
-                        src={item.url} 
-                        className="w-full h-full object-cover"
-                        controls
-                      />
-                    ) : (
-                      <img 
-                        src={item.url} 
-                        alt={`Portfolio ${index + 1}`} 
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 cursor-pointer"
-                        referrerPolicy="no-referrer"
-                      />
-                    )}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="bg-brand-white dark:bg-brand-dark-card rounded-3xl p-12 text-center border border-brand-gray dark:border-[#1F1F23]">
-                <Globe className="w-10 h-10 text-[#9CA3AF] dark:text-gray-600 mx-auto mb-3" />
-                <p className="text-gray-700 dark:text-gray-400 font-medium text-sm">No portfolio items saved.</p>
-              </div>
-            )
+          <h3 className="text-xl font-black text-brand-black dark:text-brand-white mb-6">Portfolio</h3>
+          {profile.portfolio_media && profile.portfolio_media.length > 0 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4">
+              {profile.portfolio_media.map((item: any, index: number) => (
+                <div key={index} className="relative aspect-square rounded-xl overflow-hidden bg-brand-gray dark:bg-brand-black border border-brand-gray dark:border-[#1F1F23] group">
+                  {item.type === 'video' ? (
+                    <video 
+                      src={item.url} 
+                      className="w-full h-full object-cover"
+                      controls
+                    />
+                  ) : (
+                    <img 
+                      src={item.url} 
+                      alt={`Portfolio ${index + 1}`} 
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 cursor-pointer"
+                      referrerPolicy="no-referrer"
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-brand-white dark:bg-brand-dark-card rounded-3xl p-12 text-center border border-brand-gray dark:border-[#1F1F23]">
+              <Globe className="w-10 h-10 text-[#9CA3AF] dark:text-gray-600 mx-auto mb-3" />
+              <p className="text-gray-700 dark:text-gray-400 font-medium text-sm">No portfolio items saved.</p>
+            </div>
           )}
         </div>
         
       </div>
+      
+      {userId && showFollowersModal && (
+        <FollowListModal 
+          userId={userId} 
+          type="followers" 
+          onClose={() => setShowFollowersModal(false)} 
+        />
+      )}
+
+      {userId && showFollowingModal && (
+        <FollowListModal 
+          userId={userId} 
+          type="following" 
+          onClose={() => setShowFollowingModal(false)} 
+        />
+      )}
     </div>
   );
 };

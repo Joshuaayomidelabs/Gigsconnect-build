@@ -62,8 +62,8 @@ const TopNav: React.FC = () => {
           <>
             {/* Notifications visible only on dashboard/homepage */}
             {(isHomePage || location.pathname === "/notifications") && (
-              <Link to="/notifications" className="relative p-2 hover:bg-brand-gray dark:hover:bg-brand-dark-card rounded-full transition-colors">
-                <Bell className="w-6 h-6 text-brand-black dark:text-gray-300" />
+              <Link to="/notifications" className="relative p-2 hover:bg-brand-gray dark:hover:bg-brand-dark-card rounded-full transition-colors group">
+                <Bell className="w-6 h-6 text-brand-black dark:text-gray-300 group-hover:text-brand-purple transition-colors" />
                 {unreadCount > 0 && (
                   <span className="absolute -top-1 -right-1 inline-flex items-center justify-center w-5 h-5 text-[10px] font-black text-brand-white bg-brand-purple rounded-full border-2 border-brand-white dark:border-brand-black shadow-sm">
                     {unreadCount > 99 ? '99+' : unreadCount}

@@ -9,13 +9,13 @@ export default function CommunityPageContent() {
       {/* Toggle Container */}
       <div className="flex bg-gray-100 dark:bg-[#1a1a1a] p-1 rounded-[30px] mb-6 relative">
         <div
-          className="absolute top-1 bottom-1 w-[calc(50%-4px)] bg-[#4B0082] rounded-[30px] transition-all duration-300 ease-in-out"
+          className="absolute top-1 bottom-1 w-[calc(50%-4px)] bg-white dark:bg-[#27272A] shadow-md rounded-[30px] transition-all duration-300 ease-in-out"
           style={{ left: activeTab === 'community' ? '4px' : 'calc(50%)' }}
         />
         <button
           onClick={() => setActiveTab('community')}
           className={`flex-1 py-2.5 text-center text-sm font-semibold z-10 transition-colors duration-300 ${
-            activeTab === 'community' ? 'text-white' : 'text-gray-500 dark:text-gray-400'
+            activeTab === 'community' ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400'
           }`}
         >
           Community
@@ -23,7 +23,7 @@ export default function CommunityPageContent() {
         <button
           onClick={() => setActiveTab('gigs')}
           className={`flex-1 py-2.5 text-center text-sm font-semibold z-10 transition-colors duration-300 ${
-            activeTab === 'gigs' ? 'text-white' : 'text-gray-500 dark:text-gray-400'
+            activeTab === 'gigs' ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400'
           }`}
         >
           Gigs

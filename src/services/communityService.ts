@@ -3,8 +3,6 @@ import { notificationsService } from './notificationsService';
 
 export const communityService = {
   async getFeed(userId?: string) {
-    // For MVP, we'll fetch all posts. If userId is provided, we could prioritize followed users.
-    // Since we can't easily do complex sorting without a custom RPC, we'll fetch posts and sort in JS.
     const { data: posts, error: postsError } = await supabase
       .from('posts')
       .select('*, user:profiles!user_id(*)')
@@ -16,27 +14,63 @@ export const communityService = {
     }
 
     let followedUserIds = new Set<string>();
+    let userLikedPostIds = new Set<string>();
+
     if (userId) {
-      const { data: follows } = await supabase
-        .from('follows')
-        .select('following_id')
-        .eq('follower_id', userId);
+      const [followsRes, likesRes] = await Promise.all([
+        supabase.from('follows').select('following_id').eq('follower_id', userId),
+        supabase.from('likes').select('post_id').eq('user_id', userId)
+      ]);
       
-      if (follows) {
-        followedUserIds = new Set(follows.map(f => f.following_id));
+      if (followsRes.data) {
+        followedUserIds = new Set(followsRes.data.map(f => f.following_id));
+      }
+      if (likesRes.data) {
+        userLikedPostIds = new Set(likesRes.data.map(l => l.post_id));
       }
     }
 
-    // Sort: followed users first, then by date
+    // Sort: followed users first, then by date, and map is_liked
     const sortedPosts = [...(posts || [])].sort((a, b) => {
       const aFollowed = followedUserIds.has(a.user_id);
       const bFollowed = followedUserIds.has(b.user_id);
       if (aFollowed && !bFollowed) return -1;
       if (!aFollowed && bFollowed) return 1;
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-    });
+    }).map(post => ({
+      ...post,
+      is_liked: userLikedPostIds.has(post.id)
+    }));
 
     return { data: sortedPosts, error: null };
+  },
+
+  async getUserPosts(userId: string, currentUserId?: string) {
+    const { data: posts, error } = await supabase
+      .from('posts')
+      .select('*, user:profiles!user_id(*)')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (error) return { data: null, error };
+
+    let userLikedPostIds = new Set<string>();
+    if (currentUserId) {
+      const { data: likesRes } = await supabase
+        .from('likes')
+        .select('post_id')
+        .eq('user_id', currentUserId);
+      if (likesRes) {
+        userLikedPostIds = new Set(likesRes.map(l => l.post_id));
+      }
+    }
+
+    const processedPosts = posts.map(post => ({
+      ...post,
+      is_liked: userLikedPostIds.has(post.id)
+    }));
+
+    return { data: processedPosts, error: null };
   },
 
   async createPost(postData: { 
@@ -144,6 +178,15 @@ export const communityService = {
         text: text
       }
     ]).select();
+
+    if (!error) {
+      // Increment count fallback
+      supabase.from('posts').select('comments_count').eq('id', postId).single().then(({ data: postData }) => {
+        if (postData) {
+          supabase.from('posts').update({ comments_count: (postData.comments_count || 0) + 1 }).eq('id', postId).then();
+        }
+      });
+    }
 
     return { data, error };
   },

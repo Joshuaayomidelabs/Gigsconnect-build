@@ -50,5 +50,37 @@ export const followsService = {
       console.error('Error toggling follow:', err);
       return { error: err };
     }
+  },
+
+  async getFollowers(userId: string) {
+    try {
+      const { data, error } = await supabase
+        .from('follows')
+        .select('*, profile:profiles!follower_id(*)')
+        .eq('following_id', userId)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return { data: data?.map((d: any) => d.profile).filter(Boolean) || [], error: null };
+    } catch (err: any) {
+      console.error('Error fetching followers:', err);
+      return { data: [], error: err };
+    }
+  },
+
+  async getFollowing(userId: string) {
+    try {
+      const { data, error } = await supabase
+        .from('follows')
+        .select('*, profile:profiles!following_id(*)')
+        .eq('follower_id', userId)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return { data: data?.map((d: any) => d.profile).filter(Boolean) || [], error: null };
+    } catch (err: any) {
+      console.error('Error fetching following:', err);
+      return { data: [], error: err };
+    }
   }
 };

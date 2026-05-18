@@ -339,7 +339,7 @@ const EditProfile: React.FC = () => {
                                 </a>
                                 <button 
                                   onClick={() => setShowDeleteConfirm(item.id)}
-                                  className="p-2 bg-red-500/80 backdrop-blur-sm text-brand-white rounded-lg hover:bg-red-600 transition-all"
+                                  className="p-2 bg-black/60 backdrop-blur-sm text-brand-white rounded-lg hover:bg-brand-purple transition-all"
                                   title="Delete Item"
                                 >
                                   <Trash2 className="w-4 h-4" />
@@ -773,7 +773,7 @@ const EditProfile: React.FC = () => {
                         <button 
                           type="button"
                           onClick={() => setShowDeleteConfirm(item.id)}
-                          className="p-2 bg-red-500 text-brand-white rounded-lg hover:bg-red-600 transition-all"
+                          className="p-2 bg-black/60 backdrop-blur-sm text-brand-white rounded-lg hover:bg-brand-purple transition-all"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -828,8 +828,8 @@ const EditProfile: React.FC = () => {
               exit={{ scale: 0.9, opacity: 0 }}
               className="bg-brand-white dark:bg-brand-dark-card p-8 rounded-[2.5rem] max-w-sm w-full shadow-2xl border border-brand-gray dark:border-brand-black"
             >
-              <div className="w-16 h-16 rounded-2xl bg-red-500/10 flex items-center justify-center mb-6">
-                <Trash2 className="w-8 h-8 text-red-500" />
+              <div className="w-16 h-16 rounded-2xl bg-brand-gray dark:bg-brand-black flex items-center justify-center mb-6">
+                <Trash2 className="w-8 h-8 text-brand-purple" />
               </div>
               <h3 className="text-2xl font-black text-brand-black dark:text-brand-white mb-3">Delete Item?</h3>
               <p className="text-gray-600 dark:text-gray-400 mb-8 font-medium leading-relaxed">This action cannot be undone. Are you sure you want to remove this from your portfolio?</p>
@@ -845,7 +845,7 @@ const EditProfile: React.FC = () => {
                     handleDeleteMedia(showDeleteConfirm);
                     setShowDeleteConfirm(null);
                   }}
-                  className="flex-1 py-4 px-6 rounded-2xl bg-red-500 text-brand-white font-bold hover:bg-red-600 transition-all shadow-lg shadow-red-500/20 active:scale-95"
+                  className="flex-1 py-4 px-6 rounded-2xl bg-brand-purple text-brand-white font-bold hover:bg-brand-purple-hover transition-all shadow-lg active:scale-95"
                 >
                   Delete
                 </button>

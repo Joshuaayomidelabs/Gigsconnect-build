@@ -109,7 +109,7 @@ const Header: React.FC = () => {
                     <User className="w-5 h-5 text-brand-purple" />
                   )}
                 </Link>
-                <button onClick={handleSignOut} className="p-2 text-red-500 hover:bg-red-50 rounded-full transition-all">
+                <button onClick={handleSignOut} className="p-2 text-gray-500 hover:bg-brand-purple/10 hover:text-brand-purple rounded-full transition-all">
                   <LogOut className="w-5 h-5" />
                 </button>
               </div>
@@ -203,7 +203,7 @@ const Header: React.FC = () => {
                 ))}
                 <button 
                   onClick={handleSignOut} 
-                  className="w-full flex items-center gap-3 px-6 py-4 text-lg font-semibold text-red-500 hover:bg-red-50 rounded-2xl transition-colors"
+                  className="w-full flex items-center gap-3 px-6 py-4 text-lg font-semibold text-gray-700 dark:text-gray-300 hover:text-brand-purple hover:bg-brand-purple/10 rounded-2xl transition-colors"
                 >
                   <LogOut className="w-5 h-5" />
                   Sign Out

@@ -3,6 +3,7 @@ import { CheckCircle, Loader2, UserPlus, UserCheck } from "lucide-react";
 import { supabase } from "../services/supabaseClient";
 import { followsService } from "../services/followsService";
 import { useAuth } from "../context/AuthContext";
+import FollowListModal from "./FollowListModal";
 
 interface UserProfileProps {
   userId: string;
@@ -15,6 +16,8 @@ export default function UserProfile({ userId }: UserProfileProps) {
   const [isLoadingStats, setIsLoadingStats] = useState(true);
   const [isFollowing, setIsFollowing] = useState(false);
   const [isTogglingFollow, setIsTogglingFollow] = useState(false);
+  const [showFollowersModal, setShowFollowersModal] = useState(false);
+  const [showFollowingModal, setShowFollowingModal] = useState(false);
 
   useEffect(() => {
     // 1️⃣ Initial fetch
@@ -170,11 +173,11 @@ export default function UserProfile({ userId }: UserProfileProps) {
       </div>
 
       <div className="flex items-center gap-4 border-t border-gray-100 dark:border-gray-700 pt-3 mt-1">
-        <div className="flex flex-col">
+        <div className="flex flex-col cursor-pointer group" onClick={() => setShowFollowersModal(true)}>
           {isLoadingStats ? (
             <div className="h-5 w-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-1"></div>
           ) : (
-            <span className="text-sm font-black text-gray-900 dark:text-gray-100">
+            <span className="text-sm font-black text-gray-900 dark:text-gray-100 group-hover:text-brand-purple transition-colors">
               {formatNumber(stats.followers)}
             </span>
           )}
@@ -185,11 +188,11 @@ export default function UserProfile({ userId }: UserProfileProps) {
         
         <div className="w-px h-6 bg-gray-200 dark:bg-gray-700"></div>
         
-        <div className="flex flex-col">
+        <div className="flex flex-col cursor-pointer group" onClick={() => setShowFollowingModal(true)}>
           {isLoadingStats ? (
             <div className="h-5 w-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-1"></div>
           ) : (
-            <span className="text-sm font-black text-gray-900 dark:text-gray-100">
+            <span className="text-sm font-black text-gray-900 dark:text-gray-100 group-hover:text-brand-purple transition-colors">
               {formatNumber(stats.following)}
             </span>
           )}
@@ -198,6 +201,22 @@ export default function UserProfile({ userId }: UserProfileProps) {
           </span>
         </div>
       </div>
+
+      {showFollowersModal && (
+        <FollowListModal 
+          userId={userId} 
+          type="followers" 
+          onClose={() => setShowFollowersModal(false)} 
+        />
+      )}
+
+      {showFollowingModal && (
+        <FollowListModal 
+          userId={userId} 
+          type="following" 
+          onClose={() => setShowFollowingModal(false)} 
+        />
+      )}
     </div>
   );
 }

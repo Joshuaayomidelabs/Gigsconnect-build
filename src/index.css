@@ -7,13 +7,13 @@
   --font-poppins: "Poppins", sans-serif;
 
   /* Dark Purple Theme Palette */
-  --color-brand-purple: #4B0082;
-  --color-brand-purple-dark: #310055;
-  --color-brand-purple-light: #7B2CBF;
-  --color-brand-purple-soft: #F3E8FF;
+  --color-brand-purple: #6C3BFF;
+  --color-brand-purple-dark: #4F23D6;
+  --color-brand-purple-light: #9D7AFF;
+  --color-brand-purple-soft: #F5F2FF;
   
-  --color-brand-blue: #4B0082; /* Aligning blue with purple for consistency */
-  --color-brand-blue-dark: #310055;
+  --color-brand-blue: #6C3BFF; /* Aligning blue with purple for consistency */
+  --color-brand-blue-dark: #4F23D6;
   
   --color-brand-black: #000000;
   --color-brand-dark: #121212;
@@ -51,7 +51,7 @@
   }
 
   /* Shadows */
-  --shadow-glow: 0 0 20px rgba(75, 0, 130, 0.2);
+  --shadow-glow: 0 0 20px rgba(108, 59, 255, 0.2);
   --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.04);
   --shadow-premium: 0 20px 50px rgba(0, 0, 0, 0.08);
 }
@@ -84,11 +84,11 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .gradient-premium {
-  background: linear-gradient(135deg, #4B0082 0%, #000000 100%);
+  background: linear-gradient(135deg, #6C3BFF 0%, #000000 100%);
 }
 
 .gradient-bg {
-  background: linear-gradient(-45deg, #F8F9FC, #F3E8FF, #FFFFFF, #E9D5FF, #F8F9FC, #00000003);
+  background: linear-gradient(-45deg, #F8F9FC, #F5F2FF, #FFFFFF, #E9D5FF, #F8F9FC, #00000003);
   background-size: 400% 400%;
   animation: bg-gradient 60s ease infinite;
 }
@@ -97,15 +97,15 @@ h1, h2, h3, h4, h5, h6 {
   background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(75, 0, 130, 0.1);
-  box-shadow: 0 8px 32px 0 rgba(75, 0, 130, 0.05);
+  border: 1px solid rgba(108, 59, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(108, 59, 255, 0.05);
 }
 
 .glass-card {
   background: rgba(255, 255, 255, 0.5);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(75, 0, 130, 0.05);
+  border: 1px solid rgba(108, 59, 255, 0.05);
   box-shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.02);
 }
 
@@ -122,7 +122,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .text-gradient {
-  background: linear-gradient(135deg, #4B0082 0%, #000000 100%);
+  background: linear-gradient(135deg, #6C3BFF 0%, #000000 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -131,7 +131,7 @@ h1, h2, h3, h4, h5, h6 {
   background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(75, 0, 130, 0.1);
+  border: 1px solid rgba(108, 59, 255, 0.1);
 }
 
 .glass-dark {

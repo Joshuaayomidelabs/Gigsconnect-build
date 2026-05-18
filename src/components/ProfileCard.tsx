@@ -5,6 +5,7 @@ import { followsService } from '../services/followsService';
 import { profilesService } from '../services/profilesService';
 import { supabase } from '../services/supabaseClient';
 import { toast } from 'sonner';
+import FollowListModal from './FollowListModal';
 
 interface ProfileCardProps {
   profile?: any;
@@ -23,6 +24,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile: initialProfile, user
   const [stats, setStats] = useState({ followers: 0, following: 0 });
   const [isFollowing, setIsFollowing] = useState(false);
   const [isLoadingStats, setIsLoadingStats] = useState(true);
+  const [showFollowersModal, setShowFollowersModal] = useState(false);
+  const [showFollowingModal, setShowFollowingModal] = useState(false);
 
   // Fetch Profile Data
   useEffect(() => {
@@ -238,7 +241,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile: initialProfile, user
 
       {/* Social Stats Section */}
       <div className="flex items-center justify-center gap-6 w-full mb-5">
-        <div className="flex flex-col items-center cursor-pointer group" onClick={() => toast("Followers list coming soon!")}>
+        <div className="flex flex-col items-center cursor-pointer group" onClick={() => setShowFollowersModal(true)}>
           {isLoadingStats ? (
              <div className="h-6 w-8 bg-gray-200 dark:bg-gray-800 rounded mb-1 animate-pulse"></div>
           ) : (
@@ -253,7 +256,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile: initialProfile, user
         
         <div className="w-px h-8 bg-gray-200 dark:bg-[#1F1F23]"></div>
         
-        <div className="flex flex-col items-center cursor-pointer group" onClick={() => toast("Following list coming soon!")}>
+        <div className="flex flex-col items-center cursor-pointer group" onClick={() => setShowFollowingModal(true)}>
           {isLoadingStats ? (
              <div className="h-6 w-8 bg-gray-200 dark:bg-gray-800 rounded mb-1 animate-pulse"></div>
           ) : (
@@ -289,6 +292,22 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile: initialProfile, user
             </>
           )}
         </button>
+      )}
+
+      {showFollowersModal && (
+        <FollowListModal 
+          userId={targetUserId} 
+          type="followers" 
+          onClose={() => setShowFollowersModal(false)} 
+        />
+      )}
+
+      {showFollowingModal && (
+        <FollowListModal 
+          userId={targetUserId} 
+          type="following" 
+          onClose={() => setShowFollowingModal(false)} 
+        />
       )}
     </div>
   );

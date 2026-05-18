@@ -66,9 +66,9 @@ const featuredCreators = [
 
 const CreatorBadge = ({ type }: { type: string }) => {
   const configs: Record<string, { icon: any, color: string, bg: string }> = {
-    'Verified': { icon: <CheckCircle2 className="w-3 h-3" />, color: 'text-blue-500', bg: 'bg-blue-500/10' },
-    'Trending': { icon: <TrendingUp className="w-3 h-3" />, color: 'text-orange-500', bg: 'bg-orange-500/10' },
-    'Top Performer': { icon: <Award className="w-3 h-3" />, color: 'text-yellow-600', bg: 'bg-yellow-500/10' },
+    'Verified': { icon: <CheckCircle2 className="w-3 h-3" />, color: 'text-brand-purple', bg: 'bg-brand-purple/10' },
+    'Trending': { icon: <TrendingUp className="w-3 h-3" />, color: 'text-brand-purple', bg: 'bg-brand-purple/10' },
+    'Top Performer': { icon: <Award className="w-3 h-3" />, color: 'text-brand-purple', bg: 'bg-brand-purple/10' },
   };
 
   const config = configs[type] || configs['Verified'];
@@ -183,8 +183,17 @@ const Dashboard: React.FC = () => {
   }
 
   return (
-    <div className="pt-24 pb-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto min-h-screen bg-brand-gray dark:bg-brand-black transition-colors duration-500">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <div className="relative pt-24 pb-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto min-h-screen transition-colors duration-500">
+      
+      {/* Background glow effects to make glass cards pop */}
+      <div className="fixed inset-0 pointer-events-none -z-10 bg-brand-gray dark:bg-[#0a0a0c]">
+        {/* Ambient Top Glow */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-brand-purple/5 sm:bg-brand-purple/10 blur-[120px] rounded-full opacity-50 dark:opacity-20 hidden sm:block"></div>
+        {/* Subtle Grid overlay */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:14px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]"></div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 relative z-0">
         
         {/* Left Column: Profile (Hidden on mobile, sidebar on desktop) */}
         <div className="hidden lg:block lg:col-span-3 space-y-6 sticky top-24 h-fit">
@@ -262,51 +271,53 @@ const Dashboard: React.FC = () => {
           </section>
 
           {/* Feed Items */}
-          <AnimatePresence mode="wait">
-            {activeTab === "community" ? (
-              <motion.div
-                key="community"
-                initial={{ opacity: 0, x: 50 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -50 }}
-                transition={{ duration: 0.3 }}
-                drag="x"
-                dragConstraints={{ left: 0, right: 0 }}
-                onDragEnd={(event, info) => {
-                  if (info.offset.x < -50) {
-                    setActiveTab("gigs"); // swipe left
-                  }
-                }}
-              >
-                <CommunityFeed />
-              </motion.div>
-            ) : (
-              <motion.div
-                key="gigs"
-                initial={{ opacity: 0, x: -50 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 50 }}
-                transition={{ duration: 0.3 }}
-                drag="x"
-                dragConstraints={{ left: 0, right: 0 }}
-                onDragEnd={(event, info) => {
-                  if (info.offset.x > 50) {
-                    setActiveTab("community"); // swipe right
-                  }
-                }}
-              >
-                <GigsFeed
-                  gigs={gigs}
-                  visibleCount={visibleCount}
-                  setVisibleCount={setVisibleCount}
-                  loading={loading}
-                  handleViewDetails={handleViewDetails}
-                  handleApply={handleApply}
-                  appliedGigIds={appliedGigIds}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
+          <div className="-mx-4 sm:mx-0">
+            <AnimatePresence mode="wait">
+              {activeTab === "community" ? (
+                <motion.div
+                  key="community"
+                  initial={{ opacity: 0, x: 50 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -50 }}
+                  transition={{ duration: 0.3 }}
+                  drag="x"
+                  dragConstraints={{ left: 0, right: 0 }}
+                  onDragEnd={(event, info) => {
+                    if (info.offset.x < -50) {
+                      setActiveTab("gigs"); // swipe left
+                    }
+                  }}
+                >
+                  <CommunityFeed />
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="gigs"
+                  initial={{ opacity: 0, x: -50 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 50 }}
+                  transition={{ duration: 0.3 }}
+                  drag="x"
+                  dragConstraints={{ left: 0, right: 0 }}
+                  onDragEnd={(event, info) => {
+                    if (info.offset.x > 50) {
+                      setActiveTab("community"); // swipe right
+                    }
+                  }}
+                >
+                  <GigsFeed
+                    gigs={gigs}
+                    visibleCount={visibleCount}
+                    setVisibleCount={setVisibleCount}
+                    loading={loading}
+                    handleViewDetails={handleViewDetails}
+                    handleApply={handleApply}
+                    appliedGigIds={appliedGigIds}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
 
         {/* Right Column: Suggestions & Trending (Hidden on mobile) */}

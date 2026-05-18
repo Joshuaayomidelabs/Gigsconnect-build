@@ -156,7 +156,7 @@ const GigCard: React.FC<GigCardProps> = ({ gig, onApply, onViewDetails, onViewAp
           <button 
             onClick={(e) => { e.stopPropagation(); onDelete(gig.id); }}
             disabled={isDeleting}
-            className="p-2 rounded-xl bg-red-50 dark:bg-red-900/10 text-red-500 hover:bg-red-500 hover:text-white transition-all active:scale-90 disabled:opacity-50 border border-red-100 dark:border-red-900/20"
+            className="p-2 rounded-xl bg-brand-gray dark:bg-brand-black text-gray-500 hover:bg-brand-purple/10 hover:text-brand-purple transition-all active:scale-90 disabled:opacity-50 border border-brand-gray dark:border-white/5"
           >
             {isDeleting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
           </button>

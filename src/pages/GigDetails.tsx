@@ -191,7 +191,7 @@ const GigDetails: React.FC = () => {
               <button 
                 onClick={handleDelete}
                 disabled={isDeleting}
-                className="flex items-center gap-2 px-6 py-3 rounded-xl bg-red-50 dark:bg-red-900/10 text-red-500 font-bold hover:bg-red-100 dark:hover:bg-red-900/20 transition-all active:scale-95 disabled:opacity-50"
+                className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gray-100 dark:bg-[#1A1A1E] text-gray-700 dark:text-gray-300 font-bold hover:bg-brand-purple hover:text-white transition-all active:scale-95 disabled:opacity-50"
               >
                 {isDeleting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Trash2 className="w-5 h-5" />}
                 Delete Gig

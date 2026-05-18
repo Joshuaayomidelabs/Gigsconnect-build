@@ -90,25 +90,34 @@ export default function CommunityFeed() {
 
   if (loading) {
     return (
-      <div className="flex flex-col pb-12 w-full max-w-[600px] mx-auto">
+      <div className="flex flex-col pb-12 w-full sm:max-w-[600px] mx-auto">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="bg-white dark:bg-[#1a1a1a] sm:rounded-[16px] border-b sm:border border-gray-100 dark:border-[#2a2a2a] mb-6 animate-pulse">
-            <div className="flex items-center gap-3 p-4">
-              <div className="w-[40px] h-[40px] rounded-full bg-gray-200 dark:bg-gray-800 shrink-0"></div>
-              <div className="flex flex-col gap-2 flex-1">
-                <div className="h-3.5 bg-gray-200 dark:bg-gray-800 rounded w-32"></div>
-                <div className="h-2.5 bg-gray-200 dark:bg-gray-800 rounded w-20"></div>
+          <div key={i} className="relative w-full sm:max-w-[600px] mx-auto mb-10 sm:mb-14">
+            <div className="bg-white dark:bg-[#0F0F12]/90 sm:backdrop-blur-3xl sm:rounded-[40px] sm:border border-gray-200/50 dark:border-[#1F1F23]/80 sm:shadow-[0_8px_30px_rgb(0,0,0,0.04)] sm:dark:shadow-[0_8px_30px_rgb(0,0,0,0.3)] overflow-hidden flex flex-col relative z-0 animate-pulse border-y border-gray-200 dark:border-[#1F1F23]">
+              <div className="flex items-center gap-3 px-4 sm:px-6 pt-5 pb-3">
+                <div className="w-[44px] h-[44px] rounded-full bg-gray-200 dark:bg-[#1A1A1E]"></div>
+                <div className="flex flex-col gap-2 flex-1">
+                  <div className="h-3.5 bg-gray-200 dark:bg-[#1A1A1E] rounded w-32"></div>
+                  <div className="h-2.5 bg-gray-200 dark:bg-[#1A1A1E] rounded w-20"></div>
+                </div>
               </div>
-            </div>
-            <div className="px-4 pb-3 space-y-2">
-              <div className="h-3.5 bg-gray-200 dark:bg-gray-800 rounded w-full"></div>
-              <div className="h-3.5 bg-gray-200 dark:bg-gray-800 rounded w-[80%]"></div>
-            </div>
-            <div className="w-full h-[300px] bg-gray-200 dark:bg-gray-800 mt-2"></div>
-            <div className="p-4 flex gap-4">
-              <div className="w-[26px] h-[26px] rounded-full bg-gray-200 dark:bg-gray-800"></div>
-              <div className="w-[26px] h-[26px] rounded-full bg-gray-200 dark:bg-gray-800"></div>
-              <div className="w-[26px] h-[26px] rounded-full bg-gray-200 dark:bg-gray-800"></div>
+              <div className="px-5 sm:px-7 pb-4 space-y-2">
+                <div className="h-4 bg-gray-200 dark:bg-[#1A1A1E] rounded w-full"></div>
+                <div className="h-4 bg-gray-200 dark:bg-[#1A1A1E] rounded w-[80%]"></div>
+              </div>
+              <div className="w-full">
+                <div className="w-full aspect-[4/5] sm:rounded-[24px] bg-gray-200 dark:bg-[#1A1A1E]"></div>
+              </div>
+              <div className="px-4 sm:px-5 pt-3 pb-4 flex items-center justify-between">
+                <div className="flex gap-2">
+                  <div className="w-10 h-10 rounded-2xl bg-gray-200 dark:bg-[#1A1A1E]"></div>
+                  <div className="w-10 h-10 rounded-2xl bg-gray-200 dark:bg-[#1A1A1E]"></div>
+                </div>
+                <div className="flex gap-2">
+                  <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-[#1A1A1E]"></div>
+                  <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-[#1A1A1E]"></div>
+                </div>
+              </div>
             </div>
           </div>
         ))}
@@ -129,7 +138,7 @@ export default function CommunityFeed() {
   }
 
   return (
-    <div className="flex flex-col pb-12 w-full max-w-[600px] mx-auto">
+    <div className="flex flex-col pb-12 w-full sm:max-w-[600px] mx-auto">
       {posts.map((post) => (
         <PostCard 
           key={post.id} 

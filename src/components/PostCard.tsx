@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Heart, MessageCircle, Send, MoreHorizontal, Trash2, X, Loader2 } from 'lucide-react';
+import { Heart, MessageCircle, Send, MoreHorizontal, Trash2, X, Loader2, Bookmark, BadgeCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { communityService } from '../services/communityService';
@@ -66,6 +66,19 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
   const [isLoadingComments, setIsLoadingComments] = useState(false);
 
   const isOwner = user?.id === post.user_id;
+
+  // Sync props to state for real-time updates from parent
+  useEffect(() => {
+    setIsLiked(post.is_liked);
+  }, [post.is_liked]);
+
+  useEffect(() => {
+    setLikesCount(post.likes_count || 0);
+  }, [post.likes_count]);
+
+  useEffect(() => {
+    setCommentsCount(post.comments_count || 0);
+  }, [post.comments_count]);
 
   useEffect(() => {
     if (!videoRef.current) return;
@@ -182,140 +195,197 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
     }
   };
 
+  const [isExpanded, setIsExpanded] = useState(false);
+  const isLongText = post.text && post.text.length > 100;
+
   if (isDeleting) return null; // Simple optimistic removal from DOM
 
   return (
-    <div className="bg-white dark:bg-[#121214] rounded-none sm:rounded-[20px] border-b sm:border border-gray-100 dark:border-[#1F1F23]/80 overflow-hidden max-w-[600px] mx-auto w-full shadow-sm hover:shadow-md dark:shadow-none dark:hover:shadow-[0_4px_20px_rgba(0,0,0,0.4)] transition-all duration-300 sm:hover:-translate-y-[2px] mb-6">
-      {/* Header */}
-      <div className="flex items-center gap-3 p-5 pb-4">
-        <div 
-          onClick={() => navigate(`/profile/${post.user_id}`)}
-          className="w-[44px] h-[44px] rounded-full overflow-hidden bg-gray-200 dark:bg-gray-800 shrink-0 border border-gray-100 dark:border-[#1F1F23] cursor-pointer hover:opacity-80 transition-opacity"
-        >
-          <img
-            src={post.user?.avatar_url || 'https://picsum.photos/seed/default/100'}
-            alt={post.user?.full_name || 'User'}
-            className="w-full h-full object-cover"
-            referrerPolicy="no-referrer"
-          />
-        </div>
-        <div className="flex flex-col flex-1">
-          <span 
-            onClick={() => navigate(`/profile/${post.user_id}`)}
-            className="font-bold text-[14px] text-gray-900 dark:text-white leading-tight mb-0.5 cursor-pointer hover:underline"
-          >
-            {post.user?.full_name || 'Anonymous User'}
-          </span>
-          <span className="text-[12px] text-gray-500 font-medium">
-            {formattedDate}
-          </span>
-        </div>
+    <div className="w-full sm:max-w-[600px] mx-auto mb-6 sm:mb-8 group/post">
+      <div className="bg-white dark:bg-[#0F0F12] sm:rounded-2xl border-y sm:border border-gray-200 dark:border-[#1F1F23] flex flex-col relative z-0 overflow-hidden shadow-sm">
         
-        {isOwner && (
-          <div className="relative">
-            <button 
-              onClick={() => {
-                setShowOptions(!showOptions);
-                setConfirmDelete(false);
-              }}
-              className="p-2 text-[#9CA3AF] hover:text-[#A78BFA] active:text-[#6C2BD9] rounded-full transition-all duration-200 ease-in-out active:scale-105"
+        {/* HEADER */}
+        <div className="flex items-center gap-3 px-3 sm:px-4 py-3">
+          <div 
+            onClick={() => navigate(`/profile/${post.user_id}`)}
+            className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-800 shrink-0 cursor-pointer object-cover"
+          >
+            <img
+              src={post.user?.avatar_url || 'https://picsum.photos/seed/default/100'}
+              alt={post.user?.full_name || 'User'}
+              className="w-full h-full object-cover"
+              referrerPolicy="no-referrer"
+            />
+          </div>
+          <div className="flex flex-col flex-1">
+            <div className="flex items-center gap-1">
+              <span 
+                onClick={() => navigate(`/profile/${post.user_id}`)}
+                className="font-bold text-[14px] text-gray-900 dark:text-white leading-tight cursor-pointer hover:underline"
+              >
+                {post.user?.full_name || 'Anonymous User'}
+              </span>
+              <BadgeCheck className="w-3.5 h-3.5 text-brand-purple" />
+            </div>
+            <span className="text-[12px] text-gray-500 font-medium">
+              {formattedDate} • London, UK
+            </span>
+          </div>
+          
+          {isOwner && (
+            <div className="relative">
+              <button 
+                onClick={() => {
+                  setShowOptions(!showOptions);
+                  setConfirmDelete(false);
+                }}
+                className="p-2 text-gray-900 dark:text-white transition-all active:opacity-50"
+              >
+                <MoreHorizontal className="w-5 h-5" />
+              </button>
+              
+              {showOptions && (
+                <div className="absolute right-0 mt-1 w-48 bg-white dark:bg-[#1A1A1E] rounded-xl shadow-lg border border-gray-100 dark:border-[#2A2A2F] overflow-hidden z-20 py-1">
+                  <button 
+                    onClick={handleDelete}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-[14px] font-bold text-red-500 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    {confirmDelete ? "Tap to confirm" : "Delete"}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* MEDIA */}
+        {(post.image_urls?.length || post.video_url) ? (
+          <div className="w-full">
+            <div className="relative w-full aspect-[4/5] bg-brand-gray dark:bg-[#0A0A0C] group/media">
+              {post.image_urls && post.image_urls.length > 0 && (
+                <div className="absolute inset-0 flex overflow-x-auto snap-x snap-mandatory no-scrollbar h-full w-full">
+                  {post.image_urls.map((url, i) => (
+                    <div key={i} className="flex-none w-full h-full snap-center relative">
+                      <img
+                        src={url}
+                        alt={`Post media ${i + 1}`}
+                        className="w-full h-full object-cover"
+                        referrerPolicy="no-referrer"
+                        loading={i === 0 ? "lazy" : "eager"}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+              {post.video_url && (
+                <video 
+                  ref={videoRef}
+                  src={post.video_url} 
+                  controls 
+                  loop
+                  muted
+                  playsInline
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+              )}
+              {post.image_urls && post.image_urls.length > 1 && (
+                <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-md px-2 py-1 rounded-full text-white text-[10px] font-bold tracking-wide">
+                  1/{post.image_urls.length}
+                </div>
+              )}
+            </div>
+          </div>
+        ) : null}
+
+        {/* ACTIONS */}
+        <div className="flex items-center justify-between px-3 sm:px-4 py-3">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={handleLike}
+              className="active:opacity-50 transition-opacity"
+              aria-label="Like post"
             >
-              <MoreHorizontal className="w-5 h-5" />
+              <Heart className={`w-[26px] h-[26px] ${isLiked ? 'fill-brand-purple text-brand-purple' : 'text-gray-900 dark:text-white'}`} strokeWidth={isLiked ? 2.5 : 1.5} />
             </button>
             
-            {showOptions && (
-              <div className="absolute right-0 mt-1 w-48 bg-white dark:bg-[#0F0F12] rounded-xl shadow-xl border border-gray-100 dark:border-[#1F1F23]/60 overflow-hidden z-10 py-1">
-                <button 
-                  onClick={handleDelete}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  {confirmDelete ? "Click again to confirm" : "Delete Post"}
-                </button>
-              </div>
+            <button 
+              onClick={handleToggleComments}
+              className="active:opacity-50 transition-opacity text-gray-900 dark:text-white"
+              aria-label="Comment"
+            >
+              <MessageCircle className="w-[26px] h-[26px]" strokeWidth={1.5} />
+            </button>
+            
+            <button 
+              className="active:opacity-50 transition-opacity text-gray-900 dark:text-white"
+              aria-label="Share"
+            >
+              <Send className="w-[26px] h-[26px] -mt-1" strokeWidth={1.5} />
+            </button>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <button className="px-4 py-1.5 bg-brand-black dark:bg-white text-white dark:text-black text-[13px] font-bold rounded-lg hover:opacity-80 transition-opacity shadow-sm">
+              Book Artist
+            </button>
+            <button 
+              className="active:opacity-50 transition-opacity text-gray-900 dark:text-white"
+              aria-label="Save"
+            >
+              <Bookmark className="w-[26px] h-[26px]" strokeWidth={1.5} />
+            </button>
+          </div>
+        </div>
+
+        {/* LIKES COUNT */}
+        {likesCount > 0 && (
+          <div className="px-3 sm:px-4 text-[14px] font-bold text-gray-900 dark:text-white mb-1">
+            {likesCount} {likesCount === 1 ? 'like' : 'likes'}
+          </div>
+        )}
+
+        {/* CAPTION */}
+        {post.text && (
+          <div className="px-3 sm:px-4 text-[14px] text-gray-900 dark:text-white leading-tight mb-2">
+            <span className="font-bold mr-2 cursor-pointer hover:underline" onClick={() => navigate(`/profile/${post.user_id}`)}>
+              {post.user?.full_name || 'Anonymous User'}
+            </span>
+            <span>
+              {isExpanded ? post.text : isLongText ? (post.text.substring(0, 100) + '...') : post.text}
+            </span>
+            {isLongText && !isExpanded && (
+              <button 
+                onClick={() => setIsExpanded(true)}
+                className="text-gray-500 font-medium ml-1"
+              >
+                more
+              </button>
             )}
           </div>
         )}
-      </div>
 
-      {/* Body / Text */}
-      {post.text && (
-        <div className="px-5 pb-4 text-[15px] text-gray-800 dark:text-gray-200 whitespace-pre-wrap leading-[1.6]">
-          {post.text}
-        </div>
-      )}
-
-      {/* Optional Image */}
-      {post.image_urls && post.image_urls.length > 0 && (
-        <div className="w-full bg-gray-50 dark:bg-[#0A0A0C] border-y border-gray-100 dark:border-[#1F1F23]/50">
-          <img
-            src={post.image_urls[0]}
-            alt="Post content"
-            className="w-full h-auto object-cover max-h-[600px]"
-            referrerPolicy="no-referrer"
-          />
-        </div>
-      )}
-
-      {/* Optional Video */}
-      {post.video_url && (
-        <div className="w-full bg-black/5 dark:bg-[#0A0A0C] border-y border-gray-100 dark:border-[#1F1F23]/50">
-          <video 
-            ref={videoRef}
-            src={post.video_url} 
-            controls 
-            loop
-            muted
-            playsInline
-            className="w-full h-auto max-h-[600px] object-contain"
-          />
-        </div>
-      )}
-
-      {/* View all comments */}
-      {commentsCount > 0 && (
-        <div className="px-5 pt-4 pb-1">
-          <button 
-            onClick={handleToggleComments}
-            className="text-[14px] text-[#9CA3AF] text-left hover:text-[#A78BFA] active:text-[#6C2BD9] transition-all duration-200 w-fit font-medium active:scale-[0.98]"
-          >
-            View all {commentsCount} comments
-          </button>
-        </div>
-      )}
-
-      {/* Compact Engagement Bar */}
-      <div className={`px-5 py-3.5 mt-1 flex items-center ${commentsCount > 0 ? '' : 'border-t border-gray-100 dark:border-[#1F1F23]/60'}`}>
-        <div className="flex items-center gap-6 text-[#9CA3AF]">
-          {/* Like */}
-          <button
-            onClick={handleLike}
-            className={`flex items-center gap-1.5 transition-all duration-200 ease-in-out active:scale-105 group font-medium text-[14px] ${isLiked ? 'text-[#6C2BD9]' : 'hover:text-[#A78BFA] active:text-[#6C2BD9]'}`}
-            aria-label="Like post"
-          >
-            <Heart className={`w-[22px] h-[22px] transition-colors duration-200 ${isLiked ? 'fill-[#6C2BD9] text-[#6C2BD9]' : ''}`} />
-            {likesCount > 0 ? likesCount : ''}
-          </button>
-          
-          {/* Comment */}
-          <button 
-            onClick={handleToggleComments}
-            className="flex items-center gap-1.5 transition-all duration-200 ease-in-out active:scale-105 hover:text-[#A78BFA] active:text-[#6C2BD9] group font-medium text-[14px]"
-            aria-label="Comment"
-          >
-            <MessageCircle className="w-[22px] h-[22px]" />
-            {commentsCount > 0 ? commentsCount : ''}
-          </button>
+        {/* CREATOR TAGS */}
+        <div className="px-3 sm:px-4 flex flex-wrap gap-2 mb-3 mt-1">
+          <span className="px-3 py-1 bg-gray-100 dark:bg-[#1A1A1E] text-[11px] font-semibold rounded-full text-gray-700 dark:text-gray-300">
+            🎶 Music Production
+          </span>
+          <span className="px-3 py-1 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 text-[11px] font-semibold rounded-full border border-green-200 dark:border-green-800">
+            Available for gigs
+          </span>
         </div>
 
-        {/* Share */}
-        <button 
-          className="flex items-center gap-1.5 ml-auto transition-all duration-200 ease-in-out active:scale-105 text-[#9CA3AF] hover:text-[#A78BFA] active:text-[#6C2BD9] font-medium text-[14px]"
-          aria-label="Share"
-        >
-          <Send className="w-[20px] h-[20px] ml-[2px] mt-[-2px]" />
-          <span className="hidden sm:inline">Share</span>
-        </button>
+        {/* VIEW ALL COMMENTS */}
+        {commentsCount > 0 && (
+          <div className="px-3 sm:px-4 pb-4">
+            <button 
+              onClick={handleToggleComments}
+              className="text-[14px] text-gray-500 font-medium active:opacity-50"
+            >
+              View all {commentsCount} comments
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Comments Modal (Mobile-first Bottom Sheet) */}
