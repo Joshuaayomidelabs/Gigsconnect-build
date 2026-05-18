@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, Check, ExternalLink, MessageSquare, Briefcase, Info, Loader2, XCircle, CheckCircle } from 'lucide-react';
+import { Bell, Check, ExternalLink, MessageSquare, Briefcase, Info, Loader2, XCircle, CheckCircle, UserPlus } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -66,6 +66,7 @@ const Notifications: React.FC = () => {
       case 'gig_application': return <Briefcase className="w-6 h-6 text-brand-purple" />;
       case 'message_new': return <MessageSquare className="w-6 h-6 text-brand-purple" />;
       case 'application_update': return <Check className="w-6 h-6 text-brand-purple" />;
+      case 'follow': return <UserPlus className="w-6 h-6 text-brand-purple" />;
       default: return <Info className="w-6 h-6 text-gray-500 dark:text-gray-400" />;
     }
   };
@@ -142,8 +143,16 @@ const Notifications: React.FC = () => {
                               navigate(`/applications/${notif.reference_id}`);
                               break;
 
+                            case "follow":
+                              if (notif.link) navigate(notif.link);
+                              break;
+
                             default:
-                              console.warn("Unknown notification type:", notif.type);
+                              if (notif.link?.startsWith('/')) {
+                                navigate(notif.link);
+                              } else {
+                                console.warn("Unknown notification type:", notif.type);
+                              }
                               break;
                           }
                         }}

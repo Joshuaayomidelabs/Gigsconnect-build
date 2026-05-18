@@ -38,6 +38,8 @@ interface PostCardProps {
     user: {
       full_name: string;
       avatar_url: string;
+      city?: string;
+      country?: string;
     };
     likes_count: number;
     comments_count?: number;
@@ -264,7 +266,7 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
               <BadgeCheck className="w-3.5 h-3.5 text-brand-purple" />
             </div>
             <span className="text-[12px] text-gray-500 font-medium">
-              {formattedDate} • London, UK
+              {formattedDate} {post.user?.city && post.user?.country ? `• ${post.user.city}, ${post.user.country}` : ''}
             </span>
           </div>
           
@@ -463,7 +465,13 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
               ) : (
                 comments.map((comment) => (
                   <div key={comment.id} className="flex gap-3">
-                    <div className="w-[36px] h-[36px] rounded-full overflow-hidden bg-[#0F0F12] shrink-0 border border-[#1F1F23]">
+                    <div 
+                      onClick={() => {
+                        setShowComments(false);
+                        navigate(`/profile/${comment.user_id}`);
+                      }}
+                      className="w-[36px] h-[36px] rounded-full overflow-hidden bg-[#0F0F12] shrink-0 border border-[#1F1F23] cursor-pointer"
+                    >
                       <img
                         src={comment.user?.avatar_url || 'https://picsum.photos/seed/default/100'}
                         alt={comment.user?.full_name || 'User'}
@@ -473,7 +481,13 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
                     </div>
                     <div className="flex flex-col flex-1">
                       <div className="flex items-baseline gap-2 mb-0.5">
-                        <span className="font-bold text-[14px] text-white">
+                        <span 
+                          onClick={() => {
+                            setShowComments(false);
+                            navigate(`/profile/${comment.user_id}`);
+                          }}
+                          className="font-bold text-[14px] text-white cursor-pointer hover:underline"
+                        >
                           {comment.user?.full_name || 'Anonymous User'}
                         </span>
                         <span className="text-[12px] text-[#9CA3AF]">

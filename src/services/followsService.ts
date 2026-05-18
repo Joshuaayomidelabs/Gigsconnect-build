@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient';
+import { notificationsService } from './notificationsService';
 
 export const followsService = {
   async getFollowStats(userId: string) {
@@ -44,6 +45,22 @@ export const followsService = {
           .from('follows')
           .insert({ follower_id: followerId, following_id: followingId });
         if (error) throw error;
+        
+        // Notify
+        const { data: profileObj } = await supabase.from('profiles').select('full_name, avatar_url').eq('id', followerId).maybeSingle();
+        
+        await notificationsService.createNotification({
+          user_id: followingId,
+          type: 'follow',
+          title: 'New Follower',
+          message: `${profileObj?.full_name || 'Someone'} started following you`,
+          link: `/profile/${followerId}`,
+          reference_id: followerId,
+          metadata: {
+            applicant_name: profileObj?.full_name,
+            applicant_avatar: profileObj?.avatar_url
+          }
+        });
       }
       return { error: null };
     } catch (err: any) {

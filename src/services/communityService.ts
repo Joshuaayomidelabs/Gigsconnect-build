@@ -231,12 +231,19 @@ export const communityService = {
       
       if (!error) {
         // Notify
+        const { data: profileObj } = await supabase.from('profiles').select('full_name, avatar_url').eq('id', followerId).maybeSingle();
+        
         await notificationsService.createNotification({
           user_id: followingId,
-          type: 'system',
+          type: 'follow',
           title: 'New Follower',
-          message: 'Someone started following you',
+          message: `${profileObj?.full_name || 'Someone'} started following you`,
+          link: `/profile/${followerId}`,
           reference_id: followerId,
+          metadata: {
+            applicant_name: profileObj?.full_name,
+            applicant_avatar: profileObj?.avatar_url
+          }
         });
       }
       

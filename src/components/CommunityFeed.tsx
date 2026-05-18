@@ -6,6 +6,8 @@ import { supabase } from '../services/supabaseClient';
 interface PostUser {
   full_name: string;
   avatar_url: string;
+  city?: string;
+  country?: string;
 }
 
 export interface Post {
