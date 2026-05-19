@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { Compass, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import GigCard from './GigCard';
+import { GigCardSkeleton } from './Skeleton';
 
 interface GigsFeedProps {
   gigs: any[];
@@ -25,24 +26,32 @@ export default function GigsFeed({
 }: GigsFeedProps) {
   return (
     <section className="space-y-4 lg:space-y-6">
-      <div>
-        {gigs.slice(0, visibleCount).map((gig, i) => (
-          <motion.div
-            key={`gig-${gig.id}`}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ delay: (i % 8) * 0.05 }}
-          >
-            <GigCard 
-              gig={gig} 
-              onViewDetails={handleViewDetails} 
-              onApply={handleApply} 
-              initialIsApplied={appliedGigIds.has(gig.id)}
-            />
-          </motion.div>
-        ))}
-      </div>
+      {loading ? (
+        <div className="space-y-4">
+          {[...Array(3)].map((_, i) => (
+            <GigCardSkeleton key={i} />
+          ))}
+        </div>
+      ) : (
+        <div>
+          {gigs.slice(0, visibleCount).map((gig, i) => (
+            <motion.div
+              key={`gig-${gig.id}`}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ delay: (i % 8) * 0.05 }}
+            >
+              <GigCard 
+                gig={gig} 
+                onViewDetails={handleViewDetails} 
+                onApply={handleApply} 
+                initialIsApplied={appliedGigIds.has(gig.id)}
+              />
+            </motion.div>
+          ))}
+        </div>
+      )}
 
       {gigs.length === 0 && !loading && (
         <div className="bg-brand-white dark:bg-brand-dark-card rounded-[2.5rem] p-12 text-center border border-dashed border-brand-gray dark:border-brand-dark-card mx-2">

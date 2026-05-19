@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, MessageSquare, Briefcase, Image as ImageIcon } from 'lucide-react';
+import { X, MessageSquare, Briefcase } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface CreateHubModalProps {
@@ -74,23 +74,12 @@ export default function CreateHubModal({ isOpen, onClose }: CreateHubModalProps)
                   <Briefcase className="w-7 h-7 text-[#4B0082] dark:text-[#b088f5]" />
                 </div>
                 <div className="flex flex-col flex-1">
-                  <span className="font-bold text-[16px] text-gray-900 dark:text-white mb-0.5">Offer a service</span>
-                  <span className="text-[14px] text-gray-500 dark:text-gray-400">Skills, jobs, opportunities</span>
+                  <span className="font-bold text-[16px] text-gray-900 dark:text-white mb-0.5">Offer a skill, job or opportunity</span>
+                  <span className="text-[14px] text-gray-500 dark:text-gray-400">Post a gig to the marketplace</span>
                 </div>
               </button>
 
-              {/* OPTIONAL FUTURE SECTION */}
-              <div
-                className="flex items-center gap-4 p-4 rounded-[20px] bg-gray-50 dark:bg-[#111111] border border-transparent opacity-60 text-left mt-2"
-              >
-                <div className="w-14 h-14 rounded-[14px] bg-gray-200 dark:bg-[#2a2a2a] flex items-center justify-center shrink-0">
-                  <ImageIcon className="w-7 h-7 text-gray-400 dark:text-gray-600" />
-                </div>
-                <div className="flex flex-col flex-1">
-                  <span className="font-bold text-[16px] text-gray-900 dark:text-gray-400 mb-0.5">Upload Media</span>
-                  <span className="text-[14px] text-gray-500">Coming soon</span>
-                </div>
-              </div>
+
             </div>
           </motion.div>
         </>

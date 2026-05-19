@@ -76,21 +76,33 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
   }, [user?.id]);
 
   const markAsRead = async (id: string) => {
+    // Optimistic update
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
     const { error } = await notificationsService.markAsRead(id);
-    if (!error) {
-      setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
+    if (error) {
+      // Revert optimism if error
+      setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: false } : n));
+      console.error("Failed to mark notification as read:", error);
     }
   };
 
   const markAllAsRead = async () => {
     if (!user?.id) return;
     
+    // Find unread IDs before optimistic update
+    const unreadIds = notifications.filter(n => !n.is_read).map(n => n.id);
+    if (unreadIds.length === 0) return;
+
     // Optimistic update for instant UI response
     setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
     
     const { error } = await notificationsService.markAllAsRead(user.id);
     if (error) {
-      console.error("Failed to mark all as read:", error);
+      console.error("Failed to mark all as read (batch), falling back to individual updates:", error);
+      // Fallback if bulk update is forbidden or fails
+      for (const id of unreadIds) {
+        await notificationsService.markAsRead(id);
+      }
     }
   };
 

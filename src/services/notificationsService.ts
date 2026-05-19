@@ -46,7 +46,8 @@ export const notificationsService = {
       .from('notifications')
       .update({ is_read: true })
       .eq('user_id', userId)
-      .eq('is_read', false);
+      .eq('is_read', false)
+      .select();
     
     return { data, error };
   },

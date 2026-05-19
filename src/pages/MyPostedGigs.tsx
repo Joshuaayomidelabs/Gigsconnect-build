@@ -4,6 +4,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { gigsService } from '../services/gigsService';
 import { supabase } from '../services/supabaseClient';
 import GigCard from '../components/GigCard';
+import { GigCardSkeleton } from '../components/Skeleton';
 import ApplicantsModal from '../components/ApplicantsModal';
 
 const MyPostedGigs: React.FC = () => {
@@ -88,8 +89,10 @@ const MyPostedGigs: React.FC = () => {
       </div>
 
       {isLoading ? (
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="w-10 h-10 animate-spin text-brand-purple opacity-50" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {[...Array(4)].map((_, i) => (
+            <GigCardSkeleton key={i} />
+          ))}
         </div>
       ) : error ? (
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/40 rounded-2xl p-8 text-center">

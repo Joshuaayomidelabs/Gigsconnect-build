@@ -5,7 +5,7 @@ export const communityService = {
   async getFeed(userId?: string) {
     const { data: posts, error: postsError } = await supabase
       .from('posts')
-      .select('*, user:profiles!user_id(*)')
+      .select('*, user:profiles!user_id(*), _likes:likes(count), _comments:comments(count)')
       .order('created_at', { ascending: false });
 
     if (postsError) {
@@ -39,6 +39,8 @@ export const communityService = {
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     }).map(post => ({
       ...post,
+      likes_count: post._likes?.[0]?.count || post.likes_count || 0,
+      comments_count: post._comments?.[0]?.count || post.comments_count || 0,
       is_liked: userLikedPostIds.has(post.id)
     }));
 
@@ -48,7 +50,7 @@ export const communityService = {
   async getUserPosts(userId: string, currentUserId?: string) {
     const { data: posts, error } = await supabase
       .from('posts')
-      .select('*, user:profiles!user_id(*)')
+      .select('*, user:profiles!user_id(*), _likes:likes(count), _comments:comments(count)')
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
@@ -67,6 +69,8 @@ export const communityService = {
 
     const processedPosts = posts.map(post => ({
       ...post,
+      likes_count: post._likes?.[0]?.count || post.likes_count || 0,
+      comments_count: post._comments?.[0]?.count || post.comments_count || 0,
       is_liked: userLikedPostIds.has(post.id)
     }));
 
@@ -133,51 +137,61 @@ export const communityService = {
 
     if (existingLike) {
       // UNLIKE
-      await supabase
+      const { error } = await supabase
         .from('likes')
         .delete()
         .eq('id', existingLike.id);
       
-      // Decrement count fallback if no rpc available
-      supabase.from('posts').select('likes_count').eq('id', postId).single().then(({ data }) => {
-        if (data) supabase.from('posts').update({ likes_count: Math.max(0, (data.likes_count || 1) - 1) }).eq('id', postId).then();
-      });
-
-      return { liked: false };
-    } else {
-      // LIKE
-      await supabase
-        .from('likes')
-        .insert([{ user_id: userId, post_id: postId }]);
-      
-      // Increment count fallback if no rpc available
-      supabase.from('posts').select('likes_count').eq('id', postId).single().then(({ data }) => {
-        if (data) supabase.from('posts').update({ likes_count: (data.likes_count || 0) + 1 }).eq('id', postId).then();
-      });
-
-      // Notify
-      if (userId !== postOwnerId) {
-        await notificationsService.createNotification({
-          user_id: postOwnerId,
-          type: 'system',
-          title: 'New Like',
-          message: 'Someone liked your post',
-          reference_id: postId,
+      if (error) {
+        console.error("Error unliking post:", error);
+      } else {
+        // Decrement count fallback if no rpc available
+        supabase.from('posts').select('likes_count').eq('id', postId).single().then(({ data }) => {
+          if (data) supabase.from('posts').update({ likes_count: Math.max(0, (data.likes_count || 1) - 1) }).eq('id', postId).then();
         });
       }
 
-      return { liked: true };
+      return { liked: false, error };
+    } else {
+      // LIKE
+      const { error } = await supabase
+        .from('likes')
+        .insert([{ user_id: userId, post_id: postId }]);
+      
+      if (error) {
+        console.error("Error liking post:", error);
+      } else {
+        // Increment count fallback if no rpc available
+        supabase.from('posts').select('likes_count').eq('id', postId).single().then(({ data }) => {
+          if (data) supabase.from('posts').update({ likes_count: (data.likes_count || 0) + 1 }).eq('id', postId).then();
+        });
+
+        // Notify
+        if (userId !== postOwnerId) {
+          notificationsService.createNotification({
+            user_id: postOwnerId,
+            type: 'system',
+            title: 'New Like',
+            message: 'Someone liked your post',
+            reference_id: postId,
+          }).catch(console.error);
+        }
+      }
+
+      return { liked: true, error };
     }
   },
 
-  async addComment(postId: string, userId: string, text: string) {
-    const { data, error } = await supabase.from('comments').insert([
-      {
-        post_id: postId,
-        user_id: userId,
-        text: text
-      }
-    ]).select();
+  async addComment(postId: string, userId: string, text: string, parentId?: string | null) {
+    const payload: any = {
+      post_id: postId,
+      user_id: userId,
+      text: text
+    };
+    if (parentId) {
+      payload.parent_id = parentId;
+    }
+    const { data, error } = await supabase.from('comments').insert([payload]).select('*, user:profiles!user_id(*)').single();
 
     if (!error) {
       // Increment count fallback
@@ -191,14 +205,68 @@ export const communityService = {
     return { data, error };
   },
 
-  async getComments(postId: string) {
-    const { data, error } = await supabase
-      .from('comments')
-      .select('*, user:profiles!user_id(*)')
-      .eq('post_id', postId)
-      .order('created_at', { ascending: true });
+  async likeComment(commentId: string, userId: string) {
+    try {
+      const { data: existingLike } = await supabase
+        .from('comment_likes')
+        .select('id')
+        .eq('comment_id', commentId)
+        .eq('user_id', userId)
+        .maybeSingle();
 
-    return { data, error };
+      if (existingLike) {
+        const { error } = await supabase.from('comment_likes').delete().eq('id', existingLike.id);
+        return { liked: false, error };
+      } else {
+        const { error } = await supabase.from('comment_likes').insert([{ user_id: userId, comment_id: commentId }]);
+        return { liked: true, error };
+      }
+    } catch (e) {
+      return { liked: false, error: e };
+    }
+  },
+
+  async getComments(postId: string, currentUserId?: string) {
+    let res = await supabase
+      .from('comments')
+      .select('*, user:profiles!user_id(*), _comment_likes:comment_likes(count)')
+      .eq('post_id', postId)
+      .order('created_at', { ascending: true })
+      // handle missing column or table error gracefully at api level if supported
+      .catch((e: any) => ({ data: null, error: e }));
+
+    // Fallback if the comment_likes or parent_id columns don't exist yet
+    if (res.error) {
+      res = await supabase
+        .from('comments')
+        .select('*, user:profiles!user_id(*)')
+        .eq('post_id', postId)
+        .order('created_at', { ascending: true });
+    }
+
+    let userLikedComments = new Set<string>();
+    if (!res.error && currentUserId) {
+      try {
+        const { data: likesData } = await supabase
+          .from('comment_likes')
+          .select('comment_id')
+          .eq('user_id', currentUserId);
+        
+        if (likesData) {
+          likesData.forEach((like: any) => userLikedComments.add(like.comment_id));
+        }
+      } catch (e) {
+        // ignore if table doesn't exist
+      }
+    }
+
+    const processedData = res.data?.map(comment => ({
+      ...comment,
+      likes_count: comment._comment_likes?.[0]?.count || 0,
+      is_liked: userLikedComments.has(comment.id)
+    })) || [];
+
+    return { data: processedData, error: res.error };
   },
 
   async checkIsFollowing(followerId: string, followingId: string) {

@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { supabase } from '../services/supabaseClient';
 import GigCard from './GigCard';
+import { GigCardSkeleton } from './Skeleton';
 import GigDetailsModal from './GigDetailsModal';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -57,7 +58,7 @@ const FeaturedGigs: React.FC = () => {
           <div className="h-12 w-64 bg-gray-200 dark:bg-gray-800 rounded-full mb-12 animate-pulse"></div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-[450px] bg-gray-200 dark:bg-gray-800 rounded-[2.5rem] animate-pulse"></div>
+              <GigCardSkeleton key={i} />
             ))}
           </div>
         </div>
