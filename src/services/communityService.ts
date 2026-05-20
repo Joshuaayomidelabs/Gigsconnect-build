@@ -156,7 +156,7 @@ export const communityService = {
       // LIKE
       const { error } = await supabase
         .from('likes')
-        .insert([{ user_id: userId, post_id: postId }]);
+        .insert({ post_id: postId });
       
       if (error) {
         console.error("Error liking post:", error);
@@ -191,7 +191,7 @@ export const communityService = {
     if (parentId) {
       payload.parent_id = parentId;
     }
-    const { data, error } = await supabase.from('comments').insert([payload]).select('*, user:profiles!user_id(*)').single();
+    const { data, error } = await supabase.from('comments').insert(payload).select('*, user:profiles!user_id(*)').single();
 
     if (!error) {
       // Increment count fallback
@@ -218,7 +218,7 @@ export const communityService = {
         const { error } = await supabase.from('comment_likes').delete().eq('id', existingLike.id);
         return { liked: false, error };
       } else {
-        const { error } = await supabase.from('comment_likes').insert([{ user_id: userId, comment_id: commentId }]);
+        const { error } = await supabase.from('comment_likes').insert({ user_id: userId, comment_id: commentId });
         return { liked: true, error };
       }
     } catch (e) {
@@ -227,21 +227,28 @@ export const communityService = {
   },
 
   async getComments(postId: string, currentUserId?: string) {
-    let res = await supabase
-      .from('comments')
-      .select('*, user:profiles!user_id(*), _comment_likes:comment_likes(count)')
-      .eq('post_id', postId)
-      .order('created_at', { ascending: true })
-      // handle missing column or table error gracefully at api level if supported
-      .catch((e: any) => ({ data: null, error: e }));
+    let res: { data: any, error: any } = { data: null, error: null };
+    try {
+      res = await supabase
+        .from('comments')
+        .select('*, user:profiles!user_id(*), _comment_likes:comment_likes(count)')
+        .eq('post_id', postId)
+        .order('created_at', { ascending: true });
+    } catch (e) {
+      res = { data: null, error: e };
+    }
 
     // Fallback if the comment_likes or parent_id columns don't exist yet
     if (res.error) {
-      res = await supabase
-        .from('comments')
-        .select('*, user:profiles!user_id(*)')
-        .eq('post_id', postId)
-        .order('created_at', { ascending: true });
+      try {
+        res = await supabase
+          .from('comments')
+          .select('*, user:profiles!user_id(*)')
+          .eq('post_id', postId)
+          .order('created_at', { ascending: true });
+      } catch (e) {
+        res = { data: null, error: e };
+      }
     }
 
     let userLikedComments = new Set<string>();
@@ -295,7 +302,7 @@ export const communityService = {
       // Follow
       const { error } = await supabase
         .from('follows')
-        .insert([{ follower_id: followerId, following_id: followingId }]);
+        .insert({ follower_id: followerId, following_id: followingId });
       
       if (!error) {
         // Notify

@@ -41,13 +41,15 @@ export const notificationsService = {
     return { data, error };
   },
 
-  async markAllAsRead(userId: string) {
+  async markAllAsRead() {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { data: null, error: new Error('User not found') };
+
     const { data, error } = await supabase
       .from('notifications')
       .update({ is_read: true })
-      .eq('user_id', userId)
-      .eq('is_read', false)
-      .select();
+      .eq('user_id', user.id)
+      .eq('is_read', false);
     
     return { data, error };
   },

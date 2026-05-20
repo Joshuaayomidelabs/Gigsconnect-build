@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { Notification, notificationsService } from '../services/notificationsService';
 import { useAuth } from './AuthContext';
+import { supabase } from '../services/supabaseClient';
 import { toast } from 'sonner';
 
 interface NotificationContextType {
@@ -18,13 +19,29 @@ const NotificationContext = createContext<NotificationContextType | undefined>(u
 export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const unreadCount = notifications.filter(n => !n.is_read).length;
+  const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const refreshNotificationCount = async () => {
+    if (!user?.id) return;
+    const { count, error } = await supabase
+      .from('notifications')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('is_read', false);
+
+    if (error) {
+      console.error(error);
+      return;
+    }
+    setUnreadCount(count || 0);
+  };
 
   useEffect(() => {
     if (!user?.id) {
       setNotifications([]);
+      setUnreadCount(0);
       setIsLoading(false);
       return;
     }
@@ -42,6 +59,7 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
         if (data) {
           setNotifications(data);
         }
+        await refreshNotificationCount();
       } catch (err: any) {
         console.error("Unexpected notification error:", err);
         setError(err.message || "An unexpected error occurred");
@@ -59,6 +77,7 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
         if (prev.some(n => n.id === newNotif.id)) return prev;
         return [newNotif, ...prev];
       });
+      refreshNotificationCount();
       
       // Show toast notification
       toast.info(newNotif.title, {
@@ -76,33 +95,26 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
   }, [user?.id]);
 
   const markAsRead = async (id: string) => {
-    // Optimistic update
-    setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
     const { error } = await notificationsService.markAsRead(id);
     if (error) {
-      // Revert optimism if error
-      setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: false } : n));
       console.error("Failed to mark notification as read:", error);
+    } else {
+      setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
+      await refreshNotificationCount();
     }
   };
 
   const markAllAsRead = async () => {
     if (!user?.id) return;
-    
-    // Find unread IDs before optimistic update
-    const unreadIds = notifications.filter(n => !n.is_read).map(n => n.id);
-    if (unreadIds.length === 0) return;
 
-    // Optimistic update for instant UI response
-    setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
-    
-    const { error } = await notificationsService.markAllAsRead(user.id);
-    if (error) {
-      console.error("Failed to mark all as read (batch), falling back to individual updates:", error);
-      // Fallback if bulk update is forbidden or fails
-      for (const id of unreadIds) {
-        await notificationsService.markAsRead(id);
-      }
+    // Update DB first
+    const { error } = await notificationsService.markAllAsRead();
+    if (!error) {
+      setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+      // THEN refresh count from DB
+      await refreshNotificationCount();
+    } else {
+      console.error("Failed to mark all as read:", error);
     }
   };
 
