@@ -189,14 +189,14 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile: initialProfile, user
     : null;
 
   return (
-    <div className="bg-brand-white dark:bg-brand-dark-card rounded-[2.5rem] p-6 shadow-md border border-brand-gray dark:border-brand-black flex flex-col items-center text-center transition-colors">
-      <div className="relative mb-4">
-        <div className="w-20 h-20 rounded-full bg-brand-purple/5 dark:bg-brand-purple/10 border-4 border-brand-white dark:border-brand-black overflow-hidden shadow-md">
+    <div className="bg-brand-white dark:bg-brand-dark-card rounded-[2.5rem] p-5 sm:p-6 shadow-md border border-brand-gray dark:border-brand-black flex flex-col items-center text-center transition-colors overflow-hidden">
+      <div className="relative mb-4 mx-auto w-20 h-20 flex-shrink-0 flex items-center justify-center">
+        <div className="w-full h-full rounded-full bg-brand-purple/5 dark:bg-brand-purple/10 border-4 border-brand-white dark:border-brand-black overflow-hidden shadow-md relative z-10">
           {displayAvatar ? (
             <img 
               src={displayAvatar} 
               alt={localProfile.full_name || 'User'} 
-              className="w-full h-full object-cover" 
+              className="w-full h-full object-cover object-center" 
               referrerPolicy="no-referrer" 
             />
           ) : (
@@ -206,33 +206,33 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile: initialProfile, user
           )}
         </div>
         {isVerified && (
-          <div className="absolute -bottom-1 -right-1 bg-brand-purple text-brand-white p-1.5 rounded-full border-2 border-brand-white dark:border-brand-black shadow-sm" title="Verified Professional">
+          <div className="absolute -bottom-1 -right-1 bg-brand-purple text-brand-white p-1.5 rounded-full border-2 border-brand-white dark:border-brand-black shadow-sm z-20" title="Verified Professional">
             <CheckCircle className="w-3 h-3" />
           </div>
         )}
       </div>
       
-      <div className="mb-4">
-        <h3 className="text-xl font-black text-brand-black dark:text-brand-white leading-tight mb-1">
+      <div className="mb-4 w-full min-w-0">
+        <h3 className="text-xl font-black text-brand-black dark:text-brand-white leading-tight mb-1 truncate px-2">
           {localProfile.full_name || 'Anonymous User'}
         </h3>
         {localProfile.username && (
-          <p className="text-xs text-gray-500 dark:text-gray-400 font-bold mb-1">@{localProfile.username}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 font-bold mb-1 truncate px-2">@{localProfile.username}</p>
         )}
-        <p className="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-widest">{localProfile.role || 'Member'}</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-widest truncate px-2">{localProfile.role || 'Member'}</p>
       </div>
 
       {/* Bio Section - Conditional Render */}
       {localProfile.bio && (
-        <div className="mb-4 w-full">
+        <div className="mb-4 w-full break-words px-2">
           <p className="text-sm text-gray-700 dark:text-gray-300 italic line-clamp-3">"{localProfile.bio}"</p>
         </div>
       )}
 
       {localProfile.skills && localProfile.skills.length > 0 && (
-        <div className="flex flex-wrap justify-center gap-1.5 mb-5">
+        <div className="flex flex-wrap justify-center gap-1.5 mb-5 px-2">
           {localProfile.skills.slice(0, 3).map((skill: string, i: number) => (
-            <span key={i} className="px-3 py-1 bg-brand-gray dark:bg-brand-black text-brand-black dark:text-gray-300 text-[10px] font-bold rounded-full border border-brand-gray dark:border-brand-dark-card">
+            <span key={i} className="px-3 py-1 bg-brand-gray dark:bg-brand-black text-brand-black dark:text-gray-300 text-[10px] font-bold rounded-full border border-brand-gray dark:border-brand-dark-card max-w-full truncate">
               {skill}
             </span>
           ))}
@@ -240,7 +240,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile: initialProfile, user
       )}
 
       {/* Social Stats Section */}
-      <div className="flex items-center justify-center gap-6 w-full mb-5">
+      <div className="flex items-center justify-center gap-6 w-full mb-5 px-2">
         <div className="flex flex-col items-center cursor-pointer group" onClick={() => setShowFollowersModal(true)}>
           {isLoadingStats ? (
              <div className="h-6 w-8 bg-gray-200 dark:bg-gray-800 rounded mb-1 animate-pulse"></div>
@@ -249,8 +249,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile: initialProfile, user
               {stats.followers >= 1000 ? (stats.followers / 1000).toFixed(1) + 'K' : stats.followers}
             </span>
           )}
-          <span className="text-[10px] uppercase tracking-wider font-bold text-gray-500">
-            {stats.followers === 0 && !isLoadingStats ? "No followers yet" : "Followers"}
+          <span className="text-[10px] uppercase tracking-wider font-bold text-gray-500 text-center">
+            {stats.followers === 0 && !isLoadingStats ? "No followers" : "Followers"}
           </span>
         </div>
         
@@ -264,7 +264,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile: initialProfile, user
               {stats.following >= 1000 ? (stats.following / 1000).toFixed(1) + 'K' : stats.following}
             </span>
           )}
-          <span className="text-[10px] uppercase tracking-wider font-bold text-gray-500">
+          <span className="text-[10px] uppercase tracking-wider font-bold text-gray-500 text-center">
             {stats.following === 0 && !isLoadingStats ? "None following" : "Following"}
           </span>
         </div>
@@ -274,7 +274,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile: initialProfile, user
       {!isOwnProfile && currentUser && !isLoadingStats && (
         <button
           onClick={handleFollowToggle}
-          className={`w-full max-w-[200px] py-2.5 rounded-full font-bold text-sm flex items-center justify-center gap-2 transition-all duration-200 active:scale-95 ${
+          className={`w-full py-2.5 rounded-full font-bold text-sm flex items-center justify-center gap-2 transition-all duration-200 active:scale-95 mx-2 ${
             isFollowing 
               ? 'bg-gray-100 dark:bg-[#1F1F23] text-brand-black dark:text-brand-white hover:bg-gray-200 dark:hover:bg-[#2A2A2F]' 
               : 'bg-[#6C3BFF] hover:bg-[#A78BFA] text-white shadow-md shadow-[#6C3BFF]/20'

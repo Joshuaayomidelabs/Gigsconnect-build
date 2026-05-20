@@ -178,7 +178,7 @@ const PublicProfile: React.FC = () => {
   }
 
   return (
-    <div className="bg-brand-gray dark:bg-brand-black min-h-screen pb-24 transition-colors duration-500">
+    <div className="bg-brand-gray dark:bg-brand-black min-h-screen pt-20 sm:pt-24 pb-24 transition-colors duration-500">
       {/* Top Banner Gradient */}
       <div className="h-40 bg-gradient-to-r from-[#6C2BD9]/80 to-[#4C1D95]/90 w-full relative">
         {/* Back Button */}
@@ -190,18 +190,18 @@ const PublicProfile: React.FC = () => {
         </button>
       </div>
       
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 relative -mt-20">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 relative -mt-12 sm:-mt-16 z-10">
         {/* Profile Header Card */}
-        <div className="bg-brand-white dark:bg-brand-dark-card rounded-[2rem] shadow-md border border-brand-gray dark:border-brand-black p-6 sm:p-8 mb-6 relative">
+        <div className="bg-brand-white dark:bg-brand-dark-card rounded-[2rem] shadow-md border border-brand-gray dark:border-brand-black p-5 sm:p-8 mb-6 relative">
           
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 mb-6">
             {/* Avatar */}
-            <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full border-4 border-brand-white dark:border-brand-dark-card shadow-lg overflow-hidden bg-brand-gray dark:bg-brand-black flex-shrink-0 flex items-center justify-center relative -mt-16 sm:-mt-20">
+            <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full border-4 border-brand-white dark:border-brand-dark-card shadow-lg overflow-hidden bg-brand-gray dark:bg-brand-black flex-shrink-0 flex items-center justify-center relative -mt-14 sm:-mt-16 z-20 mx-auto sm:mx-0">
               {profile.avatar_url ? (
                 <img 
                   src={profile.avatar_url.includes('?') ? profile.avatar_url : `${profile.avatar_url}?t=${Date.now()}`} 
                   alt={profile.full_name} 
-                  className="w-full h-full object-cover" 
+                  className="w-full h-full object-cover object-center" 
                   referrerPolicy="no-referrer" 
                 />
               ) : (
@@ -209,51 +209,51 @@ const PublicProfile: React.FC = () => {
               )}
             </div>
 
-            <div className="text-center sm:text-left flex-1">
-              <h1 className="text-2xl font-black text-brand-black dark:text-brand-white tracking-tight flex items-center justify-center sm:justify-start gap-2">
-                {profile.full_name || 'Anonymous User'}
+            <div className="text-center sm:text-left flex-1 min-w-0 w-full">
+              <h1 className="text-2xl font-black text-brand-black dark:text-brand-white tracking-tight flex items-center justify-center sm:justify-start gap-2 flex-wrap">
+                <span className="truncate">{profile.full_name || 'Anonymous User'}</span>
                 <VerificationBadge 
                   isVerified={profile.is_verified} 
                   verificationStatus={profile.verification_status} 
                 />
               </h1>
               {profile.username && (
-                <p className="text-gray-500 dark:text-gray-400 font-medium">@{profile.username}</p>
+                <p className="text-gray-500 dark:text-gray-400 font-medium truncate">@{profile.username}</p>
               )}
               
-              <div className="flex items-center justify-center sm:justify-start gap-1 text-gray-500 dark:text-gray-400 text-sm font-medium mt-1">
-                <MapPin className="w-3.5 h-3.5" />
-                <span>{profile.city ? `${profile.city}, ${profile.country}` : profile.country || 'Global'}</span>
+              <div className="flex items-center justify-center sm:justify-start gap-1 text-gray-500 dark:text-gray-400 text-sm font-medium mt-1 truncate">
+                <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
+                <span className="truncate">{profile.city ? `${profile.city}, ${profile.country}` : profile.country || 'Global'}</span>
               </div>
             </div>
           </div>
 
           {/* Social Stats Row */}
-          <div className="flex items-center justify-center sm:justify-start gap-10 py-5 border-t border-brand-gray dark:border-[#1F1F23] mb-6">
+          <div className="flex items-center justify-center sm:justify-start gap-8 sm:gap-10 py-5 border-t border-brand-gray dark:border-[#1F1F23] mb-6">
             <div className="flex flex-col items-center sm:items-start group cursor-pointer" onClick={() => setShowFollowersModal(true)}>
               <span className="text-xl font-black text-brand-black dark:text-brand-white group-hover:text-brand-purple transition-colors">
                 {stats.followers >= 1000 ? (stats.followers / 1000).toFixed(1) + 'K' : stats.followers}
               </span>
-              <span className="text-[11px] uppercase tracking-wider font-bold text-gray-500">
-                {stats.followers === 0 ? "No followers yet" : "Followers"}
+              <span className="text-[11px] uppercase tracking-wider font-bold text-gray-500 text-center sm:text-left">
+                {stats.followers === 0 ? "No followers" : "Followers"}
               </span>
             </div>
             <div className="flex flex-col items-center sm:items-start group cursor-pointer" onClick={() => setShowFollowingModal(true)}>
               <span className="text-xl font-black text-brand-black dark:text-brand-white group-hover:text-brand-purple transition-colors">
                 {stats.following >= 1000 ? (stats.following / 1000).toFixed(1) + 'K' : stats.following}
               </span>
-              <span className="text-[11px] uppercase tracking-wider font-bold text-gray-500">
+              <span className="text-[11px] uppercase tracking-wider font-bold text-gray-500 text-center sm:text-left">
                 {stats.following === 0 ? "None following" : "Following"}
               </span>
             </div>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-3 justify-center sm:justify-start mb-6">
+          <div className="flex flex-col xs:flex-row sm:flex-row gap-3 justify-center sm:justify-start mb-6">
             {isOwnProfile ? (
               <button 
                 onClick={() => navigate('/edit-profile')} 
-                className="flex-1 sm:max-w-[200px] py-2.5 rounded-xl font-bold text-sm bg-gray-100 dark:bg-[#1F1F23] text-brand-black dark:text-brand-white hover:bg-gray-200 dark:hover:bg-[#2A2A2F] active:scale-95 transition-all"
+                className="w-full sm:flex-1 sm:max-w-[200px] py-2.5 rounded-xl font-bold text-sm bg-gray-100 dark:bg-[#1F1F23] text-brand-black dark:text-brand-white hover:bg-gray-200 dark:hover:bg-[#2A2A2F] active:scale-95 transition-all"
               >
                 Edit Profile
               </button>
@@ -261,7 +261,7 @@ const PublicProfile: React.FC = () => {
               <>
                 <button 
                   onClick={handleFollowToggle} 
-                  className={`flex-1 sm:max-w-[160px] py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all duration-200 active:scale-95 ${
+                  className={`w-full sm:flex-1 sm:max-w-[160px] py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all duration-200 active:scale-95 ${
                     isFollowing 
                       ? 'bg-gray-100 dark:bg-[#1F1F23] text-brand-black dark:text-brand-white hover:bg-gray-200 dark:hover:bg-[#2A2A2F]' 
                       : 'bg-[#6C2BD9] hover:bg-[#8A4DFF] text-white shadow-md shadow-[#6C2BD9]/20'
@@ -275,7 +275,7 @@ const PublicProfile: React.FC = () => {
                 </button>
                 <button 
                   onClick={() => toast("Messaging coming soon")}
-                  className="flex-1 sm:max-w-[160px] py-2.5 rounded-xl font-bold text-sm bg-gray-100 dark:bg-[#1F1F23] text-brand-black dark:text-brand-white hover:bg-gray-200 dark:hover:bg-[#2A2A2F] active:scale-95 transition-all flex items-center justify-center gap-2"
+                  className="w-full sm:flex-1 sm:max-w-[160px] py-2.5 rounded-xl font-bold text-sm bg-gray-100 dark:bg-[#1F1F23] text-brand-black dark:text-brand-white hover:bg-gray-200 dark:hover:bg-[#2A2A2F] active:scale-95 transition-all flex items-center justify-center gap-2"
                 >
                   <MessageCircle className="w-4 h-4" /> Message
                 </button>
@@ -284,7 +284,7 @@ const PublicProfile: React.FC = () => {
           </div>
 
           {/* Bio */}
-          <div className="text-center sm:text-left">
+          <div className="text-center sm:text-left w-full break-words">
             {profile.bio && (
               <p className="text-gray-800 dark:text-gray-200 text-sm whitespace-pre-wrap leading-relaxed">{profile.bio}</p>
             )}
@@ -292,7 +292,7 @@ const PublicProfile: React.FC = () => {
             {profile.skills && profile.skills.length > 0 && (
               <div className="mt-4 flex flex-wrap justify-center sm:justify-start gap-2">
                 {profile.skills.map((skill: string) => (
-                  <span key={skill} className="px-3 py-1 bg-gray-50 dark:bg-[#161618] rounded-lg text-xs font-bold text-gray-500 dark:text-gray-400 border border-gray-100 dark:border-[#1F1F23]">
+                  <span key={skill} className="px-3 py-1 bg-gray-50 dark:bg-[#161618] rounded-lg text-xs font-bold text-gray-500 dark:text-gray-400 border border-gray-100 dark:border-[#1F1F23] max-w-full truncate">
                     {skill}
                   </span>
                 ))}

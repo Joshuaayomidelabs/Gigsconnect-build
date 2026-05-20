@@ -136,11 +136,12 @@ export const communityService = {
       .maybeSingle();
 
     if (existingLike) {
-      // UNLIKE
+      // UNLIKE (DELETE)
       const { error } = await supabase
         .from('likes')
         .delete()
-        .eq('id', existingLike.id);
+        .eq('post_id', postId)
+        .eq('user_id', userId);
       
       if (error) {
         console.error("Error unliking post:", error);
@@ -153,10 +154,13 @@ export const communityService = {
 
       return { liked: false, error };
     } else {
-      // LIKE
+      // LIKE (INSERT)
       const { error } = await supabase
         .from('likes')
-        .insert({ post_id: postId });
+        .insert({
+          post_id: postId,
+          user_id: userId
+        });
       
       if (error) {
         console.error("Error liking post:", error);
@@ -182,27 +186,48 @@ export const communityService = {
     }
   },
 
-  async addComment(postId: string, userId: string, text: string, parentId?: string | null) {
-    const payload: any = {
-      post_id: postId,
-      user_id: userId,
-      text: text
-    };
-    if (parentId) {
-      payload.parent_id = parentId;
-    }
-    const { data, error } = await supabase.from('comments').insert(payload).select('*, user:profiles!user_id(*)').single();
+  async addComment(post_id: string, userId: string, content: string, parentId?: string | null) {
+    try {
+      console.log("STEP 1: function started");
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-    if (!error) {
-      // Increment count fallback
-      supabase.from('posts').select('comments_count').eq('id', postId).single().then(({ data: postData }) => {
-        if (postData) {
-          supabase.from('posts').update({ comments_count: (postData.comments_count || 0) + 1 }).eq('id', postId).then();
-        }
-      });
-    }
+      console.log("USER:", user);
+      console.log("USER ERROR:", userError);
 
-    return { data, error };
+      if (!user) {
+        console.error("NO USER LOGGED IN");
+        return { data: null, error: new Error("No user logged in") };
+      }
+
+      console.log("PAYLOAD:", { post_id, user_id: user.id, content, parent_id: parentId });
+
+      const { data, error } = await supabase
+        .from('comments')
+        .insert({
+          post_id,
+          user_id: user.id,
+          content,
+          ...(parentId ? { parent_id: parentId } : {})
+        })
+        .select();
+
+      console.log("SUPABASE RESPONSE DATA:", data);
+      console.log("SUPABASE ERROR:", error);
+
+      if (!error) {
+        // Increment count fallback
+        supabase.from('posts').select('comments_count').eq('id', post_id).single().then(({ data: postData }) => {
+          if (postData) {
+            supabase.from('posts').update({ comments_count: (postData.comments_count || 0) + 1 }).eq('id', post_id).then();
+          }
+        });
+      }
+
+      return { data, error };
+    } catch (err: any) {
+      console.error("CATCH ERROR:", err);
+      return { data: null, error: err };
+    }
   },
 
   async likeComment(commentId: string, userId: string) {
@@ -233,7 +258,7 @@ export const communityService = {
         .from('comments')
         .select('*, user:profiles!user_id(*), _comment_likes:comment_likes(count)')
         .eq('post_id', postId)
-        .order('created_at', { ascending: true });
+        .order('created_at', { ascending: false });
     } catch (e) {
       res = { data: null, error: e };
     }
@@ -245,7 +270,7 @@ export const communityService = {
           .from('comments')
           .select('*, user:profiles!user_id(*)')
           .eq('post_id', postId)
-          .order('created_at', { ascending: true });
+          .order('created_at', { ascending: false });
       } catch (e) {
         res = { data: null, error: e };
       }

@@ -481,7 +481,7 @@ const EditProfile: React.FC = () => {
                         src={formData.avatar_url.includes('?') ? formData.avatar_url : `${formData.avatar_url}?t=${Date.now()}`} 
                         alt="Profile" 
                         referrerPolicy="no-referrer" 
-                        className="w-full h-full object-cover" 
+                        className="w-full h-full object-cover object-center" 
                       />
                     ) : (
                       <User className="w-12 h-12 text-gray-400 dark:text-gray-600" />

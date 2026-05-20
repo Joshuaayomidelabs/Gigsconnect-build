@@ -73,12 +73,20 @@ export const followsService = {
     try {
       const { data, error } = await supabase
         .from('follows')
-        .select('*, profile:profiles!follower_id(*)')
+        .select(`
+          follower:profiles!follows_follower_id_fkey (
+            id,
+            username,
+            avatar_url,
+            full_name,
+            role
+          )
+        `)
         .eq('following_id', userId)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return { data: data?.map((d: any) => d.profile).filter(Boolean) || [], error: null };
+      return { data: data?.map((d: any) => d.follower).filter(Boolean) || [], error: null };
     } catch (err: any) {
       console.error('Error fetching followers:', err);
       return { data: [], error: err };
@@ -89,12 +97,20 @@ export const followsService = {
     try {
       const { data, error } = await supabase
         .from('follows')
-        .select('*, profile:profiles!following_id(*)')
+        .select(`
+          following:profiles!follows_following_id_fkey (
+            id,
+            username,
+            avatar_url,
+            full_name,
+            role
+          )
+        `)
         .eq('follower_id', userId)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return { data: data?.map((d: any) => d.profile).filter(Boolean) || [], error: null };
+      return { data: data?.map((d: any) => d.following).filter(Boolean) || [], error: null };
     } catch (err: any) {
       console.error('Error fetching following:', err);
       return { data: [], error: err };

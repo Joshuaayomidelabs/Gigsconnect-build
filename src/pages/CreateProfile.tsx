@@ -192,7 +192,7 @@ const CreateProfile: React.FC = () => {
                           <img 
                             src={formData.avatar_url.includes('?') ? formData.avatar_url : `${formData.avatar_url}?t=${Date.now()}`} 
                             alt="Profile" 
-                            className="w-full h-full object-cover" 
+                            className="w-full h-full object-cover object-center" 
                             referrerPolicy="no-referrer" 
                           />
                         ) : (

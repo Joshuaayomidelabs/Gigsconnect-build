@@ -261,33 +261,21 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
 
     setIsSubmittingComment(true);
     try {
-      const { data, error } = await communityService.addComment(post.id, user.id, newCommentText, replyTo?.id);
+      const { error } = await communityService.addComment(post.id, user.id, newCommentText, replyTo?.id);
       if (error) throw error;
       
-      const newCommentObj = {
-        ...((data && data.length) ? data[0] : (data || {})), // Handle array response safely
-        user: {
-          full_name: user?.user_metadata?.full_name || 'You',
-          avatar_url: user?.user_metadata?.avatar_url || 'https://picsum.photos/seed/default/100'
-        },
-        likes_count: 0,
-        is_liked: false,
-        parent_id: replyTo?.id || null
-      };
-
-      setComments([...comments, newCommentObj]);
-      setCommentsCount((prev) => prev + 1);
       setNewCommentText("");
       setReplyTo(null);
-    } catch (err) {
-      console.error("Error adding comment:", err);
-      toast.error("Failed to add comment.");
-      // Fallback refetch in case of failure after some partial creation
+
+      // Refresh comments
       const { data: refetched } = await communityService.getComments(post.id, user?.id);
       if (refetched) {
         setComments(refetched);
         setCommentsCount(refetched.length);
       }
+    } catch (err) {
+      console.error("Error adding comment:", err);
+      toast.error("Failed to add comment.");
     } finally {
       setIsSubmittingComment(false);
     }
@@ -475,7 +463,7 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
 
         {/* VIEW ALL COMMENTS */}
         {commentsCount > 0 && (
-          <div className="px-3 sm:px-4 pb-4">
+          <div className="px-3 sm:px-4 pb-2">
             <button 
               onClick={handleToggleComments}
               className="text-[14px] text-gray-500 font-medium active:opacity-50"
@@ -484,6 +472,38 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
             </button>
           </div>
         )}
+
+        {/* ALWAYS VISIBLE INLINE COMMENT INPUT */}
+        <div className="px-3 sm:px-4 pb-4 pt-1">
+          <form onSubmit={submitComment} className="flex gap-3 items-center">
+            {user && (
+              <div className="w-[28px] h-[28px] rounded-full overflow-hidden shrink-0 border border-brand-gray dark:border-[#1F1F23]">
+                <img src={user?.user_metadata?.avatar_url || 'https://picsum.photos/seed/default/100'} alt="Me" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
+              </div>
+            )}
+            <input
+              type="text"
+              value={newCommentText}
+              onChange={(e) => setNewCommentText(e.target.value)}
+              placeholder={user ? "Add a comment..." : "Log in to comment"}
+              disabled={!user || isSubmittingComment}
+              className="flex-1 bg-transparent text-[14px] text-gray-900 dark:text-white placeholder:text-gray-500 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+            />
+            {newCommentText.trim() && user && (
+              <button
+                type="submit"
+                disabled={isSubmittingComment || !newCommentText.trim()}
+                className="text-brand-purple font-semibold text-[14px] active:opacity-50 disabled:opacity-50"
+              >
+                {isSubmittingComment ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  "Post"
+                )}
+              </button>
+            )}
+          </form>
+        </div>
       </div>
 
       {/* Comments Modal (Mobile-first Bottom Sheet) */}
@@ -555,7 +575,7 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
                             </span>
                           </div>
                           <p className="text-[14.5px] text-gray-200 leading-snug">
-                            {comment.text}
+                            {comment.content}
                           </p>
                           <div className="flex gap-4 mt-2 text-[12px] font-medium text-[#9CA3AF]">
                             <button 
@@ -609,7 +629,7 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
                                   </span>
                                 </div>
                                 <p className="text-[14px] text-gray-200 leading-snug">
-                                  {reply.text}
+                                  {reply.content}
                                 </p>
                                 <div className="flex gap-4 mt-1.5 text-[11px] font-medium text-[#9CA3AF]">
                                   <button 
