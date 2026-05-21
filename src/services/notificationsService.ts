@@ -19,17 +19,31 @@ export interface Notification {
     role?: string;
     [key: string]: any;
   };
+  actor?: {
+    id: string;
+    username: string;
+    avatar_url?: string;
+    full_name?: string;
+  };
 }
 
 export const notificationsService = {
   async getNotifications(userId: string) {
     const { data, error } = await supabase
       .from('notifications')
-      .select('*')
+      .select(`
+        *,
+        actor:profiles!notifications_actor_id_fkey(
+          id,
+          username,
+          avatar_url,
+          full_name
+        )
+      `)
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
     
-    return { data: data as Notification[] | null, error };
+    return { data: data as any[] | null, error };
   },
 
   async markAsRead(notificationId: string) {

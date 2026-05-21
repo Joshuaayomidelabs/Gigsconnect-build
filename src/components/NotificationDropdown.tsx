@@ -122,8 +122,27 @@ const NotificationDropdown: React.FC = () => {
                         </div>
                       )}
 
-                      <p className={`text-xs line-clamp-2 mb-3 ${!notif.is_read ? 'text-brand-black dark:text-brand-white font-bold' : 'text-gray-700 dark:text-gray-300 font-medium'}`}>
-                        {notif.message}
+                      <p className={`text-xs line-clamp-2 mb-3 leading-relaxed ${!notif.is_read ? 'text-brand-black dark:text-brand-white font-bold' : 'text-gray-700 dark:text-gray-300 font-medium'}`}>
+                        {notif.actor && (
+                          <span 
+                            onClick={(e) => { 
+                              e.stopPropagation(); 
+                              setIsOpen(false); 
+                              navigate(`/profile/${notif.actor!.id}`); 
+                            }}
+                            className="font-bold text-gray-900 dark:text-white hover:underline cursor-pointer mr-1"
+                          >
+                            {notif.actor.username || notif.actor.full_name}
+                          </span>
+                        )}
+                        {(() => {
+                           if (notif.actor) {
+                             if (notif.type === "like") return "liked your post";
+                             if (notif.type === "follow") return "started following you";
+                             if (notif.type === "comment") return "commented on your post";
+                           }
+                           return notif.message;
+                        })()}
                       </p>
                       
                       <div className="flex items-center gap-2">

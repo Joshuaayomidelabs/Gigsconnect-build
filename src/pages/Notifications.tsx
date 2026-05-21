@@ -125,7 +125,25 @@ const Notifications: React.FC = () => {
                   </div>
                   
                   <p className="text-gray-700 dark:text-gray-300 mb-4 leading-relaxed">
-                    {notif.message}
+                    {notif.actor && (
+                      <span 
+                        onClick={(e) => { 
+                          e.stopPropagation(); 
+                          navigate(`/profile/${notif.actor!.id}`); 
+                        }}
+                        className="font-bold text-gray-900 dark:text-white hover:underline cursor-pointer mr-1"
+                      >
+                        {notif.actor.username || notif.actor.full_name}
+                      </span>
+                    )}
+                    {(() => {
+                       if (notif.actor) {
+                         if (notif.type === "like") return "liked your post";
+                         if (notif.type === "follow") return "started following you";
+                         if (notif.type === "comment") return "commented on your post";
+                       }
+                       return notif.message;
+                    })()}
                   </p>
 
                   <div className="flex flex-wrap items-center gap-4">
