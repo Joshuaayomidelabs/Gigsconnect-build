@@ -75,17 +75,26 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
 
   const isOwner = user?.id === post.user_id;
 
-  // Sync props to state for real-time updates from parent
+  // Sync props to state for real-time updates from parent (Defensive: don't reset to zero)
   useEffect(() => {
     setIsLiked(post.is_liked);
   }, [post.is_liked]);
 
   useEffect(() => {
-    setLikesCount(post.likes_count || 0);
+    if (post.likes_count !== undefined && post.likes_count !== likesCount) {
+      // Only sync if the incoming count isn't aggressively zeroing out our optimistic state
+      if (post.likes_count > 0 || likesCount === 0) {
+        setLikesCount(post.likes_count);
+      }
+    }
   }, [post.likes_count]);
 
   useEffect(() => {
-    setCommentsCount(post.comments_count || 0);
+    if (post.comments_count !== undefined && post.comments_count !== commentsCount) {
+      if (post.comments_count > 0 || commentsCount === 0) {
+        setCommentsCount(post.comments_count);
+      }
+    }
   }, [post.comments_count]);
 
   useEffect(() => {

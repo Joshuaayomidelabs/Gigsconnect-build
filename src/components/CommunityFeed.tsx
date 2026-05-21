@@ -33,13 +33,10 @@ export default function CommunityFeed() {
 
     async function fetchPosts(isBackgroundRefresh = false) {
       try {
-        const { data, error } = await supabase
-          .from('posts')
-          .select(`
-            *,
-            profiles(*)
-          `)
-          .order('created_at', { ascending: false });
+        const { data: { session } } = await supabase.auth.getSession();
+        const userId = session?.user?.id;
+        
+        const { data, error } = await communityService.getFeed(userId);
         
         if (!isMounted) return;
 
@@ -47,15 +44,7 @@ export default function CommunityFeed() {
           console.error("Error fetching posts:", error);
           if (!isBackgroundRefresh) setPosts([]);
         } else {
-          // Normalize to match expected Post type structure
-          const processedPosts = (data || []).map((post: any) => ({
-            ...post,
-            user: post.profiles,
-            likes_count: post.likes_count || 0,
-            comments_count: post.comments_count || 0,
-            is_liked: false
-          }));
-          setPosts(processedPosts);
+          setPosts(data || []);
         }
       } catch (error) {
         console.error('Error in fetchPosts:', error);

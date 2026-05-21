@@ -136,7 +136,7 @@ export const communityService = {
       if (error) {
         console.error("Error unliking post:", error);
       } else {
-        // Decrement count fallback if no rpc available
+        // Fallback: manually update the post count as trigger may not exist
         supabase.from('posts').select('likes_count').eq('id', postId).single().then(({ data }) => {
           if (data) supabase.from('posts').update({ likes_count: Math.max(0, (data.likes_count || 1) - 1) }).eq('id', postId).then();
         });
@@ -155,7 +155,7 @@ export const communityService = {
       if (error) {
         console.error("Error liking post:", error);
       } else {
-        // Increment count fallback if no rpc available
+        // Fallback: manually update the post count as trigger may not exist
         supabase.from('posts').select('likes_count').eq('id', postId).single().then(({ data }) => {
           if (data) supabase.from('posts').update({ likes_count: (data.likes_count || 0) + 1 }).eq('id', postId).then();
         });
@@ -204,8 +204,10 @@ export const communityService = {
       console.log("SUPABASE RESPONSE DATA:", data);
       console.log("SUPABASE ERROR:", error);
 
-      if (!error) {
-        // Increment count fallback
+      if (error) {
+        console.error("Error adding comment:", error);
+      } else {
+        // Fallback: manually update the post count as trigger may not exist
         supabase.from('posts').select('comments_count').eq('id', post_id).single().then(({ data: postData }) => {
           if (postData) {
             supabase.from('posts').update({ comments_count: (postData.comments_count || 0) + 1 }).eq('id', post_id).then();
@@ -241,8 +243,10 @@ export const communityService = {
         .delete()
         .eq('id', commentId);
 
-      if (!error) {
-        // Decrement count fallback
+      if (error) {
+        console.error("Error deleting comment:", error);
+      } else {
+        // Fallback: manually update the post count as trigger may not exist
         supabase.from('posts').select('comments_count').eq('id', postId).single().then(({ data: postData }) => {
           if (postData) {
             supabase.from('posts').update({ comments_count: Math.max(0, (postData.comments_count || 1) - 1) }).eq('id', postId).then();
