@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, Check, ExternalLink, MessageSquare, Briefcase, Info, Loader2, XCircle, CheckCircle, UserPlus } from 'lucide-react';
+import { Bell, Check, ExternalLink, MessageSquare, Briefcase, Info, Loader2, XCircle, CheckCircle, UserPlus, User } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -99,8 +99,26 @@ const Notifications: React.FC = () => {
                 transition={{ delay: i * 0.05 }}
                 className={`bg-brand-white dark:bg-brand-dark-card rounded-[2rem] p-6 shadow-sm border border-brand-gray dark:border-brand-black flex gap-6 items-start relative group transition-all hover:shadow-md ${!notif.is_read ? 'ring-2 ring-brand-purple/10' : ''}`}
               >
-                <div className={`flex-shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center ${!notif.is_read ? 'bg-brand-purple/10' : 'bg-brand-gray dark:bg-brand-black'}`}>
-                  {getIcon(notif.type)}
+                <div className="flex-shrink-0">
+                  {notif.actor ? (
+                    <div 
+                      className={`w-12 h-12 rounded-2xl overflow-hidden cursor-pointer ring-2 ${!notif.is_read ? 'ring-brand-purple' : 'ring-transparent'}`}
+                      onClick={(e) => { 
+                        e.stopPropagation(); 
+                        navigate(`/profile/${notif.actor!.id}`); 
+                      }}
+                    >
+                      {notif.actor.avatar_url ? (
+                        <img src={notif.actor.avatar_url} alt={notif.actor.username} className="w-full h-full object-cover" />
+                      ) : (
+                        <User className="w-full h-full p-2 bg-brand-gray text-gray-500" />
+                      )}
+                    </div>
+                  ) : (
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${!notif.is_read ? 'bg-brand-purple/10' : 'bg-brand-gray dark:bg-brand-black'}`}>
+                      {getIcon(notif.type)}
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex-grow">
@@ -133,7 +151,7 @@ const Notifications: React.FC = () => {
                         }}
                         className="font-bold text-gray-900 dark:text-white hover:underline cursor-pointer mr-1"
                       >
-                        {notif.actor.username || notif.actor.full_name}
+                        {notif.actor.username}
                       </span>
                     )}
                     {(() => {

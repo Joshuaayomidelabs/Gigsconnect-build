@@ -46,6 +46,7 @@ const PublicProfile: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'portfolio'>('portfolio');
   const [showFollowersModal, setShowFollowersModal] = useState(false);
   const [showFollowingModal, setShowFollowingModal] = useState(false);
+  const [selectedMedia, setSelectedMedia] = useState<{type: string, url: string} | null>(null);
 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -312,7 +313,11 @@ const PublicProfile: React.FC = () => {
                     <video 
                       src={item.url} 
                       className="w-full h-full object-cover"
-                      controls
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setSelectedMedia({ type: "video", url: item.url });
+                      }}
+                      style={{ cursor: "pointer" }}
                     />
                   ) : (
                     <img 
@@ -320,6 +325,12 @@ const PublicProfile: React.FC = () => {
                       alt={`Portfolio ${index + 1}`} 
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 cursor-pointer"
                       referrerPolicy="no-referrer"
+                      onClick={() =>
+                        setSelectedMedia({
+                          type: "image",
+                          url: item.url,
+                        })
+                      }
                     />
                   )}
                 </div>
@@ -349,6 +360,47 @@ const PublicProfile: React.FC = () => {
           type="following" 
           onClose={() => setShowFollowingModal(false)} 
         />
+      )}
+
+      {selectedMedia && (
+        <div
+          onClick={() => setSelectedMedia(null)}
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            background: "rgba(0,0,0,0.9)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 9999,
+          }}
+        >
+          {selectedMedia.type === "image" && (
+            <img
+              src={selectedMedia.url}
+              style={{
+                maxWidth: "90%",
+                maxHeight: "90%",
+                objectFit: "contain",
+              }}
+            />
+          )}
+
+          {selectedMedia.type === "video" && (
+            <video
+              src={selectedMedia.url}
+              controls
+              autoPlay
+              style={{
+                maxWidth: "90%",
+                maxHeight: "90%",
+              }}
+            />
+          )}
+        </div>
       )}
     </div>
   );

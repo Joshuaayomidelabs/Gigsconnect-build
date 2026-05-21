@@ -87,9 +87,26 @@ const NotificationDropdown: React.FC = () => {
                     className={`p-4 flex gap-4 hover:bg-brand-purple/5 dark:hover:bg-brand-purple/20 transition-colors relative group ${!notif.is_read ? 'bg-brand-purple/5 dark:bg-brand-purple/10' : ''}`}
                   >
                     <div className="flex-shrink-0 mt-1">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${!notif.is_read ? 'bg-brand-purple/10 dark:bg-brand-purple/30' : 'bg-brand-gray dark:bg-brand-black'}`}>
-                        {getIcon(notif.type)}
-                      </div>
+                      {notif.actor ? (
+                        <div 
+                          className="w-8 h-8 rounded-full overflow-hidden cursor-pointer"
+                          onClick={(e) => { 
+                            e.stopPropagation(); 
+                            setIsOpen(false); 
+                            navigate(`/profile/${notif.actor!.id}`); 
+                          }}
+                        >
+                          {notif.actor.avatar_url ? (
+                            <img src={notif.actor.avatar_url} alt={notif.actor.username} className="w-full h-full object-cover" />
+                          ) : (
+                            <User className="w-full h-full p-1 bg-brand-gray text-gray-500" />
+                          )}
+                        </div>
+                      ) : (
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${!notif.is_read ? 'bg-brand-purple/10 dark:bg-brand-purple/30' : 'bg-brand-gray dark:bg-brand-black'}`}>
+                          {getIcon(notif.type)}
+                        </div>
+                      )}
                     </div>
                     
                     <div className="flex-grow min-w-0">
@@ -132,7 +149,7 @@ const NotificationDropdown: React.FC = () => {
                             }}
                             className="font-bold text-gray-900 dark:text-white hover:underline cursor-pointer mr-1"
                           >
-                            {notif.actor.username || notif.actor.full_name}
+                            {notif.actor.username}
                           </span>
                         )}
                         {(() => {
