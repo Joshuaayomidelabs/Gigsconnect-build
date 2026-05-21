@@ -33,10 +33,13 @@ export default function CommunityFeed() {
 
     async function fetchPosts(isBackgroundRefresh = false) {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        const userId = session?.user?.id;
-        
-        const { data, error } = await communityService.getFeed(userId);
+        const { data, error } = await supabase
+          .from('posts')
+          .select(`
+            *,
+            profiles(*)
+          `)
+          .order('created_at', { ascending: false });
         
         if (!isMounted) return;
 
@@ -44,7 +47,15 @@ export default function CommunityFeed() {
           console.error("Error fetching posts:", error);
           if (!isBackgroundRefresh) setPosts([]);
         } else {
-          setPosts(data || []);
+          // Normalize to match expected Post type structure
+          const processedPosts = (data || []).map((post: any) => ({
+            ...post,
+            user: post.profiles,
+            likes_count: post.likes_count || 0,
+            comments_count: post.comments_count || 0,
+            is_liked: false
+          }));
+          setPosts(processedPosts);
         }
       } catch (error) {
         console.error('Error in fetchPosts:', error);
@@ -77,8 +88,24 @@ export default function CommunityFeed() {
               return p;
             }));
           } else if (payload.eventType === 'INSERT') {
-            // For insert, it's safer to fetch the specific post or just refetch to get the user relation
-            fetchPosts(true); 
+            // 🔥 ALWAYS put new post at top (INSTANT UI UPDATE)
+             supabase
+              .from('posts')
+              .select(`*, profiles(*)`)
+              .eq('id', payload.new.id)
+              .single()
+              .then(({ data }) => {
+                if (data) {
+                  const newPost = {
+                    ...data,
+                    user: data.profiles,
+                    likes_count: data.likes_count || 0,
+                    comments_count: data.comments_count || 0,
+                    is_liked: false
+                  };
+                  setPosts((prev) => [newPost, ...prev]);
+                }
+              });
           }
         }
       )

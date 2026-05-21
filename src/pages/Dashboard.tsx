@@ -124,7 +124,6 @@ const Dashboard: React.FC = () => {
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [gigs, setGigs] = useState<any[]>([]);
-  const [posts, setPosts] = useState<any[]>([]);
   const [appliedGigIds, setAppliedGigIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [visibleCount, setVisibleCount] = useState(8);
@@ -151,14 +150,12 @@ const Dashboard: React.FC = () => {
           setAppliedGigIds(new Set(applications.map(app => app.gig_id)));
         }
 
-        const [profileRes, gigsRes, postsRes] = await Promise.all([
+        const [profileRes, gigsRes] = await Promise.all([
           profilesService.getProfile(session.user.id),
-          gigsService.getAllGigs(),
-          communityService.getFeed(session.user.id)
+          gigsService.getAllGigs()
         ]);
         if (profileRes.data) setProfile(profileRes.data);
         if (gigsRes.data) setGigs(gigsRes.data);
-        if (postsRes.data) setPosts(postsRes.data);
       }
       setLoading(false);
     };

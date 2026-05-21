@@ -13,31 +13,20 @@ export const communityService = {
       return { data: null, error: postsError };
     }
 
-    let followedUserIds = new Set<string>();
     let userLikedPostIds = new Set<string>();
 
     if (userId) {
-      const [followsRes, likesRes] = await Promise.all([
-        supabase.from('follows').select('following_id').eq('follower_id', userId),
-        supabase.from('likes').select('post_id').eq('user_id', userId)
-      ]);
-      
-      if (followsRes.data) {
-        followedUserIds = new Set(followsRes.data.map(f => f.following_id));
-      }
-      if (likesRes.data) {
-        userLikedPostIds = new Set(likesRes.data.map(l => l.post_id));
+      const { data: likesRes } = await supabase
+        .from('likes')
+        .select('post_id')
+        .eq('user_id', userId);
+        
+      if (likesRes) {
+        userLikedPostIds = new Set(likesRes.map(l => l.post_id));
       }
     }
 
-    // Sort: followed users first, then by date, and map is_liked
-    const sortedPosts = [...(posts || [])].sort((a, b) => {
-      const aFollowed = followedUserIds.has(a.user_id);
-      const bFollowed = followedUserIds.has(b.user_id);
-      if (aFollowed && !bFollowed) return -1;
-      if (!aFollowed && bFollowed) return 1;
-      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-    }).map(post => ({
+    const processedPosts = (posts || []).map(post => ({
       ...post,
       user: post.profiles,
       likes_count: post._likes?.[0]?.count || post.likes_count || 0,
@@ -45,7 +34,7 @@ export const communityService = {
       is_liked: userLikedPostIds.has(post.id)
     }));
 
-    return { data: sortedPosts, error: null };
+    return { data: processedPosts, error: null };
   },
 
   async getUserPosts(userId: string, currentUserId?: string) {
