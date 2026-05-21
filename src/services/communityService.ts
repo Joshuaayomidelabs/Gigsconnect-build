@@ -230,6 +230,43 @@ export const communityService = {
     }
   },
 
+  async editComment(commentId: string, newContent: string) {
+    try {
+      const { data, error } = await supabase
+        .from('comments')
+        .update({ content: newContent })
+        .eq('id', commentId)
+        .select();
+      return { data, error };
+    } catch (err: any) {
+      console.error("Error editing comment:", err);
+      return { data: null, error: err };
+    }
+  },
+
+  async deleteComment(commentId: string, postId: string) {
+    try {
+      const { error } = await supabase
+        .from('comments')
+        .delete()
+        .eq('id', commentId);
+
+      if (!error) {
+        // Decrement count fallback
+        supabase.from('posts').select('comments_count').eq('id', postId).single().then(({ data: postData }) => {
+          if (postData) {
+            supabase.from('posts').update({ comments_count: Math.max(0, (postData.comments_count || 1) - 1) }).eq('id', postId).then();
+          }
+        });
+      }
+
+      return { error };
+    } catch (err: any) {
+      console.error("Error deleting comment:", err);
+      return { error: err };
+    }
+  },
+
   async likeComment(commentId: string, userId: string) {
     try {
       const { data: existingLike } = await supabase
@@ -258,7 +295,7 @@ export const communityService = {
         .from('comments')
         .select('*, user:profiles!user_id(*), _comment_likes:comment_likes(count)')
         .eq('post_id', postId)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: true });
     } catch (e) {
       res = { data: null, error: e };
     }
@@ -270,7 +307,7 @@ export const communityService = {
           .from('comments')
           .select('*, user:profiles!user_id(*)')
           .eq('post_id', postId)
-          .order('created_at', { ascending: false });
+          .order('created_at', { ascending: true });
       } catch (e) {
         res = { data: null, error: e };
       }
@@ -292,7 +329,7 @@ export const communityService = {
       }
     }
 
-    const processedData = res.data?.map(comment => ({
+    const processedData = res.data?.map((comment: any) => ({
       ...comment,
       likes_count: comment._comment_likes?.[0]?.count || 0,
       is_liked: userLikedComments.has(comment.id)

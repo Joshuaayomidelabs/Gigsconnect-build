@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { communityService } from '../services/communityService';
 import { toast } from 'sonner';
+import { CommentBox } from './comments/CommentBox';
+import { CommentList } from './comments/CommentList';
 
 function timeAgo(date: string | Date) {
   const seconds = Math.floor((new Date().getTime() - new Date(date).getTime()) / 1000);
@@ -255,32 +257,6 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
     }
   };
 
-  const submitComment = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newCommentText.trim() || !user) return;
-
-    setIsSubmittingComment(true);
-    try {
-      const { error } = await communityService.addComment(post.id, user.id, newCommentText, replyTo?.id);
-      if (error) throw error;
-      
-      setNewCommentText("");
-      setReplyTo(null);
-
-      // Refresh comments
-      const { data: refetched } = await communityService.getComments(post.id, user?.id);
-      if (refetched) {
-        setComments(refetched);
-        setCommentsCount(refetched.length);
-      }
-    } catch (err) {
-      console.error("Error adding comment:", err);
-      toast.error("Failed to add comment.");
-    } finally {
-      setIsSubmittingComment(false);
-    }
-  };
-
   const [isExpanded, setIsExpanded] = useState(false);
   const isLongText = post.text && post.text.length > 100;
 
@@ -459,10 +435,8 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
               </button>
             )}
           </div>
-        )}
-
-        {/* VIEW ALL COMMENTS */}
-        {commentsCount > 0 && (
+        )}        {/* VIEW ALL COMMENTS */}
+        {commentsCount > 0 && !showComments && (
           <div className="px-3 sm:px-4 pb-2">
             <button 
               onClick={handleToggleComments}
@@ -473,223 +447,59 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
           </div>
         )}
 
+        {showComments && (
+          <CommentList 
+            comments={comments} 
+            currentUser={user} 
+            postOwnerId={post.user_id} 
+            onLike={handleCommentLike} 
+            onReply={(id, name) => setReplyTo({ id, name })} 
+            onDelete={async (commentId) => {
+              const { error } = await communityService.deleteComment(commentId, post.id);
+              if (!error) {
+                setComments(prev => prev.filter(c => c.id !== commentId && c.parent_id !== commentId));
+                setCommentsCount(prev => Math.max(0, prev - 1));
+                toast.success("Comment deleted");
+              } else {
+                toast.error("Failed to delete comment");
+              }
+            }}
+            onEdit={async (commentId, content) => {
+              const { error } = await communityService.editComment(commentId, content);
+              if (!error) {
+                setComments(prev => prev.map(c => c.id === commentId ? { ...c, content } : c));
+                toast.success("Comment updated");
+              } else {
+                toast.error("Failed to update comment");
+              }
+            }}
+          />
+        )}
+
         {/* ALWAYS VISIBLE INLINE COMMENT INPUT */}
-        <div className="px-3 sm:px-4 pb-4 pt-1">
-          <form onSubmit={submitComment} className="flex gap-3 items-center">
-            {user && (
-              <div className="w-[28px] h-[28px] rounded-full overflow-hidden shrink-0 border border-brand-gray dark:border-[#1F1F23]">
-                <img src={user?.user_metadata?.avatar_url || 'https://picsum.photos/seed/default/100'} alt="Me" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
-              </div>
-            )}
-            <input
-              type="text"
-              value={newCommentText}
-              onChange={(e) => setNewCommentText(e.target.value)}
-              placeholder={user ? "Add a comment..." : "Log in to comment"}
-              disabled={!user || isSubmittingComment}
-              className="flex-1 bg-transparent text-[14px] text-gray-900 dark:text-white placeholder:text-gray-500 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
-            />
-            {newCommentText.trim() && user && (
-              <button
-                type="submit"
-                disabled={isSubmittingComment || !newCommentText.trim()}
-                className="text-brand-purple font-semibold text-[14px] active:opacity-50 disabled:opacity-50"
-              >
-                {isSubmittingComment ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  "Post"
-                )}
-              </button>
-            )}
-          </form>
-        </div>
+        <CommentBox
+          postId={post.id}
+          user={user}
+          onSubmit={async (text, parentId) => {
+             if (!user) return;
+             const { error } = await communityService.addComment(post.id, user.id, text, parentId);
+             if (error) {
+               console.error(error);
+               toast.error("Failed to add comment.");
+             } else {
+               const { data } = await communityService.getComments(post.id, user?.id);
+               if (data) {
+                 setComments(data);
+                 setCommentsCount(data.length);
+                 setShowComments(true);
+                 setReplyTo(null);
+               }
+             }
+          }}
+          replyTo={replyTo}
+          onCancelReply={() => setReplyTo(null)}
+        />
       </div>
-
-      {/* Comments Modal (Mobile-first Bottom Sheet) */}
-      {showComments && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in" onClick={() => setShowComments(false)}>
-          <div 
-            className="bg-[#0F0F12] w-full max-w-[600px] h-[90vh] sm:h-[80vh] sm:max-h-[700px] rounded-t-[24px] sm:rounded-[24px] shadow-2xl border border-[#1F1F23] flex flex-col overflow-hidden animate-slide-up"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Modal Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-[#1F1F23]">
-              <h3 className="font-bold text-[16px] text-white">
-                Comments <span className="text-[#9CA3AF] font-medium">({commentsCount})</span>
-              </h3>
-              <button 
-                onClick={() => setShowComments(false)}
-                className="p-2 text-[#9CA3AF] hover:text-white transition-colors rounded-full hover:bg-[#1F1F23]"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            
-            {/* Comments List */}
-            <div className="flex-1 overflow-y-auto px-5 py-5 custom-scrollbar flex flex-col gap-6">
-              {isLoadingComments ? (
-                <div className="flex-1 flex items-center justify-center">
-                  <Loader2 className="w-8 h-8 text-[#6C2BD9] animate-spin" />
-                </div>
-              ) : comments.length === 0 ? (
-                <div className="flex-1 flex flex-col items-center justify-center text-[#9CA3AF] h-full my-auto">
-                  <MessageCircle className="w-12 h-12 mb-3 opacity-30" />
-                  <p className="text-[15px] font-medium text-gray-300 mb-1">No comments yet</p>
-                  <p className="text-[14px]">Be the first to start the conversation!</p>
-                </div>
-              ) : (
-                comments
-                  .filter(c => !c.parent_id)
-                  .map((comment) => (
-                    <div key={comment.id} className="flex flex-col gap-4">
-                      {/* Parent Comment */}
-                      <div className="flex gap-3 relative">
-                        <div 
-                          onClick={() => {
-                            setShowComments(false);
-                            navigate(`/profile/${comment.user_id}`);
-                          }}
-                          className="w-[36px] h-[36px] rounded-full overflow-hidden bg-[#0F0F12] shrink-0 border border-[#1F1F23] cursor-pointer relative z-10"
-                        >
-                          <img
-                            src={comment.user?.avatar_url || 'https://picsum.photos/seed/default/100'}
-                            alt={comment.user?.full_name || 'User'}
-                            className="w-full h-full object-cover"
-                            referrerPolicy="no-referrer"
-                          />
-                        </div>
-                        <div className="flex flex-col flex-1">
-                          <div className="flex items-baseline gap-2 mb-0.5">
-                            <span 
-                              onClick={() => {
-                                setShowComments(false);
-                                navigate(`/profile/${comment.user_id}`);
-                              }}
-                              className="font-bold text-[14px] text-white cursor-pointer hover:underline"
-                            >
-                              {comment.user?.full_name || 'Anonymous User'}
-                            </span>
-                            <span className="text-[12px] text-[#9CA3AF]">
-                              {timeAgo(comment.created_at)}
-                            </span>
-                          </div>
-                          <p className="text-[14.5px] text-gray-200 leading-snug">
-                            {comment.content}
-                          </p>
-                          <div className="flex gap-4 mt-2 text-[12px] font-medium text-[#9CA3AF]">
-                            <button 
-                              onClick={() => setReplyTo({ id: comment.id, name: comment.user?.full_name || 'User' })} 
-                              className="hover:text-white transition-colors active:text-[#6C2BD9]"
-                            >
-                              Reply
-                            </button>
-                            <button 
-                              onClick={(e) => handleCommentLike(comment.id, e)}
-                              className={`flex items-center gap-1 transition-colors ${comment.is_liked ? 'text-brand-purple' : 'hover:text-white active:text-[#6C2BD9]'}`}
-                            >
-                              {comment.likes_count > 0 && <span>{comment.likes_count}</span>} Like
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Replies */}
-                      {comments.filter(reply => reply.parent_id === comment.id).length > 0 && (
-                        <div className="ml-[18px] pl-6 border-l-2 border-[#1F1F23] flex flex-col gap-4">
-                          {comments.filter(reply => reply.parent_id === comment.id).map(reply => (
-                            <div key={reply.id} className="flex gap-3">
-                              <div 
-                                onClick={() => {
-                                  setShowComments(false);
-                                  navigate(`/profile/${reply.user_id}`);
-                                }}
-                                className="w-[28px] h-[28px] rounded-full overflow-hidden bg-[#0F0F12] shrink-0 border border-[#1F1F23] cursor-pointer mt-1"
-                              >
-                                <img
-                                  src={reply.user?.avatar_url || 'https://picsum.photos/seed/default/100'}
-                                  alt={reply.user?.full_name || 'User'}
-                                  className="w-full h-full object-cover"
-                                  referrerPolicy="no-referrer"
-                                />
-                              </div>
-                              <div className="flex flex-col flex-1">
-                                <div className="flex items-baseline gap-2 mb-0.5">
-                                  <span 
-                                    onClick={() => {
-                                      setShowComments(false);
-                                      navigate(`/profile/${reply.user_id}`);
-                                    }}
-                                    className="font-bold text-[13px] text-white cursor-pointer hover:underline"
-                                  >
-                                    {reply.user?.full_name || 'Anonymous User'}
-                                  </span>
-                                  <span className="text-[11px] text-[#9CA3AF]">
-                                    {timeAgo(reply.created_at)}
-                                  </span>
-                                </div>
-                                <p className="text-[14px] text-gray-200 leading-snug">
-                                  {reply.content}
-                                </p>
-                                <div className="flex gap-4 mt-1.5 text-[11px] font-medium text-[#9CA3AF]">
-                                  <button 
-                                    onClick={() => setReplyTo({ id: comment.id, name: reply.user?.full_name || 'User' })} 
-                                    className="hover:text-white transition-colors active:text-[#6C2BD9]"
-                                  >
-                                    Reply
-                                  </button>
-                                  <button 
-                                    onClick={(e) => handleCommentLike(reply.id, e)}
-                                    className={`flex items-center gap-1 transition-colors ${reply.is_liked ? 'text-brand-purple' : 'hover:text-white active:text-[#6C2BD9]'}`}
-                                  >
-                                    {reply.likes_count > 0 && <span>{reply.likes_count}</span>} Like
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))
-              )}
-            </div>
-
-            {/* Sticky Comment Input */}
-            <div className="px-5 py-4 border-t border-[#1F1F23] bg-[#0F0F12] pb-safe z-10 sticky bottom-0 flex flex-col gap-2">
-              {replyTo && (
-                <div className="flex items-center justify-between text-[13px] text-[#9CA3AF] bg-[#1F1F23] px-3 py-1.5 rounded-lg">
-                  <span>Replying to <span className="font-semibold text-white">{replyTo.name}</span></span>
-                  <button onClick={() => setReplyTo(null)} className="hover:text-white bg-black/20 p-1 rounded-full"><X className="w-3 h-3"/></button>
-                </div>
-              )}
-              <form onSubmit={submitComment} className="flex gap-3 items-center">
-                <div className="w-[36px] h-[36px] rounded-full overflow-hidden shrink-0 hidden sm:block border-gray-800 border">
-                  <img src={user?.user_metadata?.avatar_url || 'https://picsum.photos/seed/default/100'} alt="Me" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
-                </div>
-                <input
-                  type="text"
-                  value={newCommentText}
-                  onChange={(e) => setNewCommentText(e.target.value)}
-                  placeholder="Write a comment..."
-                  className="flex-1 bg-white/5 border border-[#1F1F23] rounded-full px-4 py-2.5 text-[14.5px] text-white placeholder:text-[#9CA3AF] focus:outline-none focus:border-[#6C2BD9] focus:ring-1 focus:ring-[#6C2BD9] transition-all duration-200"
-                />
-                <button
-                  type="submit"
-                  disabled={isSubmittingComment || !newCommentText.trim()}
-                  className="flex items-center justify-center w-[40px] h-[40px] rounded-full bg-[#6C2BD9] text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-[#1F1F23] hover:bg-[#A78BFA] active:bg-[#4C1D95] active:scale-105 transition-all duration-200 ease-in-out shrink-0"
-                >
-                  {isSubmittingComment ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Send className="w-4 h-4 ml-[-2px]" />
-                  )}
-                </button>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* SHARE MODAL */}
       {showShareModal && (
