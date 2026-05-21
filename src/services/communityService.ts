@@ -100,22 +100,21 @@ export const communityService = {
     const { data, error } = await supabase
       .from('posts')
       .delete()
-      .eq('id', postId);
+      .eq('id', postId)
+      .select(); // Add select to verify the row was actually deleted
 
     if (error) {
       console.error("[deletePost] Error deleting post:", error);
-    } else {
-      console.log(`[deletePost] Delete command successful. Data:`, data);
-      
-      // Verification check to ensure RLS actually allowed the deletion
-      const verify = await supabase.from('posts').select('id').eq('id', postId).maybeSingle();
-      if (verify.data) {
-        console.warn("[deletePost] RLS ISSUE: Post is still in database!");
-        return { data: null, error: new Error('Post could not be deleted from the database. Make sure you have permissions to delete this post.') };
-      }
+      return { error };
+    } 
+    
+    if (!data || data.length === 0) {
+      console.warn("[deletePost] RLS ISSUE: Post was not deleted! (Could be missing permissions or post already deleted)");
+      return { data: null, error: new Error('Post could not be deleted from the database. Make sure you have permissions or the post exists.') };
     }
 
-    return { data, error };
+    console.log(`[deletePost] Delete command successful. Deleted rows:`, data.length);
+    return { data, error: null };
   },
 
   async toggleLike(postId: string, userId: string, postOwnerId: string) {
