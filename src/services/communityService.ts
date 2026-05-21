@@ -5,7 +5,7 @@ export const communityService = {
   async getFeed(userId?: string) {
     const { data: posts, error: postsError } = await supabase
       .from('posts')
-      .select('*, user:profiles!user_id(*), _likes:likes(count), _comments:comments(count)')
+      .select('*, profiles(*), _likes:likes(count), _comments:comments(count)')
       .order('created_at', { ascending: false });
 
     if (postsError) {
@@ -39,6 +39,7 @@ export const communityService = {
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     }).map(post => ({
       ...post,
+      user: post.profiles,
       likes_count: post._likes?.[0]?.count || post.likes_count || 0,
       comments_count: post._comments?.[0]?.count || post.comments_count || 0,
       is_liked: userLikedPostIds.has(post.id)
@@ -50,7 +51,7 @@ export const communityService = {
   async getUserPosts(userId: string, currentUserId?: string) {
     const { data: posts, error } = await supabase
       .from('posts')
-      .select('*, user:profiles!user_id(*), _likes:likes(count), _comments:comments(count)')
+      .select('*, profiles(*), _likes:likes(count), _comments:comments(count)')
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
@@ -69,6 +70,7 @@ export const communityService = {
 
     const processedPosts = posts.map(post => ({
       ...post,
+      user: post.profiles,
       likes_count: post._likes?.[0]?.count || post.likes_count || 0,
       comments_count: post._comments?.[0]?.count || post.comments_count || 0,
       is_liked: userLikedPostIds.has(post.id)
