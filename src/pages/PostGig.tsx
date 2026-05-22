@@ -45,7 +45,7 @@ const PostGig: React.FC = () => {
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [videoPreview, setVideoPreview] = useState<string | null>(null);
 
-  const [uploadPhase, setUploadPhase] = useState<'preparing' | 'compressing' | 'uploading' | 'publishing' | null>(null);
+  const [uploadPhase, setUploadPhase] = useState<'preparing' | 'compressing' | 'uploading' | 'publishing' | 'success' | 'error' | null>(null);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -105,6 +105,8 @@ const PostGig: React.FC = () => {
       let videoUrl = null;
 
       if (imageFile) {
+        setUploadPhase('uploading');
+        setUploadProgress(0);
         toast.loading("Uploading image...", { id: "upload-toast" });
         const fileExt = imageFile.name.split('.').pop();
         const fileName = `${Math.random()}.${fileExt}`;
@@ -113,11 +115,18 @@ const PostGig: React.FC = () => {
         // We assume a 'posts' bucket exists, or we use 'portfolio' bucket as fallback
         const { error: uploadError, data } = await supabase.storage
           .from('portfolio')
-          .upload(filePath, imageFile);
+          .upload(filePath, imageFile, {
+            upsert: true,
+            // @ts-ignore
+            onUploadProgress: (progress) => {
+              const percent = Math.round((progress.loaded / progress.total) * 100);
+              setUploadProgress(percent);
+            }
+          });
           
         if (uploadError) {
           console.error('Image upload error:', uploadError);
-          // Continue without image if upload fails for MVP
+          throw new Error('Failed to upload image: ' + uploadError.message);
         } else if (data) {
           const { data: publicUrlData } = supabase.storage
             .from('portfolio')
@@ -182,7 +191,14 @@ const PostGig: React.FC = () => {
         
         const { error: uploadError, data } = await supabase.storage
           .from('post-videos')
-          .upload(filePath, fileToUpload);
+          .upload(filePath, fileToUpload, {
+            upsert: true,
+            // @ts-ignore
+            onUploadProgress: (progress) => {
+              const percent = Math.round((progress.loaded / progress.total) * 100);
+              setUploadProgress(percent);
+            }
+          });
           
         if (uploadError) {
           console.error('Video upload error:', uploadError);
@@ -217,25 +233,30 @@ const PostGig: React.FC = () => {
       console.log("Successfully created post:", data);
       toast.success("Post shared with your community!", { id: "upload-toast" });
       
-      // Clear composer state only after successful save confirmation
-      setPostContent('');
-      setImageFile(null);
-      setImagePreview(null);
-      setVideoFile(null);
-      setVideoPreview(null);
-      setIsAvailableForGigs(false);
+      setUploadPhase('success');
+      
+      // Delay to show success animation before navigating
+      setTimeout(() => {
+        // Clear composer state only after successful save confirmation
+        setPostContent('');
+        setImageFile(null);
+        setImagePreview(null);
+        setVideoFile(null);
+        setVideoPreview(null);
+        setIsAvailableForGigs(false);
 
-      setUploadPhase(null);
-      setUploadProgress(0);
+        setUploadPhase(null);
+        setUploadProgress(0);
 
-      // Safely navigate away now that persistence and state clear are verified
-      navigate('/overview');
+        // Safely navigate away now that persistence and state clear are verified
+        navigate('/overview');
+      }, 1500);
+
     } catch (err: any) {
       console.error("Post creation error:", err);
       toast.error(err.message || 'Error publishing post', { id: "upload-toast" });
-    } finally {
+      setUploadPhase('error');
       setIsLoading(false);
-      setUploadPhase(null);
     }
   };
 
@@ -316,34 +337,117 @@ const PostGig: React.FC = () => {
 
           {/* 4. MEDIA PREVIEW SECTION */}
           {imagePreview && (
-            <div className="relative rounded-[20px] overflow-hidden border border-gray-100 dark:border-[#1F1F23] mb-4 group">
-              <img src={imagePreview} alt="Preview" className="w-full h-auto max-h-[400px] object-cover" />
-              <button 
-                type="button"
-                onClick={() => { setImageFile(null); setImagePreview(null); }}
-                className="absolute top-3 right-3 p-2 bg-[#0F0F12]/60 backdrop-blur-md text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-[#0F0F12]/80 shadow-sm"
-                aria-label="Remove image"
-              >
-                <X className="w-4 h-4" />
-              </button>
+            <div className={`mb-4 group ${uploadPhase ? 'upload-wrapper' : 'relative rounded-xl overflow-hidden border border-gray-100 dark:border-[#1F1F23]'}`}>
+              <div className={uploadPhase ? "preview" : "relative"}>
+                <img 
+                  src={imagePreview} 
+                  alt="Preview" 
+                  className={!uploadPhase ? "w-full max-h-[400px] object-cover transition-all duration-300" : ""} 
+                />
+                
+                {/* Upload Status Overlay */}
+                {uploadPhase && (
+                  <div className="overlay">
+                    {uploadPhase === 'success' ? (
+                      <div className="flex flex-col items-center animate-fade-in">
+                        <div className="w-12 h-12 bg-[#4ade80] rounded-full flex items-center justify-center mb-3 shadow-lg shadow-green-500/30">
+                          <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                          </svg>
+                        </div>
+                        <p className="font-bold text-[15px] drop-shadow-md">Post uploaded successfully</p>
+                      </div>
+                    ) : uploadPhase === 'error' ? (
+                      <div className="flex flex-col items-center animate-fade-in cursor-pointer hover:opacity-80 transition-opacity" onClick={() => setUploadPhase(null)}>
+                        <div className="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center mb-3">
+                          <X className="w-6 h-6 text-white" />
+                        </div>
+                        <p className="font-bold text-[15px] text-center drop-shadow-md">Upload failed. Tap to retry.</p>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="progress-container">
+                          <div className="progress-bar" style={{ width: `${uploadProgress}%` }}></div>
+                        </div>
+                        <p className="progress-text">
+                          {uploadPhase === 'preparing' ? 'Preparing...' : 
+                           uploadPhase === 'uploading' ? `${uploadProgress}% uploading...` : 
+                           uploadPhase === 'publishing' ? 'Publishing...' : ''}
+                        </p>
+                      </>
+                    )}
+                  </div>
+                )}
+                
+                {(!uploadPhase || uploadPhase === 'error') && (
+                  <button 
+                    type="button"
+                    onClick={() => { setImageFile(null); setImagePreview(null); setUploadPhase(null); }}
+                    className="absolute top-3 right-3 p-2 bg-[#0F0F12]/60 backdrop-blur-md text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-[#0F0F12]/80 shadow-sm z-20 pointer-events-auto"
+                    aria-label="Remove image"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
             </div>
           )}
 
           {videoPreview && (
-            <div className="relative rounded-[20px] overflow-hidden border border-gray-100 dark:border-[#1F1F23] mb-4 group bg-black/5 dark:bg-white/5">
-              <video 
-                src={videoPreview} 
-                controls 
-                className="w-full h-auto max-h-[400px] object-contain rounded-[20px]" 
-              />
-              <button 
-                type="button"
-                onClick={() => { setVideoFile(null); setVideoPreview(null); }}
-                className="absolute top-3 right-3 p-2 bg-[#0F0F12]/60 backdrop-blur-md text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-[#0F0F12]/80 shadow-sm z-10"
-                aria-label="Remove video"
-              >
-                <X className="w-4 h-4" />
-              </button>
+            <div className={`mb-4 group bg-black/5 dark:bg-white/5 ${uploadPhase ? 'upload-wrapper' : 'relative rounded-xl overflow-hidden border border-gray-100 dark:border-[#1F1F23]'}`}>
+              <div className={uploadPhase ? "preview" : "relative"}>
+                <video 
+                  src={videoPreview} 
+                  controls={!uploadPhase || uploadPhase === 'error'} 
+                  className={!uploadPhase ? "w-full max-h-[400px] object-contain transition-all duration-300" : ""} 
+                />
+
+                {/* Upload Status Overlay */}
+                {uploadPhase && (
+                  <div className="overlay pointer-events-none">
+                    {uploadPhase === 'success' ? (
+                      <div className="flex flex-col items-center animate-fade-in">
+                        <div className="w-12 h-12 bg-[#4ade80] rounded-full flex items-center justify-center mb-3 shadow-lg shadow-green-500/30">
+                          <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                          </svg>
+                        </div>
+                        <p className="font-bold text-[15px] drop-shadow-md">Post uploaded successfully</p>
+                      </div>
+                    ) : uploadPhase === 'error' ? (
+                      <div className="flex flex-col items-center animate-fade-in cursor-pointer hover:opacity-80 transition-opacity pointer-events-auto" onClick={() => setUploadPhase(null)}>
+                        <div className="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center mb-3">
+                          <X className="w-6 h-6 text-white" />
+                        </div>
+                        <p className="font-bold text-[15px] text-center drop-shadow-md">Upload failed. Tap to retry.</p>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="progress-container">
+                          <div className="progress-bar" style={{ width: `${uploadProgress}%` }}></div>
+                        </div>
+                        <p className="progress-text">
+                          {uploadPhase === 'preparing' ? 'Preparing...' : 
+                           uploadPhase === 'compressing' ? `${uploadProgress}% compressing...` : 
+                           uploadPhase === 'uploading' ? `${uploadProgress}% uploading...` : 
+                           uploadPhase === 'publishing' ? 'Publishing...' : ''}
+                        </p>
+                      </>
+                    )}
+                  </div>
+                )}
+                
+                {(!uploadPhase || uploadPhase === 'error') && (
+                  <button 
+                    type="button"
+                    onClick={() => { setVideoFile(null); setVideoPreview(null); setUploadPhase(null); }}
+                    className="absolute top-3 right-3 p-2 bg-[#0F0F12]/60 backdrop-blur-md text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-[#0F0F12]/80 shadow-sm z-20 pointer-events-auto"
+                    aria-label="Remove video"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
             </div>
           )}
 
