@@ -333,7 +333,7 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
         {(post.image_urls?.length || post.video_url) ? (
           <div className="w-full">
             <div 
-              className="relative w-full aspect-[4/5] bg-[#0A0A0C] group/media overflow-hidden"
+              className="card-media group/media"
               onDoubleClick={handleDoubleTap}
             >
               {post.image_urls && post.image_urls.length > 0 && (
@@ -343,7 +343,6 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
                       <img
                         src={url}
                         alt={`Post media ${i + 1}`}
-                        className="w-full h-full object-cover object-center"
                         referrerPolicy="no-referrer"
                         loading={i === 0 ? "lazy" : "eager"}
                       />
@@ -358,7 +357,6 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
                     src={post.video_url} 
                     loop
                     playsInline
-                    className="absolute inset-0 w-full h-full object-cover object-center"
                   />
                   {!isPlaying && (
                     <div className="absolute inset-0 bg-black/30 flex items-center justify-center transition-opacity z-10">

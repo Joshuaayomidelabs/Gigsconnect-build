@@ -195,3 +195,21 @@ h1, h2, h3, h4, h5, h6 {
 .animate-fade-in {
   animation: fadeInBackdrop 0.25s ease-out forwards;
 }
+
+/* Media Cropping System */
+.card-media {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #f2f2f2;
+  position: relative;
+}
+
+.card-media img,
+.card-media video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 20%;
+}
