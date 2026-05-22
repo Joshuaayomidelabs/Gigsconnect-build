@@ -269,8 +269,6 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const isLongText = post.text && post.text.length > 100;
 
-  if (isDeleting) return null; // Simple optimistic removal from DOM
-
   return (
     <div className="w-full sm:max-w-[600px] mx-auto mb-6 sm:mb-8 group/post">
       <div className="bg-white dark:bg-[#0F0F12] sm:rounded-2xl border-y sm:border border-gray-200 dark:border-[#1F1F23] flex flex-col relative z-0 overflow-hidden shadow-sm">
@@ -319,10 +317,11 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
                 <div className="absolute right-0 mt-1 w-48 bg-white dark:bg-[#1A1A1E] rounded-xl shadow-lg border border-gray-100 dark:border-[#2A2A2F] overflow-hidden z-20 py-1">
                   <button 
                     onClick={handleDelete}
-                    className="w-full flex items-center gap-3 px-4 py-3 text-[14px] font-bold text-red-500 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                    disabled={isDeleting}
+                    className={`w-full flex items-center gap-3 px-4 py-3 text-[14px] font-bold transition-colors ${isDeleting ? 'text-gray-400 cursor-not-allowed' : 'text-red-500 hover:bg-gray-50 dark:hover:bg-white/5'}`}
                   >
-                    <Trash2 className="w-4 h-4" />
-                    {confirmDelete ? "Tap to confirm" : "Delete"}
+                    <Trash2 className={`w-4 h-4 ${isDeleting ? 'animate-pulse' : ''}`} />
+                    {isDeleting ? "Deleting..." : confirmDelete ? "Tap to confirm" : "Delete"}
                   </button>
                 </div>
               )}

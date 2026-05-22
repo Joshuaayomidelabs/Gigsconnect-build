@@ -6,6 +6,7 @@ export const communityService = {
     const { data: posts, error: postsError } = await supabase
       .from('posts')
       .select('*, profiles(*), _likes:likes(count), _comments:comments(count)')
+      .is('deleted_at', null)
       .order('created_at', { ascending: false });
 
     if (postsError) {
@@ -41,6 +42,7 @@ export const communityService = {
     const { data: posts, error } = await supabase
       .from('posts')
       .select('*, profiles(*), _likes:likes(count), _comments:comments(count)')
+      .is('deleted_at', null)
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
@@ -95,13 +97,13 @@ export const communityService = {
   },
 
   async deletePost(postId: string) {
-    console.log(`[deletePost] Executing delete on posts table...`);
-    // Delete the post directly. Foreign keys with ON DELETE CASCADE will handle likes and comments automatically.
+    console.log(`[deletePost] Executing soft delete on posts table...`);
+    // Instead of real deletion, we set deleted_at
     const { data, error } = await supabase
       .from('posts')
-      .delete()
+      .update({ deleted_at: new Date().toISOString() })
       .eq('id', postId)
-      .select(); // Add select to verify the row was actually deleted
+      .select(); // Add select to verify the row was actually updated
 
     if (error) {
       console.error("[deletePost] Error deleting post:", error);
@@ -113,7 +115,7 @@ export const communityService = {
       return { data: null, error: new Error('Post could not be deleted from the database. Make sure you have permissions or the post exists.') };
     }
 
-    console.log(`[deletePost] Delete command successful. Deleted rows:`, data.length);
+    console.log(`[deletePost] Delete command successful. Soft-deleted rows:`, data.length);
     return { data, error: null };
   },
 

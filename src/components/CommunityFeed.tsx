@@ -70,12 +70,16 @@ export default function CommunityFeed() {
           if (payload.eventType === 'DELETE') {
             setPosts((prev) => prev.filter((p) => p.id !== payload.old.id));
           } else if (payload.eventType === 'UPDATE') {
-            setPosts((prev) => prev.map((p) => {
-              if (p.id === payload.new.id) {
-                return { ...p, ...payload.new };
-              }
-              return p;
-            }));
+            if (payload.new.deleted_at) {
+              setPosts((prev) => prev.filter((p) => p.id !== payload.new.id));
+            } else {
+              setPosts((prev) => prev.map((p) => {
+                if (p.id === payload.new.id) {
+                  return { ...p, ...payload.new };
+                }
+                return p;
+              }));
+            }
           } else if (payload.eventType === 'INSERT') {
             // 🔥 ALWAYS put new post at top (INSTANT UI UPDATE)
              supabase
