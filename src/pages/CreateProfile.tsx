@@ -16,6 +16,7 @@ import {
 import { supabase } from '../services/supabaseClient';
 import { profilesService } from '../services/profilesService';
 import { GIG_CATEGORIES } from '../utils/constants';
+import imageCompression from 'browser-image-compression';
 
 const STEPS = [
   { id: 'basics', title: 'The Basics', icon: <User className="w-5 h-5" /> },
@@ -28,6 +29,7 @@ const CreateProfile: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
+  const [uploadStatus, setUploadStatus] = useState('');
   const [formData, setFormData] = useState({
     full_name: '',
     username: '',
@@ -83,12 +85,27 @@ const CreateProfile: React.FC = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image must be under 5MB');
+      return;
+    }
+
     try {
       setIsLoading(true);
+      setUploadStatus('optimizing image...');
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('Login required');
 
-      const publicUrl = await profilesService.uploadAvatar(session.user.id, file);
+      const options = {
+        maxSizeMB: 0.8,
+        maxWidthOrHeight: 1024,
+        useWebWorker: true
+      };
+      
+      const compressedFile = await imageCompression(file, options);
+      setUploadStatus('uploading...');
+
+      const publicUrl = await profilesService.uploadAvatar(session.user.id, compressedFile);
       setFormData(prev => ({ ...prev, avatar_url: publicUrl }));
       
       // Notify other components (like Header) to refresh
@@ -97,6 +114,7 @@ const CreateProfile: React.FC = () => {
       alert(err.message);
     } finally {
       setIsLoading(false);
+      setUploadStatus('');
     }
   };
 
@@ -206,7 +224,13 @@ const CreateProfile: React.FC = () => {
                     </div>
                     <div className="text-center">
                       <h3 className="text-2xl font-black text-brand-black dark:text-brand-white tracking-tight">Add a Profile Photo</h3>
-                      <p className="text-gray-500 dark:text-gray-400 font-medium mt-1">Help others recognize you in the community.</p>
+                      <p className="text-gray-500 dark:text-gray-400 font-medium mt-1">Help others recognize you in the community. Max size 5MB.</p>
+                      {uploadStatus && (
+                        <p className="text-[14px] text-brand-purple mt-2 flex items-center justify-center gap-2">
+                           <Loader2 className="w-4 h-4 animate-spin" />
+                           {uploadStatus}
+                        </p>
+                      )}
                     </div>
                   </div>
 

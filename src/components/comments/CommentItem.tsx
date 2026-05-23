@@ -46,7 +46,6 @@ export function CommentItem({
   };
 
   const handleDelete = async () => {
-    if (!window.confirm("Delete this comment?")) return;
     setIsDeleting(true);
     await onDelete(comment.id);
     setIsDeleting(false);
@@ -128,12 +127,12 @@ export function CommentItem({
               Reply
             </button>
             {isOwner && (
-              <button onClick={() => setIsEditing(!isEditing)} className="hidden group-hover:inline-block hover:text-gray-900 dark:hover:text-white transition-colors">
+              <button onClick={() => setIsEditing(!isEditing)} className="hover:text-gray-900 dark:hover:text-white transition-colors">
                 Edit
               </button>
             )}
             {canDelete && (
-              <button onClick={handleDelete} className="hidden group-hover:inline-block hover:text-red-500 transition-colors">
+              <button onClick={handleDelete} className="hover:text-red-500 transition-colors">
                 Delete
               </button>
             )}

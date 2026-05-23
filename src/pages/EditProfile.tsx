@@ -3,6 +3,7 @@ import { Camera, Loader2, Save, MapPin, User, Briefcase, Globe, Edit3, Phone, Ch
 import { supabase } from '../services/supabaseClient';
 import { profilesService } from '../services/profilesService';
 import { motion, AnimatePresence } from 'motion/react';
+import imageCompression from 'browser-image-compression';
 
 interface PortfolioItem {
   url: string;
@@ -17,6 +18,7 @@ const EditProfile: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState('');
+  const [uploadStatus, setUploadStatus] = useState('');
   const [formData, setFormData] = useState({
     full_name: '',
     username: '',
@@ -33,7 +35,7 @@ const EditProfile: React.FC = () => {
     twitter_url: '',
     linkedin_url: '',
     portfolio_media: [] as PortfolioItem[],
-    verification_status: 'Unverified' as 'Unverified' | 'Pending' | 'Verified'
+    verification_status: 'none'
   });
 
   const fetchProfile = async () => {
@@ -58,7 +60,7 @@ const EditProfile: React.FC = () => {
           twitter_url: data.twitter_url || '',
           linkedin_url: data.linkedin_url || '',
           portfolio_media: data.portfolio_media || [],
-          verification_status: data.verification_status || 'Unverified'
+          verification_status: data.verification_status || 'none'
         });
       }
     }
@@ -83,12 +85,27 @@ const EditProfile: React.FC = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image must be under 5MB');
+      return;
+    }
+
     try {
       setIsLoading(true);
+      setUploadStatus('optimizing image...');
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('Login required');
 
-      const publicUrl = await profilesService.uploadAvatar(session.user.id, file);
+      const options = {
+        maxSizeMB: 0.8,
+        maxWidthOrHeight: 1024,
+        useWebWorker: true
+      };
+      
+      const compressedFile = await imageCompression(file, options);
+      setUploadStatus('uploading...');
+
+      const publicUrl = await profilesService.uploadAvatar(session.user.id, compressedFile);
       setFormData(prev => ({ ...prev, avatar_url: publicUrl }));
       setSuccessMessage('Photo updated!');
       
@@ -100,6 +117,7 @@ const EditProfile: React.FC = () => {
       alert(err.message);
     } finally {
       setIsLoading(false);
+      setUploadStatus('');
     }
   };
 
@@ -152,8 +170,8 @@ const EditProfile: React.FC = () => {
       if (!session) throw new Error('Login required');
 
       await profilesService.uploadVerificationDoc(session.user.id, file);
-      setFormData(prev => ({ ...prev, verification_status: 'Pending' }));
-      setSuccessMessage('Verification document submitted!');
+      setFormData(prev => ({ ...prev, verification_status: 'pending' }));
+      setSuccessMessage('Verification submitted');
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err: any) {
       alert(err.message);
@@ -494,7 +512,13 @@ const EditProfile: React.FC = () => {
                 </div>
                 <div className="text-center sm:text-left">
                   <h3 className="text-xl font-bold text-brand-black dark:text-brand-white mb-1">Profile Photo</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Upload a clear photo of yourself. Max size 1MB.</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Upload a clear photo of yourself. Max size 5MB.</p>
+                  {uploadStatus && (
+                    <p className="text-[14px] text-brand-purple mt-2 flex items-center justify-center sm:justify-start gap-2">
+                       <Loader2 className="w-4 h-4 animate-spin" />
+                       {uploadStatus}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -513,16 +537,20 @@ const EditProfile: React.FC = () => {
                     
                     <div className="flex items-center gap-4">
                       <div className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest border ${
-                        formData.verification_status === 'Verified' 
+                        formData.verification_status?.toLowerCase() === 'verified' 
                           ? 'bg-brand-purple/10 dark:bg-brand-purple/20 text-brand-purple border-brand-purple/10 dark:border-brand-purple/20' 
-                          : formData.verification_status === 'Pending'
-                          ? 'bg-brand-purple/5 dark:bg-brand-purple/10 text-brand-purple/70 border-brand-purple/10 dark:border-brand-purple/20'
+                          : formData.verification_status?.toLowerCase() === 'pending'
+                          ? 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20'
                           : 'bg-brand-gray dark:bg-brand-black/50 text-gray-500 dark:text-gray-400 border-brand-gray dark:border-brand-black'
                       }`}>
-                        Status: {formData.verification_status}
+                        Status: {
+                          !formData.verification_status || formData.verification_status?.toLowerCase() === 'none' 
+                            ? 'Unverified' 
+                            : formData.verification_status.charAt(0).toUpperCase() + formData.verification_status.slice(1).toLowerCase()
+                        }
                       </div>
                       
-                      {formData.verification_status === 'Verified' && (
+                      {formData.verification_status?.toLowerCase() === 'verified' && (
                         <div className="flex items-center gap-1.5 text-brand-purple font-bold text-sm">
                           <CheckCircle2 className="w-4 h-4" />
                           Verified
@@ -531,7 +559,7 @@ const EditProfile: React.FC = () => {
                     </div>
                   </div>
 
-                  {formData.verification_status === 'Unverified' && (
+                  {(!formData.verification_status || formData.verification_status?.toLowerCase() === 'none' || formData.verification_status?.toLowerCase() === 'unverified') && (
                     <div className="w-full md:w-auto">
                       <label className="flex flex-col items-center justify-center w-full md:w-64 h-32 border-2 border-dashed border-brand-gray dark:border-brand-black rounded-2xl cursor-pointer hover:bg-brand-purple/5 dark:hover:bg-brand-purple/10 hover:border-brand-purple/30 dark:hover:border-brand-purple/40 transition-all group">
                         <div className="flex flex-col items-center justify-center pt-5 pb-6">
@@ -544,11 +572,11 @@ const EditProfile: React.FC = () => {
                     </div>
                   )}
 
-                  {formData.verification_status === 'Pending' && (
-                    <div className="w-full md:w-64 p-6 bg-brand-purple/5 dark:bg-brand-purple/10 rounded-2xl border border-brand-purple/10 dark:border-brand-purple/20 text-center">
-                      <AlertCircle className="w-8 h-8 text-brand-purple/70 mx-auto mb-2" />
-                      <p className="text-xs font-bold text-brand-purple">Verification Pending</p>
-                      <p className="text-[10px] text-brand-purple/70 mt-1">Our team is reviewing your document. This usually takes 24-48 hours.</p>
+                  {formData.verification_status?.toLowerCase() === 'pending' && (
+                    <div className="w-full md:w-64 p-6 bg-yellow-500/5 dark:bg-yellow-500/10 rounded-2xl border border-yellow-500/10 dark:border-yellow-500/20 text-center">
+                      <AlertCircle className="w-8 h-8 text-yellow-500 mx-auto mb-2" />
+                      <p className="text-xs font-bold text-yellow-600">Verification in review</p>
+                      <p className="text-[10px] text-yellow-500/70 mt-1">Our team is reviewing your document. This usually takes 24-48 hours.</p>
                     </div>
                   )}
                 </div>

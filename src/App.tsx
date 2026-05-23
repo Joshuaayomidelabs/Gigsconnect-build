@@ -18,6 +18,7 @@ import Notifications from './pages/Notifications';
 import GigDetails from './pages/GigDetails';
 import PublicProfile from './pages/PublicProfile';
 import ApplicationDetails from './pages/ApplicationDetails';
+import PostDetails from './pages/PostDetails';
 
 import ProtectedRoute from './components/ProtectedRoute';
 import { useAuth } from './context/AuthContext';
@@ -83,6 +84,7 @@ const App: React.FC = () => {
               <Route path="/overview" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/browse" element={<ProtectedRoute><BrowseGigs /></ProtectedRoute>} />
               <Route path="/gig/:id" element={<ProtectedRoute><GigDetails /></ProtectedRoute>} />
+              <Route path="/post/:id" element={<ProtectedRoute><PostDetails /></ProtectedRoute>} />
               <Route path="/post" element={<ProtectedRoute><PostGig /></ProtectedRoute>} />
               <Route path="/applications" element={<ProtectedRoute><MyApplications /></ProtectedRoute>} />
               <Route path="/applications/:id" element={<ProtectedRoute><ApplicationDetails /></ProtectedRoute>} />

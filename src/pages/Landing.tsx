@@ -16,7 +16,8 @@ import {
   MapPin,
   MessageSquare,
   Share2,
-  Heart
+  Heart,
+  Clock
 } from 'lucide-react';
 
 import Logo from '../components/Logo';
@@ -35,7 +36,7 @@ const Landing: React.FC = () => {
       postedBy: "David Adebayo",
       price: "₦150,000",
       avatar: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&q=80&w=300",
-      verified: true
+      verificationStatus: 'verified'
     },
     {
       title: "Female Vocalist for Studio Recording",
@@ -44,7 +45,7 @@ const Landing: React.FC = () => {
       postedBy: "Michael Okoro",
       price: "₦80,000",
       avatar: "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?auto=format&fit=crop&q=80&w=300",
-      verified: true
+      verificationStatus: 'verified'
     },
     {
       title: "Saxophonist for Private Dinner Event",
@@ -53,7 +54,7 @@ const Landing: React.FC = () => {
       postedBy: "Chioma Nwankwo",
       price: "₦60,000",
       avatar: "https://plus.unsplash.com/premium_photo-1682614336946-c0d8ec83cf57?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-      verified: true
+      verificationStatus: 'verified'
     },
     {
       title: "Music Producer Needed for Afrobeats EP",
@@ -62,7 +63,7 @@ const Landing: React.FC = () => {
       postedBy: "Kwame Mensah",
       price: "$150",
       avatar: "https://plus.unsplash.com/premium_photo-1680955436007-264b858768e4?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-      verified: true
+      verificationStatus: 'verified'
     },
     {
       title: "Lead Guitarist for Rock Band",
@@ -71,7 +72,7 @@ const Landing: React.FC = () => {
       postedBy: "John Kamau",
       price: "$200",
       avatar: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&q=80&w=300",
-      verified: true
+      verificationStatus: 'verified'
     },
     {
       title: "Drummer for Sunday Church Service",
@@ -80,7 +81,7 @@ const Landing: React.FC = () => {
       postedBy: "Blessing Okafor",
       price: "₦25,000",
       avatar: "https://images.unsplash.com/photo-1524230659092-07f99a75c013?auto=format&fit=crop&q=80&w=300",
-      verified: false
+      verificationStatus: 'none'
     },
     {
       title: "Keyboardist for Jazz Night",
@@ -89,7 +90,7 @@ const Landing: React.FC = () => {
       postedBy: "Zola Mbeki",
       price: "R2,500",
       avatar: "https://images.unsplash.com/photo-1520522186724-2856e1a38f1e?auto=format&fit=crop&q=80&w=300",
-      verified: true
+      verificationStatus: 'verified'
     },
     {
       title: "Sound Engineer for Outdoor Festival",
@@ -98,7 +99,7 @@ const Landing: React.FC = () => {
       postedBy: "Moussa Diop",
       price: "€500",
       avatar: "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?auto=format&fit=crop&q=80&w=300",
-      verified: true
+      verificationStatus: 'verified'
     },
     {
       title: "Bass Player for Afro-Jazz Fusion",
@@ -107,7 +108,7 @@ const Landing: React.FC = () => {
       postedBy: "Femi Kuti",
       price: "₦100,000",
       avatar: "https://images.unsplash.com/photo-1564186763535-ebb21ef5277f?auto=format&fit=crop&q=80&w=300",
-      verified: true
+      verificationStatus: 'verified'
     },
     {
       title: "Violinist for Classical Concert",
@@ -116,7 +117,7 @@ const Landing: React.FC = () => {
       postedBy: "Amira Hassan",
       price: "$300",
       avatar: "https://images.unsplash.com/photo-1465821185615-20b3c2fbf41b?auto=format&fit=crop&q=80&w=300",
-      verified: false
+      verificationStatus: 'none'
     },
     {
       title: "DJ for High-End Corporate Party",
@@ -125,7 +126,7 @@ const Landing: React.FC = () => {
       postedBy: "Thabo Molefe",
       price: "R5,000",
       avatar: "https://images.unsplash.com/photo-1571266028243-e4bb33394c31?auto=format&fit=crop&q=80&w=300",
-      verified: true
+      verificationStatus: 'verified'
     },
     {
       title: "Backing Vocalists for Tour",
@@ -134,7 +135,7 @@ const Landing: React.FC = () => {
       postedBy: "Didier Drogba",
       price: "$1,000",
       avatar: "https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&q=80&w=300",
-      verified: true
+      verificationStatus: 'verified'
     }
   ];
 
@@ -419,10 +420,15 @@ const Landing: React.FC = () => {
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
                       <div className="relative">
-                        <img src={gig.avatar} className="w-12 h-12 rounded-2xl object-cover shadow-sm" alt={gig.postedBy} referrerPolicy="no-referrer" />
-                        {gig.verified && (
+                        <img src={gig.avatar} className="w-12 h-12 rounded-2xl object-cover shadow-sm" alt={gig.postedBy} />
+                        {gig.verificationStatus === 'verified' && (
                           <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-brand-purple rounded-full border-2 border-white flex items-center justify-center text-white">
                             <CheckCircle className="w-2.5 h-2.5" />
+                          </div>
+                        )}
+                        {gig.verificationStatus === 'pending' && (
+                          <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-yellow-500 rounded-full border-2 border-white flex items-center justify-center text-white">
+                            <Clock className="w-2.5 h-2.5" />
                           </div>
                         )}
                       </div>

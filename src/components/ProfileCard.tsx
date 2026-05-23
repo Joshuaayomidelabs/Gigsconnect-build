@@ -181,7 +181,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile: initialProfile, user
     return null;
   }
 
-  const isVerified = localProfile.verification_status === 'Verified';
+  const isVerified = localProfile.verification_status?.toLowerCase() === 'verified';
 
   // Construct full image URL with cache busting if available
   const displayAvatar = localProfile.avatar_url 

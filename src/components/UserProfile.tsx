@@ -107,7 +107,7 @@ export default function UserProfile({ userId }: UserProfileProps) {
 
   if (!user) return <div className="p-2 text-gray-500 text-sm">Loading user...</div>;
 
-  const isVerified = user.verification_status === 'Verified';
+  const isVerified = user.verification_status?.toLowerCase() === 'verified';
 
   const formatNumber = (num: number) => {
     return num >= 1000 ? (num / 1000).toFixed(1) + 'K' : num;

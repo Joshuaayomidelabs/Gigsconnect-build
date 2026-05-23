@@ -151,7 +151,7 @@ export const applicationsService = {
   async getApplicationsForGig(gigId: string) {
     const { data, error } = await supabase
       .from('applications')
-      .select('*, profiles(id, full_name, avatar_url, role)')
+      .select('*, profiles(id, full_name, avatar_url, role, verification_status)')
       .eq('gig_id', gigId)
       .order('created_at', { ascending: false });
     return { data, error };

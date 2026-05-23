@@ -137,9 +137,9 @@ export const profilesService = {
       throw new Error('Only JPG, JPEG, and PNG files are allowed.');
     }
 
-    const maxSize = 1 * 1024 * 1024; // 1MB
+    const maxSize = 5 * 1024 * 1024; // 5MB
     if (file.size > maxSize) {
-      throw new Error('File size must be less than 1MB.');
+      throw new Error('Image must be under 5MB');
     }
 
     // Use extension to ensure better compatibility with browsers and storage providers
@@ -211,7 +211,8 @@ export const profilesService = {
     const { error: updateError } = await supabase
       .from('profiles')
       .update({ 
-        verification_status: 'Pending',
+        verification_status: 'pending',
+        verification_requested_at: new Date().toISOString(),
         verification_doc_path: filePath
       })
       .eq('id', userId);   // MUST match auth.users.id
@@ -227,7 +228,7 @@ export const profilesService = {
 
       let query = supabase
         .from('profiles')
-        .select('id, full_name, avatar_url, skills, city_town, country')
+        .select('id, full_name, avatar_url, skills, city_town, country, verification_status')
         .overlaps('skills', [searchTerm.toLowerCase().trim()])
         .limit(10);
 

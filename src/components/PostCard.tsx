@@ -4,8 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { communityService } from '../services/communityService';
 import { toast } from 'sonner';
-import { CommentBox } from './comments/CommentBox';
-import { CommentList } from './comments/CommentList';
 
 function timeAgo(date: string | Date) {
   const seconds = Math.floor((new Date().getTime() - new Date(date).getTime()) / 1000);
@@ -61,14 +59,9 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   // Comments State
-  const [showComments, setShowComments] = useState(false);
-  const [comments, setComments] = useState<any[]>([]);
   const [commentsCount, setCommentsCount] = useState(post.comments_count || 0);
-  const [newCommentText, setNewCommentText] = useState("");
-  const [replyTo, setReplyTo] = useState<{id: string, name: string} | null>(null);
-  const [isSubmittingComment, setIsSubmittingComment] = useState(false);
-  const [hasFetchedComments, setHasFetchedComments] = useState(false);
-  const [isLoadingComments, setIsLoadingComments] = useState(false);
+  const [previewComments, setPreviewComments] = useState<any[]>([]);
+  
   const [isPlaying, setIsPlaying] = useState(false);
   const [showHeart, setShowHeart] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
@@ -96,6 +89,21 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
       }
     }
   }, [post.comments_count]);
+
+  // Fetch preview comments if post has comments
+  useEffect(() => {
+    if (commentsCount > 0 && previewComments.length === 0) {
+      const fetchPreview = async () => {
+        const { data } = await communityService.getComments(post.id, user?.id);
+        if (data) {
+          // Sort by newest and take top 2 for preview showing first level only
+          const sorted = [...data].filter(c => !c.parent_id).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+          setPreviewComments(sorted.slice(0, 2));
+        }
+      }
+      fetchPreview();
+    }
+  }, [commentsCount, post.id, user?.id]);
 
   useEffect(() => {
     if (!videoRef.current) return;
@@ -218,52 +226,7 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
   };
 
   const handleToggleComments = async () => {
-    setShowComments(true);
-    if (!hasFetchedComments) {
-      setIsLoadingComments(true);
-      const { data } = await communityService.getComments(post.id, user?.id);
-      if (data) {
-        setComments(data);
-        // Correct the count if necessary, or just rely on local state tracking
-        setCommentsCount(data.length);
-      }
-      setHasFetchedComments(true);
-      setIsLoadingComments(false);
-    }
-  };
-
-  const handleCommentLike = async (commentId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!user) return;
-    
-    // Optimistic UI update
-    setComments((prev: any[]) => prev.map(c => {
-      if (c.id === commentId) {
-        const isLiked = !c.is_liked;
-        return {
-          ...c,
-          is_liked: isLiked,
-          likes_count: Math.max(0, (c.likes_count || 0) + (isLiked ? 1 : -1))
-        };
-      }
-      return c;
-    }));
-
-    const { error } = await communityService.likeComment(commentId, user.id);
-    if (error) {
-      // Rollback if failed
-      setComments((prev: any[]) => prev.map(c => {
-        if (c.id === commentId) {
-          const isLiked = !c.is_liked; // revert
-          return {
-            ...c,
-            is_liked: isLiked,
-            likes_count: Math.max(0, (c.likes_count || 0) + (isLiked ? 1 : -1))
-          };
-        }
-        return c;
-      }));
-    }
+    navigate(`/post/${post.id}`);
   };
 
   const [isExpanded, setIsExpanded] = useState(false);
@@ -441,70 +404,25 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
               </button>
             )}
           </div>
-        )}        {/* VIEW ALL COMMENTS */}
-        {commentsCount > 0 && !showComments && (
+        )}        {/* VIEW ALL COMMENTS & PREVIEWS */}
+        {commentsCount > 0 && (
           <div className="px-3 sm:px-4 pb-2">
             <button 
-              onClick={handleToggleComments}
-              className="text-[14px] text-gray-500 font-medium active:opacity-50"
+              onClick={() => navigate(`/post/${post.id}`)}
+              className="text-[14px] text-gray-500 font-medium active:opacity-50 mb-1"
             >
               View all {commentsCount} comments
             </button>
+            <div className="flex flex-col gap-1 mt-1">
+              {previewComments.map(c => (
+                <div key={c.id} className="text-[14px] flex gap-2 w-full text-gray-900 dark:text-white leading-tight">
+                  <span className="font-bold shrink-0">{c.user?.full_name || 'Anonymous User'}</span>
+                  <span className="truncate">{c.content}</span>
+                </div>
+              ))}
+            </div>
           </div>
         )}
-
-        {showComments && (
-          <CommentList 
-            comments={comments} 
-            currentUser={user} 
-            postOwnerId={post.user_id} 
-            onLike={handleCommentLike} 
-            onReply={(id, name) => setReplyTo({ id, name })} 
-            onDelete={async (commentId) => {
-              const { error } = await communityService.deleteComment(commentId, post.id);
-              if (!error) {
-                setComments(prev => prev.filter(c => c.id !== commentId && c.parent_id !== commentId));
-                setCommentsCount(prev => Math.max(0, prev - 1));
-                toast.success("Comment deleted");
-              } else {
-                toast.error("Failed to delete comment");
-              }
-            }}
-            onEdit={async (commentId, content) => {
-              const { error } = await communityService.editComment(commentId, content);
-              if (!error) {
-                setComments(prev => prev.map(c => c.id === commentId ? { ...c, content } : c));
-                toast.success("Comment updated");
-              } else {
-                toast.error("Failed to update comment");
-              }
-            }}
-          />
-        )}
-
-        {/* ALWAYS VISIBLE INLINE COMMENT INPUT */}
-        <CommentBox
-          postId={post.id}
-          user={user}
-          onSubmit={async (text, parentId) => {
-             if (!user) return;
-             const { error } = await communityService.addComment(post.id, user.id, text, parentId);
-             if (error) {
-               console.error(error);
-               toast.error("Failed to add comment.");
-             } else {
-               const { data } = await communityService.getComments(post.id, user?.id);
-               if (data) {
-                 setComments(data);
-                 setCommentsCount(data.length);
-                 setShowComments(true);
-                 setReplyTo(null);
-               }
-             }
-          }}
-          replyTo={replyTo}
-          onCancelReply={() => setReplyTo(null)}
-        />
       </div>
 
       {/* SHARE MODAL */}
