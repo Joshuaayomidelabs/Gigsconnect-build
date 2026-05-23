@@ -2,13 +2,11 @@ import React from 'react';
 import { Check, Clock } from 'lucide-react';
 
 interface VerificationBadgeProps {
-  isVerified?: boolean; // Kept for backwards compatibility in type, but ignored
   verificationStatus?: string;
   className?: string;
 }
 
 const VerificationBadge: React.FC<VerificationBadgeProps> = ({ 
-  isVerified, 
   verificationStatus,
   className = ''
 }) => {

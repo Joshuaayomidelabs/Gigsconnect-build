@@ -142,7 +142,6 @@ const GigCard: React.FC<GigCardProps> = ({ gig, onApply, onViewDetails, onViewAp
                 {creator?.full_name || 'Anonymous'}
               </span>
               <VerificationBadge 
-                isVerified={creator?.is_verified} 
                 verificationStatus={creator?.verification_status} 
               />
             </div>

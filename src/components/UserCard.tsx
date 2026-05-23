@@ -53,7 +53,6 @@ export const UserCard: React.FC<UserCardProps> = ({ user }) => {
             <h3 className="font-bold text-gray-900 truncate text-lg flex items-center">
               {user.full_name}
               <VerificationBadge 
-                isVerified={(user as any).is_verified} 
                 verificationStatus={(user as any).verification_status} 
               />
             </h3>

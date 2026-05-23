@@ -178,7 +178,6 @@ const GigDetails: React.FC = () => {
                 <p className="text-sm font-black text-brand-black dark:text-brand-white group-hover:text-brand-purple transition-colors flex items-center">
                   {gig.poster_id?.full_name || 'Unknown'}
                   <VerificationBadge 
-                    isVerified={gig.poster_id?.is_verified} 
                     verificationStatus={gig.poster_id?.verification_status} 
                   />
                 </p>

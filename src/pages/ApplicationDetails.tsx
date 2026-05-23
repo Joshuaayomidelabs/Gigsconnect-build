@@ -41,7 +41,6 @@ const ApplicationDetails: React.FC = () => {
               avatar_url,
               role,
               bio,
-              is_verified,
               verification_status
             )
           `)
@@ -192,7 +191,6 @@ const ApplicationDetails: React.FC = () => {
                     <h4 className="font-black text-brand-black dark:text-brand-white group-hover:text-brand-purple transition-colors flex items-center">
                       {applicant?.full_name || 'Anonymous'}
                       <VerificationBadge 
-                        isVerified={applicant?.is_verified} 
                         verificationStatus={applicant?.verification_status} 
                       />
                     </h4>

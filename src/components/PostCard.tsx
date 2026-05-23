@@ -40,6 +40,7 @@ interface PostCardProps {
       avatar_url: string;
       city?: string;
       country?: string;
+      verification_status?: string;
     };
     likes_count: number;
     comments_count?: number;
@@ -257,7 +258,9 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
               >
                 {post.user?.full_name || 'Anonymous User'}
               </span>
-              <BadgeCheck className="w-3.5 h-3.5 text-brand-purple" />
+              {post.user?.verification_status?.toLowerCase() === 'verified' && (
+                <BadgeCheck className="w-3.5 h-3.5 text-brand-purple" />
+              )}
             </div>
             <span className="text-[12px] text-gray-500 font-medium">
               {formattedDate} {post.user?.city && post.user?.country ? `• ${post.user.city}, ${post.user.country}` : ''}

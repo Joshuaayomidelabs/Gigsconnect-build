@@ -214,7 +214,6 @@ const PublicProfile: React.FC = () => {
               <h1 className="text-2xl font-black text-brand-black dark:text-brand-white tracking-tight flex items-center justify-center sm:justify-start gap-2 flex-wrap">
                 <span className="truncate">{profile.full_name || 'Anonymous User'}</span>
                 <VerificationBadge 
-                  isVerified={profile.is_verified} 
                   verificationStatus={profile.verification_status} 
                 />
               </h1>

@@ -85,7 +85,7 @@ export const gigsService = {
     // 2. Search users by skills
     const { data: users, error: usersError } = await supabase
       .from('profiles')
-      .select('id, full_name, avatar_url, skills, city, country, verification_status, is_verified')
+      .select('id, full_name, avatar_url, skills, city, country, verification_status')
       .overlaps('skills', [normalized]);
 
     if (usersError) console.error("Error searching users:", usersError);
