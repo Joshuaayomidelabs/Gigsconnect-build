@@ -200,7 +200,7 @@ const PublicProfile: React.FC = () => {
             <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full border-4 border-brand-white dark:border-brand-dark-card shadow-lg overflow-hidden bg-brand-gray dark:bg-brand-black flex-shrink-0 flex items-center justify-center relative -mt-14 sm:-mt-16 z-20 mx-auto sm:mx-0">
               {profile.avatar_url ? (
                 <img 
-                  src={profile.avatar_url.includes('?') ? profile.avatar_url : `${profile.avatar_url}?t=${Date.now()}`} 
+                  src={profile.avatar_url} 
                   alt={profile.full_name} 
                   className="w-full h-full object-cover object-center" 
                   referrerPolicy="no-referrer" 

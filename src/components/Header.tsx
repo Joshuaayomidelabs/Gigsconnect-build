@@ -100,7 +100,7 @@ const Header: React.FC = () => {
                 <Link to="/edit-profile" className="w-10 h-10 rounded-full bg-brand-purple-soft flex items-center justify-center overflow-hidden border-2 border-white shadow-sm hover:scale-110 transition-transform">
                   {profile?.avatar_url ? (
                     <img 
-                      src={profile.avatar_url.includes('?') ? profile.avatar_url : `${profile.avatar_url}?t=${Date.now()}`} 
+                      src={profile.avatar_url} 
                       alt="" 
                       className="w-full h-full object-cover" 
                       referrerPolicy="no-referrer" 
@@ -123,7 +123,7 @@ const Header: React.FC = () => {
                 >
                   {profile?.avatar_url ? (
                     <img 
-                      src={profile.avatar_url.includes('?') ? profile.avatar_url : `${profile.avatar_url}?t=${Date.now()}`} 
+                      src={profile.avatar_url} 
                       alt="" 
                       className="w-full h-full object-cover" 
                       referrerPolicy="no-referrer" 

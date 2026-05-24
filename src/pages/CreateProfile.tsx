@@ -208,7 +208,7 @@ const CreateProfile: React.FC = () => {
                       <div className="w-40 h-40 rounded-[2.5rem] bg-brand-gray dark:bg-brand-black border-8 border-brand-white dark:border-brand-dark-card shadow-2xl overflow-hidden flex items-center justify-center transition-transform duration-500 group-hover:scale-105">
                         {formData.avatar_url ? (
                           <img 
-                            src={formData.avatar_url.includes('?') ? formData.avatar_url : `${formData.avatar_url}?t=${Date.now()}`} 
+                            src={formData.avatar_url} 
                             alt="Profile" 
                             className="w-full h-full object-cover object-center" 
                             referrerPolicy="no-referrer" 

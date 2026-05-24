@@ -183,10 +183,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile: initialProfile, user
 
   const isVerified = localProfile.verification_status?.toLowerCase() === 'verified';
 
-  // Construct full image URL with cache busting if available
-  const displayAvatar = localProfile.avatar_url 
-    ? (localProfile.avatar_url.includes('?') ? localProfile.avatar_url : `${localProfile.avatar_url}?t=${Date.now()}`)
-    : null;
+  const displayAvatar = localProfile.avatar_url;
 
   return (
     <div className="bg-brand-white dark:bg-brand-dark-card rounded-[2.5rem] p-5 sm:p-6 shadow-md border border-brand-gray dark:border-brand-black flex flex-col items-center text-center transition-colors overflow-hidden">

@@ -45,6 +45,21 @@ export default function CommunityFeed() {
           if (!isBackgroundRefresh) setPosts([]);
         } else {
           setPosts(data || []);
+          
+          // Preload first 20 unique user avatars
+          if (data && data.length > 0) {
+            const uniqueAvatars = new Set<string>();
+            data.forEach(post => {
+              if (post.user?.avatar_url && uniqueAvatars.size < 20) {
+                uniqueAvatars.add(post.user.avatar_url);
+              }
+            });
+            
+            uniqueAvatars.forEach(url => {
+              const img = new Image();
+              img.src = url;
+            });
+          }
         }
       } catch (error) {
         console.error('Error in fetchPosts:', error);

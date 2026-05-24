@@ -301,7 +301,7 @@ const EditProfile: React.FC = () => {
                     <div className="w-full h-full rounded-full bg-brand-gray dark:bg-brand-black overflow-hidden flex items-center justify-center border-4 border-brand-white dark:border-brand-dark-card">
                       {formData.avatar_url ? (
                         <img 
-                          src={formData.avatar_url.includes('?') ? formData.avatar_url : `${formData.avatar_url}?t=${Date.now()}`} 
+                          src={formData.avatar_url} 
                           alt={formData.full_name} 
                           referrerPolicy="no-referrer" 
                           className="w-full h-full object-cover" 
@@ -496,7 +496,7 @@ const EditProfile: React.FC = () => {
                   <div className="w-32 h-32 rounded-full bg-brand-gray dark:bg-brand-black border-4 border-brand-white dark:border-brand-dark-card shadow-md overflow-hidden flex items-center justify-center">
                     {formData.avatar_url ? (
                       <img 
-                        src={formData.avatar_url.includes('?') ? formData.avatar_url : `${formData.avatar_url}?t=${Date.now()}`} 
+                        src={formData.avatar_url} 
                         alt="Profile" 
                         referrerPolicy="no-referrer" 
                         className="w-full h-full object-cover object-center" 

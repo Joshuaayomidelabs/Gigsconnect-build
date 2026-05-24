@@ -167,9 +167,7 @@ export const profilesService = {
     }
     
     const publicUrl = data.publicUrl;
-    // Add a cache buster to the returned URL to ensure the browser fetches the new image immediately
-    const publicUrlWithCacheBuster = `${publicUrl}?t=${new Date().getTime()}`;
-
+    
     // 6. Save this public URL to the avatar_url column in the profiles table.
     const { error: updateError } = await supabase
       .from('profiles')
@@ -181,7 +179,7 @@ export const profilesService = {
       throw updateError;
     }
 
-    return publicUrlWithCacheBuster;
+    return publicUrl;
   },
 
   async uploadVerificationDoc(userId: string, file: File) {

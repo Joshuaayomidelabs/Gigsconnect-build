@@ -13,57 +13,6 @@ import PostCard from '../components/PostCard';
 import CommunityFeed from '../components/CommunityFeed';
 import GigsFeed from '../components/GigsFeed';
 
-const featuredCreators = [
-  {
-    id: '1',
-    name: 'Soundsprodigy',
-    location: 'Lagos, Nigeria',
-    skill: 'Bassist',
-    badge: 'Verified',
-    avatar: 'https://picsum.photos/seed/prodigy/200'
-  },
-  {
-    id: '2',
-    name: 'TobyHeart',
-    location: 'Lagos, Nigeria',
-    skill: 'Vocalist',
-    badge: 'Verified',
-    avatar: 'https://picsum.photos/seed/toby/200'
-  },
-  {
-    id: '3',
-    name: 'Bchops',
-    location: 'Lagos, Nigeria',
-    skill: 'Drummer',
-    badge: 'Verified',
-    avatar: 'https://picsum.photos/seed/bchops/200'
-  },
-  {
-    id: '4',
-    name: 'Amara',
-    location: 'Nairobi, Kenya',
-    skill: 'Saxophonist',
-    badge: 'Trending',
-    avatar: 'https://picsum.photos/seed/amara/200'
-  },
-  {
-    id: '5',
-    name: 'Kofi',
-    location: 'Accra, Ghana',
-    skill: 'Music Producer',
-    badge: 'Top Performer',
-    avatar: 'https://picsum.photos/seed/kofi/200'
-  },
-  {
-    id: '6',
-    name: 'Zola',
-    location: 'Johannesburg, South Africa',
-    skill: 'Songwriter',
-    badge: 'Verified',
-    avatar: 'https://picsum.photos/seed/zola/200'
-  }
-];
-
 const CreatorBadge = ({ type }: { type: string }) => {
   const configs: Record<string, { icon: any, color: string, bg: string }> = {
     'Verified': { icon: <CheckCircle2 className="w-3 h-3" />, color: 'text-brand-purple', bg: 'bg-brand-purple/10' },
@@ -130,6 +79,7 @@ const Dashboard: React.FC = () => {
   const [selectedGig, setSelectedGig] = useState<any | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'community' | 'gigs'>('community');
+  const [featuredCreators, setFeaturedCreators] = useState<any[]>([]);
 
   console.log("ACTIVE TAB:", activeTab);
 
@@ -150,12 +100,15 @@ const Dashboard: React.FC = () => {
           setAppliedGigIds(new Set(applications.map(app => app.gig_id)));
         }
 
-        const [profileRes, gigsRes] = await Promise.all([
+        const [profileRes, gigsRes, creatorsRes] = await Promise.all([
           profilesService.getProfile(session.user.id),
-          gigsService.getAllGigs()
+          gigsService.getAllGigs(),
+          supabase.from('profiles').select('*').eq('verification_status', 'verified').limit(10)
         ]);
+        
         if (profileRes.data) setProfile(profileRes.data);
         if (gigsRes.data) setGigs(gigsRes.data);
+        if (creatorsRes.data) setFeaturedCreators(creatorsRes.data);
       }
       setLoading(false);
     };
@@ -225,44 +178,52 @@ const Dashboard: React.FC = () => {
             </div>
             <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar px-2 snap-x">
               {featuredCreators.map((creator) => (
-                <div 
+                <Link 
+                  to={`/profile/${creator.id}`}
                   key={creator.id} 
-                  className="bg-brand-white dark:bg-brand-dark-card rounded-[2rem] p-5 border border-brand-gray dark:border-brand-black shadow-soft min-w-[240px] flex-shrink-0 transition-all hover:shadow-md snap-start group"
+                  className="bg-brand-white dark:bg-brand-dark-card rounded-[2rem] p-5 border border-brand-gray dark:border-brand-black shadow-soft min-w-[240px] flex-shrink-0 transition-all hover:shadow-md snap-start group block cursor-pointer"
                 >
                   <div className="flex items-start gap-4 mb-4">
                     <div className="relative">
-                      <img 
-                        src={creator.avatar} 
-                        alt={creator.name} 
-                        className="w-14 h-14 rounded-2xl object-cover shadow-sm group-hover:scale-105 transition-transform duration-300"
-                        referrerPolicy="no-referrer"
-                      />
+                      {creator.avatar_url ? (
+                        <img 
+                          src={creator.avatar_url} 
+                          alt={creator.full_name} 
+                          className="w-14 h-14 rounded-2xl object-cover shadow-sm group-hover:scale-105 transition-transform duration-300"
+                          referrerPolicy="no-referrer"
+                        />
+                      ) : (
+                        <div className="w-14 h-14 rounded-2xl bg-brand-purple/10 flex items-center justify-center text-brand-purple">
+                          <User className="w-6 h-6" />
+                        </div>
+                      )}
+                      
                       <div className="absolute -bottom-1 -right-1 bg-brand-purple text-white p-1 rounded-lg shadow-sm">
                         <Zap className="w-3 h-3 fill-current" />
                       </div>
                     </div>
                     <div className="flex-grow min-w-0">
-                      <h4 className="text-base font-black text-brand-black dark:text-brand-white truncate">{creator.name}</h4>
-                      <p className="text-xs font-bold text-brand-purple mb-1">{creator.skill}</p>
+                      <h4 className="text-base font-black text-brand-black dark:text-brand-white truncate">{creator.full_name}</h4>
+                      <p className="text-xs font-bold text-brand-purple mb-1">{(creator.skills && creator.skills.length > 0) ? creator.skills[0] : 'Creator'}</p>
                       <div className="flex items-center gap-1 text-[10px] text-gray-500 dark:text-gray-400 font-medium">
                         <MapPin className="w-3 h-3" />
-                        {creator.location}
+                        {[creator.city, creator.country].filter(Boolean).join(', ') || 'Unknown'}
                       </div>
                     </div>
                   </div>
                   
                   <div className="flex items-center justify-between gap-3 mt-auto">
-                    <CreatorBadge type={creator.badge} />
+                    <CreatorBadge type="Verified" />
                     <div className="flex gap-2">
-                      <button className="p-2 rounded-xl bg-brand-gray dark:bg-brand-black text-brand-black dark:text-brand-white hover:bg-brand-purple/10 hover:text-brand-purple transition-all">
+                      <div className="p-2 rounded-xl bg-brand-gray dark:bg-brand-black text-brand-black dark:text-brand-white group-hover:bg-brand-purple/10 group-hover:text-brand-purple transition-all flex items-center justify-center">
                         <MessageSquare className="w-4 h-4" />
-                      </button>
-                      <button className="px-4 py-2 rounded-xl bg-brand-purple text-white text-[10px] font-black uppercase tracking-widest hover:bg-brand-purple-dark transition-all shadow-glow">
+                      </div>
+                      <div className="px-4 py-2 rounded-xl bg-brand-purple text-white text-[10px] font-black uppercase tracking-widest group-hover:bg-brand-purple-dark transition-all shadow-glow flex items-center justify-center">
                         Profile
-                      </button>
+                      </div>
                     </div>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           </section>

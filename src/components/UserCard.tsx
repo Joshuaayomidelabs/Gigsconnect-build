@@ -16,10 +16,7 @@ interface UserCardProps {
 }
 
 export const UserCard: React.FC<UserCardProps> = ({ user }) => {
-  // Add cache buster to avatar URL if it exists
-  const avatarUrl = user.avatar_url 
-    ? (user.avatar_url.includes('?') ? `${user.avatar_url}&t=${Date.now()}` : `${user.avatar_url}?t=${Date.now()}`)
-    : null;
+  const avatarUrl = user.avatar_url;
 
   const location = user.city && user.country 
     ? `${user.city}, ${user.country}` 
