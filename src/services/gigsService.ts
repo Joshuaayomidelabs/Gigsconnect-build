@@ -82,17 +82,41 @@ export const gigsService = {
 
     if (gigsError) console.error("Error searching gigs:", gigsError);
 
-    // 2. Search users by skills
-    const { data: users, error: usersError } = await supabase
+    // 2. Search users by full_name, username
+    const { data: nameUsers, error: nameError } = await supabase
       .from('profiles')
-      .select('id, full_name, avatar_url, skills, city, country, verification_status')
-      .overlaps('skills', [normalized]);
+      .select('id, full_name, username, avatar_url, skills, city, country, verification_status')
+      .or(`full_name.ilike.%${normalized}%,username.ilike.%${normalized}%`)
+      .order('verification_status', { ascending: false });
 
-    if (usersError) console.error("Error searching users:", usersError);
+    if (nameError) console.error("Error searching users by name:", nameError);
+
+    // 3. Search users by skills
+    const { data: skillUsers, error: skillError } = await supabase
+      .from('profiles')
+      .select('id, full_name, username, avatar_url, skills, city, country, verification_status')
+      .overlaps('skills', [normalized])
+      .order('verification_status', { ascending: false });
+
+    if (skillError) console.error("Error searching users by skills:", skillError);
+
+    // Merge and deduplicate users
+    const allUsersMap = new Map();
+    if (nameUsers) nameUsers.forEach(u => allUsersMap.set(u.id, u));
+    if (skillUsers) skillUsers.forEach(u => {
+      if (!allUsersMap.has(u.id)) allUsersMap.set(u.id, u);
+    });
+    
+    // Convert to array and prioritize verified users
+    const combinedUsers = Array.from(allUsersMap.values()).sort((a, b) => {
+      if (a.verification_status === 'verified' && b.verification_status !== 'verified') return -1;
+      if (a.verification_status !== 'verified' && b.verification_status === 'verified') return 1;
+      return 0;
+    });
 
     return {
       gigs: gigs || [],
-      users: users || [],
+      users: combinedUsers,
     };
   }
 };

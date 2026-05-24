@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, Loader2, AlertCircle, X, ChevronDown, Banknote } from 'lucide-react';
+import { Search, Filter, Loader2, AlertCircle, X, ChevronDown, Banknote, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { gigsService } from '../services/gigsService';
 import { profilesService } from '../services/profilesService';
@@ -12,6 +12,7 @@ import { UserCard } from '../components/UserCard';
 import { GigCardSkeleton, UserCardSkeleton } from '../components/Skeleton';
 import GigDetailsModal from '../components/GigDetailsModal';
 import { GIG_CATEGORIES } from '../utils/constants';
+import VerificationBadge from '../components/VerificationBadge';
 
 const BrowseGigs: React.FC = () => {
   const navigate = useNavigate();
@@ -114,8 +115,8 @@ const BrowseGigs: React.FC = () => {
   return (
     <div className="pt-24 pb-24 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto min-h-screen bg-brand-gray dark:bg-brand-black transition-colors duration-500">
       <section className="mb-8 px-2">
-        <h1 className="text-3xl lg:text-4xl font-black text-brand-black dark:text-brand-white tracking-tight mb-2">Discover <span className="text-brand-purple">Gigs</span></h1>
-        <p className="text-gray-700 dark:text-gray-200 text-sm lg:text-base font-medium">Find your next big opportunity across the continent.</p>
+        <h1 className="text-3xl lg:text-4xl font-black text-brand-black dark:text-brand-white tracking-tight mb-2">Search</h1>
+        <p className="text-gray-700 dark:text-gray-200 text-sm lg:text-base font-medium">Find people and opportunities across the continent.</p>
       </section>
 
       <div className="flex flex-col gap-4 mb-8 px-2">
@@ -124,7 +125,7 @@ const BrowseGigs: React.FC = () => {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
             <input 
               type="text" 
-              placeholder="Search by title, skills, or location..." 
+              placeholder="Search people, gigs, skills..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-12 pr-4 py-3.5 rounded-2xl border border-brand-gray dark:border-brand-black focus:ring-2 focus:ring-brand-purple/20 focus:border-brand-purple/30 transition-all outline-none shadow-sm bg-brand-white dark:bg-brand-dark-card text-brand-black dark:text-brand-white text-sm font-medium"
@@ -217,14 +218,20 @@ const BrowseGigs: React.FC = () => {
           {searchTerm.trim() !== '' && (
             <div className="px-2">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-black text-brand-black dark:text-brand-white tracking-tight">
-                  Searching <span className="text-brand-purple">Talent</span>
+                <h2 className="text-xl font-bold text-brand-black dark:text-brand-white tracking-tight">
+                  Searching <span className="text-brand-purple">People</span>
                 </h2>
                 <Loader2 className="w-5 h-5 animate-spin text-brand-purple" />
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {[...Array(2)].map((_, i) => (
-                  <UserCardSkeleton key={i} />
+              <div className="flex flex-col">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="flex items-center gap-4 p-3 rounded-2xl animate-pulse">
+                    <div className="w-14 h-14 bg-gray-200 dark:bg-gray-800 rounded-full flex-shrink-0"></div>
+                    <div className="flex-1">
+                      <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded w-1/3 mb-2"></div>
+                      <div className="h-3 bg-gray-200 dark:bg-gray-800 rounded w-1/2"></div>
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>
@@ -232,9 +239,9 @@ const BrowseGigs: React.FC = () => {
 
           <div className="px-2">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-black text-brand-black dark:text-brand-white tracking-tight">
+              <h2 className="text-xl font-bold text-brand-black dark:text-brand-white tracking-tight">
                 {searchTerm.trim() !== '' ? 'Searching ' : 'Loading '} 
-                <span className="text-brand-purple">Gigs</span>
+                <span className="text-brand-purple">{searchTerm.trim() !== '' ? 'Posts' : 'Gigs'}</span>
               </h2>
               <Loader2 className="w-5 h-5 animate-spin text-brand-purple" />
             </div>
@@ -254,38 +261,60 @@ const BrowseGigs: React.FC = () => {
       ) : (
         <>
           {searchTerm.trim() !== '' && (
-            <div className="mb-12 px-2">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-black text-brand-black dark:text-brand-white tracking-tight">
-                  Users with <span className="text-brand-purple">Skills</span>
+            <div className="mb-10 px-2">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-brand-black dark:text-brand-white tracking-tight">
+                  People
                 </h2>
               </div>
 
               {users.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="flex flex-col">
                   {users.map((user, i) => (
                     <motion.div
                       key={user.id}
-                      initial={{ opacity: 0, y: 10 }}
+                      initial={{ opacity: 0, y: 5 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.05 }}
+                      transition={{ delay: i * 0.03 }}
                     >
-                      <UserCard user={user} />
+                      <Link 
+                        to={`/profile/${user.id}`} 
+                        className="flex items-center gap-4 p-3 rounded-2xl hover:bg-black/5 dark:hover:bg-white/5 active:scale-[0.98] transition-all cursor-pointer"
+                      >
+                        <div className="w-14 h-14 rounded-full bg-brand-gray dark:bg-brand-black flex-shrink-0 flex items-center justify-center overflow-hidden border border-brand-gray dark:border-brand-black">
+                          {user.avatar_url ? (
+                            <img src={user.avatar_url} alt={user.username || user.full_name} className="w-full h-full object-cover" />
+                          ) : (
+                            <User className="w-6 h-6 text-gray-400" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-bold text-brand-black dark:text-brand-white text-base truncate flex items-center gap-1">
+                            {user.username || user.full_name || 'User'}
+                            {user.verification_status === 'verified' && (
+                              <VerificationBadge verificationStatus="verified" className="ml-0" />
+                            )}
+                          </h3>
+                          <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                            {user.full_name}
+                            {user.skills && user.skills.length > 0 && ` • ${user.skills[0]}`}
+                          </p>
+                        </div>
+                      </Link>
                     </motion.div>
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-12 bg-brand-white dark:bg-brand-dark-card rounded-[2rem] border border-brand-gray dark:border-brand-black border-dashed">
-                  <p className="text-gray-500 dark:text-gray-400 font-medium">No users found with these skills.</p>
+                <div className="text-center py-8">
+                  <p className="text-gray-500 dark:text-gray-400 font-medium">No people found.</p>
                 </div>
               )}
             </div>
           )}
 
-          <div className="mb-6 px-2">
-            <h2 className="text-2xl font-black text-brand-black dark:text-brand-white tracking-tight">
-              {searchTerm.trim() !== '' ? 'Matching ' : 'Available '} 
-              <span className="text-brand-purple">Gigs</span>
+          <div className="mb-4 px-2">
+            <h2 className="text-xl font-bold text-brand-black dark:text-brand-white tracking-tight">
+              {searchTerm.trim() !== '' ? 'Posts' : 'Gigs'}
             </h2>
           </div>
 
