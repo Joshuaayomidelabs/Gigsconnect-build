@@ -162,7 +162,7 @@ const CreateProfile: React.FC = () => {
   const progress = ((currentStep + 1) / STEPS.length) * 100;
 
   return (
-    <div className="bg-brand-white dark:bg-brand-black min-h-screen pt-24 pb-32 px-4 sm:px-6 lg:px-8 transition-colors duration-500 relative overflow-hidden">
+    <div className="bg-brand-white dark:bg-brand-black min-h-screen pt-main pb-32 px-4 sm:px-6 lg:px-8 transition-colors duration-500 relative overflow-hidden">
       {/* Decorative background elements */}
       <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/4 w-[600px] h-[600px] bg-brand-purple/5 rounded-full blur-[120px] pointer-events-none"></div>
       <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/4 w-[600px] h-[600px] bg-brand-purple/5 rounded-full blur-[120px] pointer-events-none"></div>

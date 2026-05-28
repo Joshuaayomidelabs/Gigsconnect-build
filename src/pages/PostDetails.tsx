@@ -89,7 +89,7 @@ export default function PostDetails() {
         <h1 className="text-[18px] font-bold text-gray-900 dark:text-white">Comments</h1>
       </div>
 
-      <div className="flex-1 overflow-y-auto w-full max-w-[800px] mx-auto pb-24">
+      <div className="flex-1 overflow-y-auto w-full max-w-[800px] mx-auto pb-12">
         {loading ? (
           <div className="flex justify-center items-center h-40">
             <Loader2 className="w-8 h-8 animate-spin text-brand-purple" />

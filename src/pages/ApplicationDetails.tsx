@@ -97,7 +97,7 @@ const ApplicationDetails: React.FC = () => {
 
   if (error || !application) {
     return (
-      <div className="pt-24 pb-12 px-4 text-center min-h-screen bg-brand-gray dark:bg-brand-black transition-colors">
+      <div className="pt-main pb-12 px-4 text-center min-h-screen bg-brand-gray dark:bg-brand-black transition-colors">
         <div className="max-w-md mx-auto bg-brand-white dark:bg-brand-dark-card p-12 rounded-[3rem] shadow-xl border border-brand-gray dark:border-brand-black">
           <FileText className="w-16 h-16 text-gray-400 dark:text-gray-600 mx-auto mb-6" />
           <h2 className="text-2xl font-black text-brand-black dark:text-brand-white mb-2">Application Not Found</h2>
@@ -116,7 +116,7 @@ const ApplicationDetails: React.FC = () => {
   const applicant = application.profiles;
 
   return (
-    <div className="bg-brand-gray dark:bg-brand-black min-h-screen pt-24 pb-24 px-4 sm:px-6 lg:px-8 transition-colors duration-500">
+    <div className="bg-brand-gray dark:bg-brand-black min-h-screen pt-24 pb-12 px-4 sm:px-6 lg:px-8 transition-colors duration-500">
       <div className="max-w-4xl mx-auto">
         {/* Back Button */}
         <button 

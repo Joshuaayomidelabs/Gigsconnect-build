@@ -30,7 +30,7 @@ const MyApplications: React.FC = () => {
   }, []);
 
   return (
-    <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto min-h-screen bg-brand-gray dark:bg-brand-black transition-colors duration-500">
+    <div className="pt-main pb-12 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto min-h-screen bg-brand-gray dark:bg-brand-black transition-colors duration-500">
       <section className="mb-10">
         <h1 className="text-4xl font-black text-brand-black dark:text-brand-white tracking-tight mb-4">My <span className="text-brand-purple">Applications</span></h1>
         <p className="text-gray-500 dark:text-gray-400 text-lg">Track the status of gigs you've applied for.</p>

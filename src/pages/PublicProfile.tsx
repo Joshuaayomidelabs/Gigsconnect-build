@@ -162,7 +162,7 @@ const PublicProfile: React.FC = () => {
 
   if (error || !profile) {
     return (
-      <div className="pt-24 pb-12 px-4 text-center min-h-screen bg-brand-gray dark:bg-brand-black transition-colors">
+      <div className="pt-main pb-12 px-4 text-center min-h-screen bg-brand-gray dark:bg-brand-black transition-colors">
         <div className="max-w-md mx-auto bg-brand-white dark:bg-brand-dark-card p-12 rounded-[3rem] shadow-xl border border-brand-gray dark:border-brand-black">
           <User className="w-16 h-16 text-gray-400 dark:text-gray-600 mx-auto mb-6" />
           <h2 className="text-2xl font-black text-brand-black dark:text-brand-white mb-2">Profile Not Found</h2>
@@ -179,7 +179,7 @@ const PublicProfile: React.FC = () => {
   }
 
   return (
-    <div className="bg-brand-gray dark:bg-brand-black min-h-screen pt-20 sm:pt-24 pb-24 transition-colors duration-500">
+    <div className="bg-brand-gray dark:bg-brand-black min-h-screen pt-20 sm:pt-24 pb-12 transition-colors duration-500">
       {/* Top Banner Gradient */}
       <div className="h-40 bg-gradient-to-r from-[#6C2BD9]/80 to-[#4C1D95]/90 w-full relative">
         {/* Back Button */}

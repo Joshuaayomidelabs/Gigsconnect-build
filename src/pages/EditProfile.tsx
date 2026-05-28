@@ -256,7 +256,7 @@ const EditProfile: React.FC = () => {
   }
 
   return (
-    <div className="pt-24 pb-32 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto min-h-screen bg-brand-gray dark:bg-brand-black transition-colors duration-500">
+    <div className="pt-main pb-32 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto min-h-screen bg-brand-gray dark:bg-brand-black transition-colors duration-500">
       <AnimatePresence mode="wait">
         {!isEditing ? (
           <motion.div

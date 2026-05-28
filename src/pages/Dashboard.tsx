@@ -133,7 +133,7 @@ const Dashboard: React.FC = () => {
   }
 
   return (
-    <div className="relative pt-24 pb-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto min-h-screen transition-colors duration-500">
+    <div className="relative pt-main pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto min-h-screen transition-colors duration-500">
       
       {/* Background glow effects to make glass cards pop */}
       <div className="fixed inset-0 pointer-events-none -z-10 bg-brand-gray dark:bg-[#0a0a0c]">

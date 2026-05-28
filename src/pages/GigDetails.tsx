@@ -137,7 +137,7 @@ const GigDetails: React.FC = () => {
   if (!gig) return null;
 
   return (
-    <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto min-h-screen bg-brand-gray dark:bg-brand-black transition-colors duration-500">
+    <div className="pt-main pb-12 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto min-h-screen bg-brand-gray dark:bg-brand-black transition-colors duration-500">
       <button 
         onClick={() => navigate(-1)}
         className="flex items-center gap-2 text-brand-black dark:text-brand-white hover:text-brand-purple font-bold mb-8 transition-colors group"

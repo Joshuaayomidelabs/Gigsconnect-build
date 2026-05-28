@@ -26,7 +26,7 @@ const TopNav: React.FC = () => {
       isLandingPage 
         ? "bg-white/70 dark:bg-brand-black/70 backdrop-blur-md border-b border-white/20 dark:border-white/10 shadow-sm" 
         : "bg-brand-white dark:bg-brand-black shadow-md border-b border-brand-gray dark:border-brand-dark-card"
-    } p-4 flex items-center justify-between`}>
+    } px-4 pb-4 pt-[calc(1rem+env(safe-area-inset-top))] flex items-center justify-between`}>
       {/* Left: Clickable Logo + App Name */}
       <Link 
         to="/"
@@ -50,12 +50,22 @@ const TopNav: React.FC = () => {
       {/* Right: Actions */}
       <div className="flex items-center space-x-2 sm:space-x-4">
         {!isLoggedIn && !isAuthPage && (
-          <div className="flex items-center gap-3 sm:gap-4">
-            <Link to="/login" className="text-sm font-bold text-brand-black dark:text-brand-white hover:text-brand-purple transition-colors">Log in</Link>
-            <Link to="/signup" className="px-4 py-2 sm:px-6 sm:py-2.5 rounded-full bg-brand-purple text-white text-xs sm:text-sm font-bold hover:bg-brand-purple-dark hover:shadow-glow transition-all active:scale-95 whitespace-nowrap">
-              Join for free
-            </Link>
-          </div>
+          <>
+            <div className="hidden md:flex items-center gap-4">
+              <Link to="/login" className="text-sm font-bold text-brand-black dark:text-brand-white hover:text-brand-purple transition-colors">Log in</Link>
+              <Link to="/signup" className="px-6 py-2.5 rounded-full bg-brand-purple text-white text-sm font-bold hover:bg-brand-purple-dark hover:shadow-glow transition-all active:scale-95 whitespace-nowrap">
+                Join for free
+              </Link>
+            </div>
+            {isLandingPage && (
+              <button 
+                className="md:hidden p-2 text-brand-black dark:text-gray-400 hover:bg-brand-gray dark:hover:bg-brand-dark-card rounded-lg transition-colors" 
+                onClick={() => setMobileOpen(!mobileOpen)}
+              >
+                <span className="text-2xl">☰</span>
+              </button>
+            )}
+          </>
         )}
 
         {isLoggedIn && (
@@ -94,44 +104,82 @@ const TopNav: React.FC = () => {
       </div>
 
       {/* Mobile menu */}
-      {mobileOpen && isLoggedIn && (
+      {mobileOpen && (
         <ul className="absolute top-16 right-4 bg-brand-white dark:bg-brand-black shadow-lg rounded-xl flex flex-col p-4 space-y-2 md:hidden z-50 border border-brand-gray dark:border-brand-dark-card min-w-[200px]">
-          <li>
-            <Link 
-              to="/overview" 
-              className="block px-4 py-2 text-brand-black dark:text-gray-200 hover:text-brand-purple hover:bg-brand-purple/5 dark:hover:bg-brand-purple/10 rounded-lg transition-colors"
-              onClick={() => setMobileOpen(false)}
-            >
-              Overview
-            </Link>
-          </li>
-          <li>
-            <Link 
-              to="/applications" 
-              className="block px-4 py-2 text-brand-black dark:text-gray-200 hover:text-brand-purple hover:bg-brand-purple/5 dark:hover:bg-brand-purple/10 rounded-lg transition-colors"
-              onClick={() => setMobileOpen(false)}
-            >
-              My Applications
-            </Link>
-          </li>
-          <li>
-            <Link 
-              to="/posted-gigs" 
-              className="block px-4 py-2 text-brand-black dark:text-gray-200 hover:text-brand-purple hover:bg-brand-purple/5 dark:hover:bg-brand-purple/10 rounded-lg transition-colors"
-              onClick={() => setMobileOpen(false)}
-            >
-              My Posted Gigs
-            </Link>
-          </li>
-          <li>
-            <Link 
-              to="/edit-profile" 
-              className="block px-4 py-2 text-brand-black dark:text-gray-200 hover:text-brand-purple hover:bg-brand-purple/5 dark:hover:bg-brand-purple/10 rounded-lg transition-colors"
-              onClick={() => setMobileOpen(false)}
-            >
-              Edit Profile
-            </Link>
-          </li>
+          {isLoggedIn ? (
+            <>
+              <li>
+                <Link 
+                  to="/overview" 
+                  className="block px-4 py-2 text-brand-black dark:text-gray-200 hover:text-brand-purple hover:bg-brand-purple/5 dark:hover:bg-brand-purple/10 rounded-lg transition-colors"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  Overview
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  to="/applications" 
+                  className="block px-4 py-2 text-brand-black dark:text-gray-200 hover:text-brand-purple hover:bg-brand-purple/5 dark:hover:bg-brand-purple/10 rounded-lg transition-colors"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  My Applications
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  to="/posted-gigs" 
+                  className="block px-4 py-2 text-brand-black dark:text-gray-200 hover:text-brand-purple hover:bg-brand-purple/5 dark:hover:bg-brand-purple/10 rounded-lg transition-colors"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  My Posted Gigs
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  to="/edit-profile" 
+                  className="block px-4 py-2 text-brand-black dark:text-gray-200 hover:text-brand-purple hover:bg-brand-purple/5 dark:hover:bg-brand-purple/10 rounded-lg transition-colors"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  Edit Profile
+                </Link>
+              </li>
+            </>
+          ) : (
+            <>
+              {isLandingPage && (
+                <>
+                  <li>
+                    <Link 
+                      to={isLoggedIn ? "/browse" : "/login"} 
+                      className="block px-4 py-2 text-brand-black dark:text-gray-200 hover:text-brand-purple hover:bg-brand-purple/5 dark:hover:bg-brand-purple/10 rounded-lg transition-colors"
+                      onClick={() => setMobileOpen(false)}
+                    >
+                      Find Gigs
+                    </Link>
+                  </li>
+                  <li>
+                    <Link 
+                      to={isLoggedIn ? "/browse" : "/login"} 
+                      className="block px-4 py-2 text-brand-black dark:text-gray-200 hover:text-brand-purple hover:bg-brand-purple/5 dark:hover:bg-brand-purple/10 rounded-lg transition-colors"
+                      onClick={() => setMobileOpen(false)}
+                    >
+                      Find Talent
+                    </Link>
+                  </li>
+                  <li>
+                    <Link 
+                      to="/how-it-works" 
+                      className="block px-4 py-2 text-brand-black dark:text-gray-200 hover:text-brand-purple hover:bg-brand-purple/5 dark:hover:bg-brand-purple/10 rounded-lg transition-colors"
+                      onClick={() => setMobileOpen(false)}
+                    >
+                      How it works
+                    </Link>
+                  </li>
+                </>
+              )}
+            </>
+          )}
         </ul>
       )}
     </nav>

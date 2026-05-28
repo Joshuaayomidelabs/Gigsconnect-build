@@ -258,3 +258,19 @@ h1, h2, h3, h4, h5, h6 {
   object-fit: cover;
   object-position: center 20%;
 }
+
+@layer utilities {
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+  .px-safe {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+  .pt-main {
+    padding-top: calc(6rem + env(safe-area-inset-top));
+  }
+}

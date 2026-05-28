@@ -348,7 +348,7 @@ const PostGig: React.FC = () => {
   };
 
   return (
-    <div className="pt-24 pb-24 px-4 sm:px-6 lg:px-8 max-w-[640px] mx-auto min-h-screen transition-colors duration-500">
+    <div className="pt-main pb-12 px-4 sm:px-6 lg:px-8 max-w-[640px] mx-auto min-h-screen transition-colors duration-500">
       <section className="mb-6">
         <h1 className="text-3xl font-black text-brand-black dark:text-brand-white tracking-tight">
           Create{" "}

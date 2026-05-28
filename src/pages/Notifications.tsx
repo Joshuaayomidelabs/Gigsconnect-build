@@ -72,7 +72,7 @@ const Notifications: React.FC = () => {
   };
 
   return (
-    <div className="pt-24 pb-24 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto min-h-screen bg-brand-gray dark:bg-brand-black">
+    <div className="pt-main pb-12 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto min-h-screen bg-brand-gray dark:bg-brand-black">
       <header className="mb-10 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <h1 className="text-4xl font-black text-brand-black dark:text-brand-white tracking-tight mb-2">Notifications</h1>

@@ -113,7 +113,7 @@ const BrowseGigs: React.FC = () => {
   };
 
   return (
-    <div className="pt-24 pb-24 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto min-h-screen bg-brand-gray dark:bg-brand-black transition-colors duration-500">
+    <div className="pt-main pb-12 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto min-h-screen bg-brand-gray dark:bg-brand-black transition-colors duration-500">
       <section className="mb-8 px-2">
         <h1 className="text-3xl lg:text-4xl font-black text-brand-black dark:text-brand-white tracking-tight mb-2">Search</h1>
         <p className="text-gray-700 dark:text-gray-200 text-sm lg:text-base font-medium">Find people and opportunities across the continent.</p>

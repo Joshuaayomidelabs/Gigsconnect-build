@@ -7,7 +7,7 @@ const Messages: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="pt-24 pb-24 px-4 sm:px-6 lg:px-8 min-h-screen bg-brand-gray dark:bg-brand-black flex items-center justify-center">
+    <div className="pt-main pb-12 px-4 sm:px-6 lg:px-8 min-h-screen bg-brand-gray dark:bg-brand-black flex items-center justify-center">
       <motion.div 
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
