@@ -106,6 +106,8 @@ const SignUp: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isLoading) return; // Prevent double submission
+    
     if (!validate()) {
       // Scroll to top to show errors
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -116,6 +118,17 @@ const SignUp: React.FC = () => {
     setSupabaseError(null);
 
     try {
+      // 0. Check if phone number is already registered (since email is checked by Supabase by default)
+      const { data: existingPhone } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('phone', formData.phoneNumber)
+        .maybeSingle();
+        
+      if (existingPhone) {
+        throw new Error('An account with this phone number already exists. Please log in.');
+      }
+
       // 1. Create user in auth.users
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
@@ -132,7 +145,15 @@ const SignUp: React.FC = () => {
         }
       });
 
-      if (authError) throw authError;
+      if (authError) {
+        // Rewrite raw constraint or already registered errors to a friendly message
+        if (authError.message.toLowerCase().includes('already registered') || 
+            authError.message.toLowerCase().includes('duplicate') ||
+            authError.message.toLowerCase().includes('unique constraint')) {
+          throw new Error('An account with this email already exists. Please log in.');
+        }
+        throw authError;
+      }
       
       const userId = authData.user?.id;
       if (!userId) throw new Error('Failed to create user account');
@@ -144,7 +165,15 @@ const SignUp: React.FC = () => {
       
     } catch (error: any) {
       console.error('Signup error:', error);
-      setSupabaseError(error.message || 'An error occurred during signup');
+      
+      let errorMessage = error.message || 'An error occurred during signup';
+      // Catch duplicate constraint errors that might fall through
+      if (errorMessage.toLowerCase().includes('duplicate constraint') || 
+          errorMessage.toLowerCase().includes('already registered')) {
+        errorMessage = 'An account with this email already exists. Please log in.';
+      }
+
+      setSupabaseError(errorMessage);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       setIsLoading(false);

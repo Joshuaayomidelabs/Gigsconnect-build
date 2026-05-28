@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Virtuoso } from 'react-virtuoso';
 import PostCard from './PostCard';
 import { communityService } from '../services/communityService';
 import { supabase } from '../services/supabaseClient';
@@ -176,13 +177,17 @@ export default function CommunityFeed() {
 
   return (
     <div className="flex flex-col pb-12 w-full sm:max-w-[600px] mx-auto">
-      {posts.map((post) => (
-        <PostCard 
-          key={post.id} 
-          post={post} 
-          onDelete={(id) => setPosts((prev) => prev.filter((p) => p.id !== id))} 
-        />
-      ))}
+      <Virtuoso
+        useWindowScroll
+        data={posts}
+        computeItemKey={(index, post) => post.id}
+        itemContent={(_index, post) => (
+          <PostCard 
+            post={post} 
+            onDelete={(id) => setPosts((prev) => prev.filter((p) => p.id !== id))} 
+          />
+        )}
+      />
     </div>
   );
 }
