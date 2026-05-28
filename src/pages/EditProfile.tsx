@@ -4,6 +4,7 @@ import { supabase } from '../services/supabaseClient';
 import { profilesService } from '../services/profilesService';
 import { motion, AnimatePresence } from 'motion/react';
 import imageCompression from 'browser-image-compression';
+import { checkVideoConstraints } from '../utils/validation';
 
 interface PortfolioItem {
   url: string;
@@ -125,9 +126,21 @@ const EditProfile: React.FC = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    if (type === 'video') {
+      setIsLoading(true);
+      const constraintError = await checkVideoConstraints(file);
+      setIsLoading(false);
+      if (constraintError) {
+        alert(constraintError + "\nFor best performance, use 30–60 seconds videos.");
+        e.target.value = '';
+        return;
+      }
+    }
+
     const currentMedia = formData.portfolio_media.filter(m => m.type === type);
     if (currentMedia.length >= 3) {
       alert(`You can only upload up to 3 ${type}s.`);
+      e.target.value = '';
       return;
     }
 
@@ -763,15 +776,15 @@ const EditProfile: React.FC = () => {
                 <div className="flex justify-between items-center border-b border-brand-gray dark:border-brand-black pb-2">
                   <h3 className="text-lg font-bold text-brand-black dark:text-brand-white">Portfolio Media</h3>
                   <div className="flex gap-2">
-                    <label className="flex items-center gap-2 px-4 py-2 bg-brand-purple/10 dark:bg-brand-purple/20 text-brand-purple rounded-xl text-xs font-bold cursor-pointer hover:bg-brand-purple/20 dark:hover:bg-brand-purple/30 transition-all">
+                    <label className={`flex items-center gap-2 px-4 py-2 bg-brand-purple/10 dark:bg-brand-purple/20 text-brand-purple rounded-xl text-xs font-bold cursor-pointer hover:bg-brand-purple/20 dark:hover:bg-brand-purple/30 transition-all ${isLoading ? 'opacity-50 pointer-events-none' : ''}`}>
                       <ImageIcon className="w-4 h-4" />
                       Add Image
-                      <input type="file" className="hidden" accept="image/*" onChange={(e) => handlePortfolioUpload(e, 'image')} />
+                      <input type="file" className="hidden" accept="image/*" disabled={isLoading} onChange={(e) => handlePortfolioUpload(e, 'image')} />
                     </label>
-                    <label className="flex items-center gap-2 px-4 py-2 bg-brand-purple/10 dark:bg-brand-purple/20 text-brand-purple rounded-xl text-xs font-bold cursor-pointer hover:bg-brand-purple/20 dark:hover:bg-brand-purple/30 transition-all">
+                    <label className={`flex items-center gap-2 px-4 py-2 bg-brand-purple/10 dark:bg-brand-purple/20 text-brand-purple rounded-xl text-xs font-bold cursor-pointer hover:bg-brand-purple/20 dark:hover:bg-brand-purple/30 transition-all ${isLoading ? 'opacity-50 pointer-events-none' : ''}`}>
                       <Video className="w-4 h-4" />
                       Add Video
-                      <input type="file" className="hidden" accept="video/*" onChange={(e) => handlePortfolioUpload(e, 'video')} />
+                      <input type="file" className="hidden" accept="video/*" disabled={isLoading} onChange={(e) => handlePortfolioUpload(e, 'video')} />
                     </label>
                   </div>
                 </div>

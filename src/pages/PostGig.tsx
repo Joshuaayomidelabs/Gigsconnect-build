@@ -26,6 +26,7 @@ import { profilesService } from "../services/profilesService";
 import { supabase } from "../services/supabaseClient";
 import { useAuth } from "../context/AuthContext";
 import { GIG_CATEGORIES } from "../utils/constants";
+import { checkVideoConstraints } from "../utils/validation";
 
 const PostGig: React.FC = () => {
   const navigate = useNavigate();
@@ -101,14 +102,27 @@ const PostGig: React.FC = () => {
     }
   };
 
-  const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleVideoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       const validTypes = ["video/mp4", "video/quicktime", "video/webm"];
       if (!validTypes.includes(file.type)) {
         toast.error("Please upload an mp4, mov, or webm video file.");
+        e.target.value = '';
         return;
       }
+      
+      setIsLoading(true);
+      const constraintError = await checkVideoConstraints(file);
+      setIsLoading(false);
+      
+      if (constraintError) {
+        toast.error(constraintError);
+        toast.info("For best performance, use 30–60 seconds videos.");
+        e.target.value = '';
+        return;
+      }
+
       setVideoFile(file);
       // Clear image
       setImageFile(null);
@@ -597,6 +611,7 @@ const PostGig: React.FC = () => {
                 accept="image/*"
                 className="hidden"
                 ref={fileInputRef}
+                disabled={isLoading}
                 onChange={handleImageChange}
               />
               <input
@@ -604,20 +619,23 @@ const PostGig: React.FC = () => {
                 accept="video/mp4,video/quicktime,video/webm"
                 className="hidden"
                 ref={videoInputRef}
+                disabled={isLoading}
                 onChange={handleVideoChange}
               />
               <button
                 type="button"
+                disabled={isLoading}
                 onClick={() => fileInputRef.current?.click()}
-                className="p-2 sm:p-2.5 rounded-full text-[#9CA3AF] hover:text-[#A78BFA] hover:bg-[#6C2BD9]/10 active:text-[#6C2BD9] transition-all duration-200 active:scale-105"
+                className={`p-2 sm:p-2.5 rounded-full text-[#9CA3AF] hover:text-[#A78BFA] hover:bg-[#6C2BD9]/10 active:text-[#6C2BD9] transition-all duration-200 active:scale-105 ${isLoading ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''}`}
                 aria-label="Add image"
               >
                 <ImageIcon className="w-[22px] h-[22px]" />
               </button>
               <button
                 type="button"
+                disabled={isLoading}
                 onClick={() => videoInputRef.current?.click()}
-                className="p-2 sm:p-2.5 rounded-full text-[#9CA3AF] hover:text-[#A78BFA] hover:bg-[#6C2BD9]/10 active:text-[#6C2BD9] transition-all duration-200 active:scale-105"
+                className={`p-2 sm:p-2.5 rounded-full text-[#9CA3AF] hover:text-[#A78BFA] hover:bg-[#6C2BD9]/10 active:text-[#6C2BD9] transition-all duration-200 active:scale-105 ${isLoading ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''}`}
                 aria-label="Add video"
               >
                 <Video className="w-[22px] h-[22px]" />

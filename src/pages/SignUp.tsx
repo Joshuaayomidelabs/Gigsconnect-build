@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Loader2, Check } from 'lucide-react';
 import { supabase } from '../services/supabaseClient';
@@ -29,6 +29,7 @@ const SignUp: React.FC = () => {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
+  const isSubmittingRef = useRef(false);
   const [supabaseError, setSupabaseError] = useState<string | null>(null);
 
   const getPasswordStrength = (password: string) => {
@@ -106,7 +107,7 @@ const SignUp: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isLoading) return; // Prevent double submission
+    if (isLoading || isSubmittingRef.current) return; // Prevent double submission
     
     if (!validate()) {
       // Scroll to top to show errors
@@ -114,6 +115,7 @@ const SignUp: React.FC = () => {
       return;
     }
 
+    isSubmittingRef.current = true;
     setIsLoading(true);
     setSupabaseError(null);
 
@@ -177,6 +179,7 @@ const SignUp: React.FC = () => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       setIsLoading(false);
+      isSubmittingRef.current = false;
     }
   };
 

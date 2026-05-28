@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -28,6 +28,7 @@ const CreateProfile: React.FC = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const isSubmittingRef = useRef(false);
   const [isFetching, setIsFetching] = useState(true);
   const [uploadStatus, setUploadStatus] = useState('');
   const [formData, setFormData] = useState({
@@ -135,6 +136,8 @@ const CreateProfile: React.FC = () => {
   };
 
   const handleSubmit = async () => {
+    if (isLoading || isSubmittingRef.current) return;
+    isSubmittingRef.current = true;
     setIsLoading(true);
     try {
       const { error } = await profilesService.updateProfile(formData);
@@ -148,6 +151,7 @@ const CreateProfile: React.FC = () => {
       alert(err.message);
     } finally {
       setIsLoading(false);
+      isSubmittingRef.current = false;
     }
   };
 
