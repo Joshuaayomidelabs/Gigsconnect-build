@@ -14,7 +14,4 @@ export default defineConfig({
       '@': '/src',
     },
   },
-  optimizeDeps: {
-    exclude: ['@ffmpeg/ffmpeg', '@ffmpeg/util']
-  }
 });

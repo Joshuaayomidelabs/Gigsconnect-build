@@ -6,7 +6,6 @@ import { profilesService } from '../services/profilesService';
 import { motion, AnimatePresence } from 'motion/react';
 import imageCompression from 'browser-image-compression';
 import { checkVideoConstraints } from '../utils/validation';
-import { videoUploadService } from '../services/videoUploadService';
 
 interface PortfolioItem {
   url: string;
@@ -129,11 +128,16 @@ const EditProfile: React.FC = () => {
     if (!file) return;
 
     if (type === 'video') {
-      setIsLoading(true);
-      const validationError = await videoUploadService.validateVideo(file);
-      setIsLoading(false);
-      if (validationError) {
-        alert(validationError + "\nFor best performance, use 30–60 seconds videos.");
+      const validTypes = ["video/mp4", "video/quicktime", "video/webm"];
+      if (!validTypes.includes(file.type)) {
+        alert("Please upload an mp4, mov, or webm video file.");
+        e.target.value = '';
+        return;
+      }
+      
+      const MAX_VIDEO_SIZE = 100 * 1024 * 1024; // 100MB
+      if (file.size > MAX_VIDEO_SIZE) {
+        alert("Video must be less than 100MB");
         e.target.value = '';
         return;
       }
@@ -153,22 +157,22 @@ const EditProfile: React.FC = () => {
 
       let publicUrl: string;
       if (type === 'video') {
-         // Create a toast to show progress since EditProfile doesn't have a progress bar
-         const toastId = toast.loading(`Preparing ${type}...`);
-         publicUrl = await videoUploadService.processAndUploadVideo(
-             file,
-             session.user.id,
-             'portfolio',
-             (phase, progress, error) => {
-                 if (error) {
-                     toast.error(error.message, { id: toastId });
-                 } else if (phase === 'compressing') {
-                     toast.loading(`Processing ${progress}%...`, { id: toastId });
-                 } else if (phase === 'uploading') {
-                     toast.loading(`Uploading ${progress}%...`, { id: toastId });
-                 }
-             }
-         );
+         const toastId = toast.loading(`Uploading ${type}...`);
+         const fileExt = file.name.split(".").pop() || "mp4";
+         const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+         const filePath = `${session.user.id}/${fileName}`;
+         
+         const { error: uploadError, data } = await supabase.storage
+           .from("portfolio")
+           .upload(filePath, file, { upsert: true });
+
+         if (uploadError) throw new Error(uploadError.message);
+         
+         const { data: publicUrlData } = supabase.storage
+           .from("portfolio")
+           .getPublicUrl(filePath);
+           
+         publicUrl = publicUrlData.publicUrl;
          toast.success('Upload complete', { id: toastId });
       } else {
          const toastId = toast.loading(`Uploading ${type}...`);

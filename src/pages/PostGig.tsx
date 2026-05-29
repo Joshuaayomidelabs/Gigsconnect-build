@@ -26,7 +26,6 @@ import { supabase } from "../services/supabaseClient";
 import { useAuth } from "../context/AuthContext";
 import { GIG_CATEGORIES } from "../utils/constants";
 import { checkVideoConstraints } from "../utils/validation";
-import { videoUploadService, UploadPhase } from "../services/videoUploadService";
 
 const PostGig: React.FC = () => {
   const navigate = useNavigate();
@@ -99,12 +98,16 @@ const PostGig: React.FC = () => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       
-      const validationError = await videoUploadService.validateVideo(file);
-      if (validationError) {
-        toast.error(validationError);
-        if (validationError.includes("90 seconds") || validationError.includes("50MB")) {
-            toast.info("For best performance, use 30–60 seconds videos.");
-        }
+      const validTypes = ["video/mp4", "video/quicktime", "video/webm"];
+      if (!validTypes.includes(file.type)) {
+        toast.error("Please upload an mp4, mov, or webm video file.");
+        e.target.value = '';
+        return;
+      }
+      
+      const MAX_VIDEO_SIZE = 100 * 1024 * 1024; // 100MB
+      if (file.size > MAX_VIDEO_SIZE) {
+        toast.error("Video file is too large. Max size is 100MB.");
         e.target.value = '';
         return;
       }
@@ -144,28 +147,34 @@ const PostGig: React.FC = () => {
 
       if (videoFile) {
          try {
-           const compressedVideo = await videoUploadService.compressVideo(videoFile, (progress) => {
-             // Ignoring progress as we use a spinner now
-           });
-           
-           const fileExt = compressedVideo.name.split(".").pop() || "mp4";
+           const fileExt = videoFile.name.split(".").pop() || "mp4";
            const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
-           const filePath = `${session.user.id}/${fileName}`;
+           const filePath = `raw/${session.user.id}/${fileName}`;
 
            const { error: uploadError, data } = await supabase.storage
-             .from("post-videos")
-             .upload(filePath, compressedVideo, { upsert: true });
+             .from("videos")
+             .upload(filePath, videoFile, { upsert: true });
 
            if (uploadError) {
              throw new Error("Failed to upload video: " + uploadError.message);
            } else if (data) {
+             const { error: dbError } = await supabase.from('videos').insert({
+               file_path: filePath,
+               status: 'uploaded',
+               user_id: session.user.id
+             });
+             
+             if (dbError) {
+               console.error("Failed to insert video metadata", dbError);
+             }
+
              const { data: publicUrlData } = supabase.storage
-               .from("post-videos")
+               .from("videos")
                .getPublicUrl(filePath);
              videoUrl = publicUrlData.publicUrl;
            }
          } catch (error: any) {
-           throw new Error("Failed to process or upload video: " + error.message);
+           throw new Error("Failed to upload video: " + error.message);
          }
       }
 
