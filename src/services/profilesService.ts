@@ -151,7 +151,6 @@ export const profilesService = {
     const { error: uploadError } = await supabase.storage
       .from('avatars')
       .upload(filePath, file, {
-        upsert: true,
         contentType: file.type
       });
 

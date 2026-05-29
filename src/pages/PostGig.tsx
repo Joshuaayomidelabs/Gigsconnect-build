@@ -152,8 +152,8 @@ const PostGig: React.FC = () => {
            const filePath = `raw/${session.user.id}/${fileName}`;
 
            const { error: uploadError, data } = await supabase.storage
-             .from("videos")
-             .upload(filePath, videoFile, { upsert: true });
+             .from("post-videos")
+             .upload(filePath, videoFile);
 
            if (uploadError) {
              throw new Error("Failed to upload video: " + uploadError.message);
@@ -169,7 +169,7 @@ const PostGig: React.FC = () => {
              }
 
              const { data: publicUrlData } = supabase.storage
-               .from("videos")
+               .from("post-videos")
                .getPublicUrl(filePath);
              videoUrl = publicUrlData.publicUrl;
            }
@@ -185,7 +185,7 @@ const PostGig: React.FC = () => {
 
         const { error: uploadError, data } = await supabase.storage
           .from("portfolio")
-          .upload(filePath, imageFile, { upsert: true });
+          .upload(filePath, imageFile);
 
         if (uploadError) {
           throw new Error("Failed to upload image: " + uploadError.message);

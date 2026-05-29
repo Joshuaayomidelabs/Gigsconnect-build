@@ -160,16 +160,27 @@ const EditProfile: React.FC = () => {
          const toastId = toast.loading(`Uploading ${type}...`);
          const fileExt = file.name.split(".").pop() || "mp4";
          const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
-         const filePath = `${session.user.id}/${fileName}`;
+         const filePath = `raw/${session.user.id}/${fileName}`;
          
          const { error: uploadError, data } = await supabase.storage
-           .from("portfolio")
-           .upload(filePath, file, { upsert: true });
+           .from("post-videos")
+           .upload(filePath, file);
 
          if (uploadError) throw new Error(uploadError.message);
          
+         // Insert into videos table so it can be picked up for processing, even for portfolio
+         const { error: dbError } = await supabase.from('videos').insert({
+           file_path: filePath,
+           status: 'uploaded',
+           user_id: session.user.id
+         });
+         
+         if (dbError) {
+           console.error("Failed to insert video metadata", dbError);
+         }
+         
          const { data: publicUrlData } = supabase.storage
-           .from("portfolio")
+           .from("post-videos")
            .getPublicUrl(filePath);
            
          publicUrl = publicUrlData.publicUrl;
