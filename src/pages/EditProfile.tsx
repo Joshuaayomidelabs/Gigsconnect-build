@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Camera, Loader2, Save, MapPin, User, Briefcase, Globe, Edit3, Phone, CheckCircle2, Facebook, Instagram, Twitter, Linkedin, Music2, Video, Image as ImageIcon, Trash2, Plus, ExternalLink, Play, ShieldCheck, Upload, AlertCircle } from 'lucide-react';
+import { toast } from 'sonner';
 import { supabase } from '../services/supabaseClient';
 import { profilesService } from '../services/profilesService';
 import { motion, AnimatePresence } from 'motion/react';
 import imageCompression from 'browser-image-compression';
 import { checkVideoConstraints } from '../utils/validation';
+import { videoUploadService } from '../services/videoUploadService';
 
 interface PortfolioItem {
   url: string;
@@ -128,10 +130,10 @@ const EditProfile: React.FC = () => {
 
     if (type === 'video') {
       setIsLoading(true);
-      const constraintError = await checkVideoConstraints(file);
+      const validationError = await videoUploadService.validateVideo(file);
       setIsLoading(false);
-      if (constraintError) {
-        alert(constraintError + "\nFor best performance, use 30–60 seconds videos.");
+      if (validationError) {
+        alert(validationError + "\nFor best performance, use 30–60 seconds videos.");
         e.target.value = '';
         return;
       }
@@ -149,7 +151,30 @@ const EditProfile: React.FC = () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('Login required');
 
-      const publicUrl = await profilesService.uploadPortfolioMedia(session.user.id, file, type);
+      let publicUrl: string;
+      if (type === 'video') {
+         // Create a toast to show progress since EditProfile doesn't have a progress bar
+         const toastId = toast.loading(`Preparing ${type}...`);
+         publicUrl = await videoUploadService.processAndUploadVideo(
+             file,
+             session.user.id,
+             'portfolio',
+             (phase, progress, error) => {
+                 if (error) {
+                     toast.error(error.message, { id: toastId });
+                 } else if (phase === 'compressing') {
+                     toast.loading(`Processing ${progress}%...`, { id: toastId });
+                 } else if (phase === 'uploading') {
+                     toast.loading(`Uploading ${progress}%...`, { id: toastId });
+                 }
+             }
+         );
+         toast.success('Upload complete', { id: toastId });
+      } else {
+         const toastId = toast.loading(`Uploading ${type}...`);
+         publicUrl = await profilesService.uploadPortfolioMedia(session.user.id, file, type);
+         toast.success('Upload complete', { id: toastId });
+      }
       
       const newItem: PortfolioItem = {
         url: publicUrl,

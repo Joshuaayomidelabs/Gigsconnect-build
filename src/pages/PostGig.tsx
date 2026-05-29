@@ -18,8 +18,6 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import TextareaAutosize from "react-textarea-autosize";
-import { FFmpeg } from "@ffmpeg/ffmpeg";
-import { fetchFile, toBlobURL } from "@ffmpeg/util";
 import { gigsService } from "../services/gigsService";
 import { communityService } from "../services/communityService";
 import { profilesService } from "../services/profilesService";
@@ -27,6 +25,7 @@ import { supabase } from "../services/supabaseClient";
 import { useAuth } from "../context/AuthContext";
 import { GIG_CATEGORIES } from "../utils/constants";
 import { checkVideoConstraints } from "../utils/validation";
+import { videoUploadService, UploadPhase } from "../services/videoUploadService";
 
 const PostGig: React.FC = () => {
   const navigate = useNavigate();
@@ -35,6 +34,7 @@ const PostGig: React.FC = () => {
   const [profile, setProfile] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const postMode = location.state?.initialMode === "gig" ? "gig" : "post";
+  const isSubmittingRef = useRef(false);
 
   useEffect(() => {
     if (user) {
@@ -61,15 +61,7 @@ const PostGig: React.FC = () => {
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [videoPreview, setVideoPreview] = useState<string | null>(null);
 
-  const [uploadPhase, setUploadPhase] = useState<
-    | "preparing"
-    | "compressing"
-    | "uploading"
-    | "publishing"
-    | "success"
-    | "error"
-    | null
-  >(null);
+  const [uploadPhase, setUploadPhase] = useState<UploadPhase>(null);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -100,25 +92,19 @@ const PostGig: React.FC = () => {
       };
       reader.readAsDataURL(file);
     }
+    e.target.value = '';
   };
 
   const handleVideoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      const validTypes = ["video/mp4", "video/quicktime", "video/webm"];
-      if (!validTypes.includes(file.type)) {
-        toast.error("Please upload an mp4, mov, or webm video file.");
-        e.target.value = '';
-        return;
-      }
       
-      setIsLoading(true);
-      const constraintError = await checkVideoConstraints(file);
-      setIsLoading(false);
-      
-      if (constraintError) {
-        toast.error(constraintError);
-        toast.info("For best performance, use 30–60 seconds videos.");
+      const validationError = await videoUploadService.validateVideo(file);
+      if (validationError) {
+        toast.error(validationError);
+        if (validationError.includes("90 seconds") || validationError.includes("50MB")) {
+            toast.info("For best performance, use 30–60 seconds videos.");
+        }
         e.target.value = '';
         return;
       }
@@ -130,12 +116,15 @@ const PostGig: React.FC = () => {
       const url = URL.createObjectURL(file);
       setVideoPreview(url);
     }
+    e.target.value = '';
   };
 
   const handlePostSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!postContent.trim() && !imageFile && !videoFile) return;
+    if (isLoading || isSubmittingRef.current) return;
 
+    isSubmittingRef.current = true;
     setIsLoading(true);
     console.log("Initiating community post creation...");
 
@@ -156,7 +145,7 @@ const PostGig: React.FC = () => {
         const fileName = `${Math.random()}.${fileExt}`;
         const filePath = `${session.user.id}/${fileName}`;
 
-        // We assume a 'posts' bucket exists, or we use 'portfolio' bucket as fallback
+        // We assume a 'portfolio' bucket exists as fallback
         const { error: uploadError, data } = await supabase.storage
           .from("portfolio")
           .upload(filePath, imageFile, {
@@ -183,110 +172,28 @@ const PostGig: React.FC = () => {
 
       if (videoFile) {
         setUploadPhase("preparing");
-        toast.loading("Preparing video for upload...", { id: "upload-toast" });
+        toast.loading("Processing and uploading video...", { id: "upload-toast" });
 
-        // Compress video
-        setUploadPhase("compressing");
-        let fileToUpload = videoFile;
-        try {
-          const ffmpeg = new FFmpeg();
-
-          ffmpeg.on("progress", ({ progress }) => {
-            setUploadProgress(Math.round(progress * 100));
-          });
-
-          // Single-threaded core allows us to avoid SharedArrayBuffer issues
-          const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd";
-          await ffmpeg.load({
-            coreURL: await toBlobURL(
-              `${baseURL}/ffmpeg-core.js`,
-              "text/javascript",
-            ),
-            wasmURL: await toBlobURL(
-              `${baseURL}/ffmpeg-core.wasm`,
-              "application/wasm",
-            ),
-          });
-
-          const inputName = `input_${Date.now()}.mp4`;
-          const outputName = `output_${Date.now()}.mp4`;
-
-          await ffmpeg.writeFile(inputName, await fetchFile(videoFile));
-
-          // Simple fast compression - 720p max, preset ultrafast
-          await ffmpeg.exec([
-            "-i",
-            inputName,
-            "-vf",
-            "scale=-2:720",
-            "-c:v",
-            "libx264",
-            "-crf",
-            "28",
-            "-preset",
-            "ultrafast",
-            "-c:a",
-            "aac",
-            outputName,
-          ]);
-
-          const outputData = await ffmpeg.readFile(outputName);
-          const blob = new Blob([new Uint8Array(outputData as any)], {
-            type: "video/mp4",
-          });
-          fileToUpload = new File([blob], outputName, { type: "video/mp4" });
-        } catch (compressErr) {
-          console.error(
-            "Compression failed, falling back to original file:",
-            compressErr,
-          );
-          // Fallback to original
-          fileToUpload = videoFile;
-        }
-
-        setUploadPhase("uploading");
-        setUploadProgress(0); // Reset for UI transition
-        toast.loading("Uploading processed video...", { id: "upload-toast" });
-
-        const fileExt = fileToUpload.name.split(".").pop() || "mp4";
-        const fileName = `${Math.random()}.${fileExt}`;
-        const filePath = `${session.user.id}/${fileName}`;
-
-        const { error: uploadError, data } = await supabase.storage
-          .from("post-videos")
-          .upload(filePath, fileToUpload, {
-            upsert: true,
-            // @ts-ignore
-            onUploadProgress: (progress) => {
-              const percent = Math.round(
-                (progress.loaded / progress.total) * 100,
-              );
-              setUploadProgress(percent);
-            },
-          });
-
-        if (uploadError) {
-          console.error("Video upload error:", uploadError);
-          if (
-            uploadError.message.includes("row-level security") ||
-            uploadError.message.includes("RLS")
-          ) {
-            throw new Error(
-              'Supabase configuration needed: Please create the "post-videos" storage bucket and allow Insert/Select RLS policies.',
-            );
-          }
-          throw new Error("Failed to upload video: " + uploadError.message);
-        } else if (data) {
-          const { data: publicUrlData } = supabase.storage
-            .from("post-videos")
-            .getPublicUrl(filePath);
-          videoUrl = publicUrlData.publicUrl;
-        }
+        videoUrl = await videoUploadService.processAndUploadVideo(
+            videoFile,
+            session.user.id,
+            "post-videos",
+            (phase, progress, error) => {
+                if (error) {
+                    console.error("Video upload error:", error);
+                    toast.error(error.message, { id: "upload-toast" });
+                } else if (phase) {
+                    setUploadPhase(phase);
+                    setUploadProgress(progress);
+                }
+            }
+        );
       }
 
       setUploadPhase("publishing");
       toast.loading("Saving post to community...", { id: "upload-toast" });
       console.log("Saving post to database...");
+      
       const { data, error } = await communityService.createPost({
         user_id: session.user.id,
         text: postContent,
@@ -328,11 +235,15 @@ const PostGig: React.FC = () => {
       });
       setUploadPhase("error");
       setIsLoading(false);
+      isSubmittingRef.current = false;
     }
   };
 
   const handleGigSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isLoading || isSubmittingRef.current) return;
+    
+    isSubmittingRef.current = true;
     setIsLoading(true);
 
     try {
@@ -356,10 +267,11 @@ const PostGig: React.FC = () => {
       navigate("/overview");
     } catch (err: any) {
       alert(err.message);
-    } finally {
       setIsLoading(false);
+      isSubmittingRef.current = false;
     }
   };
+
 
   return (
     <div className="pt-main pb-12 px-4 sm:px-6 lg:px-8 max-w-[640px] mx-auto min-h-screen transition-colors duration-500">

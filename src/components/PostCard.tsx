@@ -231,7 +231,8 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
   };
 
   const [isExpanded, setIsExpanded] = useState(false);
-  const isLongText = post.text && post.text.length > 100;
+  const isTextOnly = !post.image_urls?.length && !post.video_url;
+  const isLongText = post.text && post.text.length > (isTextOnly ? 250 : 100);
 
   return (
     <div className="w-full sm:max-w-[600px] mx-auto mb-6 sm:mb-8 group/post">
@@ -294,6 +295,23 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
             </div>
           )}
         </div>
+
+        {/* TEXT-ONLY POST CONTENT */}
+        {isTextOnly && post.text && (
+          <div className="px-4 pt-1 pb-3 text-[17px] sm:text-[19px] text-gray-900 dark:text-white leading-relaxed font-normal">
+            <span className="whitespace-pre-wrap break-words">
+              {isExpanded ? post.text : isLongText ? (post.text.substring(0, 250) + '...') : post.text}
+            </span>
+            {isLongText && !isExpanded && (
+              <button 
+                onClick={() => setIsExpanded(true)}
+                className="text-brand-purple font-medium ml-1 text-[16px] hover:underline"
+              >
+                See more
+              </button>
+            )}
+          </div>
+        )}
 
         {/* MEDIA */}
         {(post.image_urls?.length || post.video_url) ? (
@@ -390,7 +408,7 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
         </div>
 
         {/* CAPTION */}
-        {post.text && (
+        {!isTextOnly && post.text && (
           <div className="px-3 sm:px-4 text-[14px] text-gray-900 dark:text-white leading-tight mb-2">
             <span className="font-bold mr-2 cursor-pointer hover:underline" onClick={() => navigate(`/profile/${post.user_id}`)}>
               {post.user?.full_name || 'Anonymous User'}
