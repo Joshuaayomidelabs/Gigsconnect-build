@@ -16,6 +16,8 @@ import {
   Save,
   Globe,
   Check,
+  Pause,
+  Play
 } from "lucide-react";
 import { toast } from "sonner";
 import TextareaAutosize from "react-textarea-autosize";
@@ -26,6 +28,8 @@ import { supabase } from "../services/supabaseClient";
 import { useAuth } from "../context/AuthContext";
 import { GIG_CATEGORIES } from "../utils/constants";
 import { checkVideoConstraints } from "../utils/validation";
+import { resumableUploadService, UploadState } from "../services/resumableUploadService";
+import { generateVideoThumbnail, dataUrlToFile } from "../utils/videoUtils";
 
 const PostGig: React.FC = () => {
   const navigate = useNavigate();
@@ -60,8 +64,10 @@ const PostGig: React.FC = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [videoPreview, setVideoPreview] = useState<string | null>(null);
-
-  const [uploadStage, setUploadStage] = useState<'idle' | 'uploading' | 'processing' | 'done' | 'error'>('idle');
+  
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+  const [uploadState, setUploadState] = useState<UploadState | null>(null);
+  const [uploadStage, setUploadStage] = useState<'idle' | 'compressing' | 'uploading' | 'processing' | 'done' | 'error'>('idle');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
@@ -85,6 +91,7 @@ const PostGig: React.FC = () => {
       // Clear video to maintain single media focus for MVP cleanly
       setVideoFile(null);
       setVideoPreview(null);
+      setThumbnailFile(null);
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result as string);
@@ -105,9 +112,9 @@ const PostGig: React.FC = () => {
         return;
       }
       
-      const MAX_VIDEO_SIZE = 100 * 1024 * 1024; // 100MB
+      const MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50MB
       if (file.size > MAX_VIDEO_SIZE) {
-        toast.error("Video file is too large. Max size is 100MB.");
+        toast.error("Please upload a video smaller than 50MB.");
         e.target.value = '';
         return;
       }
@@ -116,8 +123,20 @@ const PostGig: React.FC = () => {
       // Clear image
       setImageFile(null);
       setImagePreview(null);
-      const url = URL.createObjectURL(file);
-      setVideoPreview(url);
+      
+      setUploadStage('compressing');
+      try {
+        const thumbDataUrl = await generateVideoThumbnail(file);
+        setVideoPreview(thumbDataUrl);
+        const thumbFile = dataUrlToFile(thumbDataUrl, 'thumbnail.jpg');
+        setThumbnailFile(thumbFile);
+        setUploadStage('idle');
+      } catch (err) {
+        console.error("Thumbnail error:", err);
+        const url = URL.createObjectURL(file);
+        setVideoPreview(url);
+        setUploadStage('idle');
+      }
     }
     e.target.value = '';
   };
@@ -129,7 +148,6 @@ const PostGig: React.FC = () => {
 
     isSubmittingRef.current = true;
     setIsLoading(true);
-    console.log("Initiating community post creation...");
 
     try {
       const {
@@ -139,10 +157,10 @@ const PostGig: React.FC = () => {
 
       let imageUrl = null;
       let videoUrl = null;
+      let thumbnailUrl = null;
 
       if (imageFile || videoFile) {
         setUploadStage("uploading");
-        toast.loading(imageFile ? "Uploading image..." : "Uploading video...", { id: "upload-toast" });
       }
 
       if (videoFile) {
@@ -150,28 +168,35 @@ const PostGig: React.FC = () => {
            const fileExt = videoFile.name.split(".").pop() || "mp4";
            const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
            const filePath = `raw/${session.user.id}/${fileName}`;
-
-           const { error: uploadError, data } = await supabase.storage
-             .from("post-videos")
-             .upload(filePath, videoFile);
-
-           if (uploadError) {
-             throw new Error("Failed to upload video: " + uploadError.message);
-           } else if (data) {
-             const { error: dbError } = await supabase.from('videos').insert({
-               file_path: filePath,
-               status: 'uploaded',
-               user_id: session.user.id
-             });
-             
-             if (dbError) {
-               console.error("Failed to insert video metadata", dbError);
+           
+           if (thumbnailFile) {
+             const thumbPath = `raw/${session.user.id}/thumb_${fileName}.jpg`;
+             const { error: thumbErr, data: thumbData } = await supabase.storage.from("post-videos").upload(thumbPath, thumbnailFile);
+             if (!thumbErr && thumbData) {
+               thumbnailUrl = supabase.storage.from("post-videos").getPublicUrl(thumbPath).data.publicUrl;
              }
+           }
 
-             const { data: publicUrlData } = supabase.storage
-               .from("post-videos")
-               .getPublicUrl(filePath);
-             videoUrl = publicUrlData.publicUrl;
+           videoUrl = await resumableUploadService.uploadVideo(
+             videoFile,
+             "post-videos",
+             filePath,
+             (state) => {
+               setUploadState(state);
+               setUploadStage("uploading");
+             },
+             (url) => { console.log("Uploaded successfully", url); },
+             (error) => { throw error; }
+           );
+           
+           const { error: dbError } = await supabase.from('videos').insert({
+             file_path: filePath,
+             status: 'uploaded',
+             user_id: session.user.id
+           });
+           
+           if (dbError) {
+             console.error("Failed to insert video metadata", dbError);
            }
          } catch (error: any) {
            throw new Error("Failed to upload video: " + error.message);
@@ -198,13 +223,13 @@ const PostGig: React.FC = () => {
       }
 
       setUploadStage("processing");
-      toast.loading(videoFile ? "Processing video..." : "Publishing...", { id: "upload-toast" });
       
       const { data, error } = await communityService.createPost({
         user_id: session.user.id,
         text: postContent,
         image_urls: imageUrl ? [imageUrl] : undefined,
         video_url: videoUrl ? videoUrl : undefined,
+        thumbnail_url: thumbnailUrl ? thumbnailUrl : undefined,
         is_available_for_gigs: isAvailableForGigs,
       });
 
@@ -212,29 +237,24 @@ const PostGig: React.FC = () => {
         throw new Error(error.message || "Failed to create post");
       }
 
-      toast.success("Post shared with your community!", { id: "upload-toast" });
+      toast.success("Post shared with your community!");
       setUploadStage("done");
 
-      // Delay to show success animation before navigating
       setTimeout(() => {
-        // Clear composer state only after successful save confirmation
         setPostContent("");
         setImageFile(null);
         setImagePreview(null);
         setVideoFile(null);
         setVideoPreview(null);
+        setThumbnailFile(null);
         setIsAvailableForGigs(false);
-
         setUploadStage("idle");
-
-        // Safely navigate away now that persistence and state clear are verified
+        setUploadState(null);
         navigate("/overview");
       }, 1500);
     } catch (err: any) {
       console.error("Post creation error:", err);
-      toast.error(err.message || "Error publishing post", {
-        id: "upload-toast",
-      });
+      toast.error(err.message || "Error publishing post");
       setUploadStage("error");
       setIsLoading(false);
       isSubmittingRef.current = false;
@@ -468,15 +488,44 @@ const PostGig: React.FC = () => {
                           Upload failed. Tap to retry.
                         </p>
                       </div>
-                    ) : (
-                      <div className="flex flex-col items-center animate-fade-in pointer-events-auto">
+                    ) : uploadStage === "compressing" ? (
+                      <div className="flex flex-col items-center animate-fade-in pointer-events-auto max-w-[80%] mx-auto">
                         <div className="p-3 bg-brand-white/10 dark:bg-black/20 backdrop-blur-md rounded-full shadow-[0_0_20px_rgba(108,43,217,0.3)] mb-4">
                            <Loader2 className="w-10 h-10 text-brand-purple animate-spin drop-shadow-md" />
                         </div>
-                        <p className="font-bold text-[15px] text-white drop-shadow-md text-center">
+                        <p className="font-bold text-[17px] text-white drop-shadow-md text-center mb-1">
+                          Compressing Video...
+                        </p>
+                        <p className="text-[13px] text-white/80 drop-shadow-md text-center">
+                          Optimizing for faster upload
+                        </p>
+                      </div>
+                    ) : uploadStage === "uploading" && uploadState ? (
+                      <div className="flex flex-col items-center animate-fade-in pointer-events-auto w-full max-w-[280px]">
+                        <div className="w-full flex justify-between text-white drop-shadow-md mb-2 text-[14px]">
+                          <span className="font-bold">Uploading...</span>
+                          <span className="font-bold">{uploadState.progress}%</span>
+                        </div>
+                        <div className="w-full h-2.5 bg-black/40 backdrop-blur-md rounded-full overflow-hidden shadow-inner mb-3">
+                          <div 
+                            className="h-full bg-gradient-to-r from-[#6C2BD9] to-[#9D4EDD] transition-all duration-300 ease-out" 
+                            style={{ width: `${uploadState.progress}%` }}
+                          />
+                        </div>
+                        <div className="flex items-center justify-between w-full text-[12px] text-white/80 drop-shadow-md font-medium">
+                          <span>{uploadState.uploadSpeed}</span>
+                          <span>{uploadState.timeRemaining}</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center animate-fade-in pointer-events-auto max-w-[80%] mx-auto">
+                        <div className="p-3 bg-brand-white/10 dark:bg-black/20 backdrop-blur-md rounded-full shadow-[0_0_20px_rgba(108,43,217,0.3)] mb-4">
+                           <Loader2 className="w-10 h-10 text-brand-purple animate-spin drop-shadow-md" />
+                        </div>
+                        <p className="font-bold text-[17px] text-white drop-shadow-md text-center">
                           {uploadStage === "uploading"
-                            ? "Uploading video..."
-                            : "Processing video..."}
+                            ? "Starting upload..."
+                            : "Processing Video..."}
                         </p>
                       </div>
                     )}

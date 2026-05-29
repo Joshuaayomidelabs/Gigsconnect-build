@@ -2,12 +2,16 @@ import { supabase } from './supabaseClient';
 import { notificationsService } from './notificationsService';
 
 export const communityService = {
-  async getFeed(userId?: string) {
+  async getFeed(userId?: string, page: number = 0, limit: number = 10) {
+    const from = page * limit;
+    const to = from + limit - 1;
+
     const { data: posts, error: postsError } = await supabase
       .from('posts')
       .select('*, profiles(*), _likes:likes(count), _comments:comments(count)')
       .is('deleted_at', null)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .range(from, to);
 
     if (postsError) {
       console.error("Error fetching posts:", postsError);
@@ -16,11 +20,14 @@ export const communityService = {
 
     let userLikedPostIds = new Set<string>();
 
-    if (userId) {
+    if (userId && posts && posts.length > 0) {
+      const postIds = posts.map(p => p.id);
+      
       const { data: likesRes } = await supabase
         .from('likes')
         .select('post_id')
-        .eq('user_id', userId);
+        .eq('user_id', userId)
+        .in('post_id', postIds);
         
       if (likesRes) {
         userLikedPostIds = new Set(likesRes.map(l => l.post_id));
@@ -75,6 +82,7 @@ export const communityService = {
     text: string, 
     image_urls?: string[], 
     video_url?: string,
+    thumbnail_url?: string,
     audio_url?: string,
     is_available_for_gigs: boolean 
   }) {

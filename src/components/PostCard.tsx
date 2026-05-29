@@ -43,6 +43,7 @@ interface PostCardProps {
     created_at: string;
     image_urls?: string[];
     video_url?: string;
+    thumbnail_url?: string;
     audio_url?: string;
     user_id: string; // <-- Needed to check ownership
     user: {
@@ -345,12 +346,15 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
                 </div>
               )}
               {post.video_url && (
-                <div className="absolute inset-0 w-full h-full cursor-pointer" onClick={handleVideoPress}>
+                <div className="absolute inset-0 w-full h-full cursor-pointer bg-black" onClick={handleVideoPress}>
                   <video 
                     ref={videoRef}
                     src={post.video_url} 
                     loop
                     playsInline
+                    preload="metadata"
+                    poster={post.thumbnail_url}
+                    className="w-full h-full object-cover"
                   />
                   {!isPlaying && (
                     <div className="absolute inset-0 bg-black/30 flex items-center justify-center transition-opacity z-10">

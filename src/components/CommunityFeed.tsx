@@ -28,6 +28,28 @@ export interface Post {
 export default function CommunityFeed() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+
+  const loadMore = async () => {
+    if (!hasMore || loading) return;
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const userId = session?.user?.id;
+      
+      const { data, error } = await communityService.getFeed(userId, page + 1, 10);
+      if (!error && data) {
+        if (data.length === 0) {
+          setHasMore(false);
+        } else {
+          setPosts(prev => [...prev, ...data]);
+          setPage(p => p + 1);
+        }
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -37,7 +59,7 @@ export default function CommunityFeed() {
         const { data: { session } } = await supabase.auth.getSession();
         const userId = session?.user?.id;
         
-        const { data, error } = await communityService.getFeed(userId);
+        const { data, error } = await communityService.getFeed(userId, 0, 10);
         
         if (!isMounted) return;
 
@@ -46,6 +68,9 @@ export default function CommunityFeed() {
           if (!isBackgroundRefresh) setPosts([]);
         } else {
           setPosts(data || []);
+          if ((data?.length || 0) < 10) setHasMore(false);
+          setPage(0);
+
           
           // Preload first 20 unique user avatars
           if (data && data.length > 0) {
@@ -180,6 +205,8 @@ export default function CommunityFeed() {
       <Virtuoso
         useWindowScroll
         data={posts}
+        endReached={loadMore}
+        overscan={400}
         computeItemKey={(index, post) => post.id}
         itemContent={(_index, post) => (
           <PostCard 
