@@ -30,6 +30,7 @@ import { GIG_CATEGORIES } from "../utils/constants";
 import { checkVideoConstraints } from "../utils/validation";
 import { resumableUploadService, UploadState } from "../services/resumableUploadService";
 import { generateVideoThumbnail, dataUrlToFile } from "../utils/videoUtils";
+import { useMentions } from "../hooks/useMentions";
 
 const PostGig: React.FC = () => {
   const navigate = useNavigate();
@@ -59,6 +60,7 @@ const PostGig: React.FC = () => {
 
   // Post Form State
   const [postContent, setPostContent] = useState("");
+  const [cursorPos, setCursorPos] = useState(0);
   const [isAvailableForGigs, setIsAvailableForGigs] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -71,6 +73,25 @@ const PostGig: React.FC = () => {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
+  const textAreaRef = useRef<HTMLTextAreaElement>(null);
+
+  const { mentionState, results, loading: mentionsLoading } = useMentions(postContent, cursorPos);
+
+  const handleSelectMention = (username: string) => {
+    if (!mentionState) return;
+    const newText = postContent.slice(0, mentionState.start) + '@' + username + ' ' + postContent.slice(mentionState.end);
+    setPostContent(newText);
+    
+    // Focus and update cursor
+    setTimeout(() => {
+      if (textAreaRef.current) {
+        textAreaRef.current.focus();
+        const newCursor = mentionState.start + username.length + 2;
+        textAreaRef.current.setSelectionRange(newCursor, newCursor);
+        setCursorPos(newCursor);
+      }
+    }, 0);
+  };
 
   const getCurrencySymbol = (currency: string) =>
     currency === "USD" ? "$" : "₦";
@@ -342,11 +363,31 @@ const PostGig: React.FC = () => {
           </div>
 
           {/* 2. MAIN TEXT INPUT */}
-          <div className="mb-4">
+          <div className="mb-4 relative">
+            {mentionState && results.length > 0 && (
+              <div className="absolute top-[100%] left-0 w-64 bg-white dark:bg-[#1A1A1E] border border-gray-200 dark:border-[#2A2A2F] rounded-xl shadow-xl z-50 mb-2 overflow-hidden animate-in fade-in slide-in-from-top-2">
+                {results.map(r => (
+                  <div 
+                    key={r.id} 
+                    onClick={() => handleSelectMention(r.username || r.full_name.replace(/\s+/g, ''))}
+                    className="flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-[#2A2A2F] cursor-pointer transition-colors"
+                  >
+                    <img src={r.avatar_url || 'https://picsum.photos/seed/default/100'} alt={r.full_name} className="w-8 h-8 rounded-full object-cover" />
+                    <div className="flex flex-col">
+                      <span className="text-sm font-bold text-gray-900 dark:text-white leading-tight">{r.full_name}</span>
+                      {r.username && <span className="text-xs text-gray-500">@{r.username}</span>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
             <TextareaAutosize
+              ref={textAreaRef}
               minRows={3}
               value={postContent}
               onChange={(e) => setPostContent(e.target.value)}
+              onKeyUp={(e: any) => setCursorPos(e.target.selectionStart)}
+              onClick={(e: any) => setCursorPos(e.target.selectionStart)}
               placeholder="Share your sound, idea, or moment..."
               className="w-full text-[18px] sm:text-[20px] text-gray-900 dark:text-gray-100 placeholder:text-gray-400 bg-transparent border-none outline-none resize-none leading-relaxed"
             />

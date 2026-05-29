@@ -1,12 +1,26 @@
 import { supabase } from './supabaseClient';
 
 export const profilesService = {
-  async getProfile(userId: string) {
-    console.log('Fetching profile for userId:', userId);
+  async getProfile(identifier: string) {
+    console.log('Fetching profile for identifier:', identifier);
+    
+    if (identifier.startsWith('@')) {
+      const username = identifier.substring(1);
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .ilike('username', username)
+        .maybeSingle();
+        
+      if (error) console.error(error);
+      if (data) data.city = data.city_town;
+      return { data, error };
+    }
+
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
-      .eq('id', userId)   // MUST match auth.users.id
+      .eq('id', identifier)   // MUST match auth.users.id
       .maybeSingle();
     
     if (error) console.error(error);
@@ -16,7 +30,7 @@ export const profilesService = {
       // Map backend 'city_town' to frontend 'city'
       data.city = data.city_town;
     } else {
-      console.warn('No profile found for userId:', userId);
+      console.warn('No profile found for userId:', identifier);
     }
     
     return { data, error };

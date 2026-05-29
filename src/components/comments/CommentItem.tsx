@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Heart, Trash2, Edit2, Loader2, MoreHorizontal } from 'lucide-react';
 import { formatDistanceToNow, parseISO } from 'date-fns';
+import { renderTextWithMentions } from '../../utils/textUtils';
 
 interface CommentItemProps {
   comment: any;
@@ -99,7 +100,7 @@ export function CommentItem({
                 </div>
               ) : (
                 <p className="text-[14px] text-gray-800 dark:text-gray-200 leading-snug break-words pr-2 mr-2">
-                  {comment.content}
+                  {renderTextWithMentions(comment.content)}
                 </p>
               )}
             </div>

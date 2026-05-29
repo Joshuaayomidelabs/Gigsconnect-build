@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { communityService } from '../services/communityService';
 import { toast } from 'sonner';
 import { formatDistanceToNow, parseISO } from 'date-fns';
+import { renderTextWithMentions } from '../utils/textUtils';
 
 function timeAgo(dateInput: string | Date) {
   try {
@@ -311,7 +312,7 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
         {isTextOnly && post.text && (
           <div className="px-4 pt-1 pb-3 text-[17px] sm:text-[19px] text-gray-900 dark:text-white leading-relaxed font-normal">
             <span className="whitespace-pre-wrap break-words">
-              {isExpanded ? post.text : isLongText ? (post.text.substring(0, 250) + '...') : post.text}
+              {renderTextWithMentions(isExpanded ? post.text : isLongText ? (post.text.substring(0, 250) + '...') : post.text)}
             </span>
             {isLongText && !isExpanded && (
               <button 
@@ -428,7 +429,7 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
               {post.user?.full_name || 'Anonymous User'}
             </span>
             <span>
-              {isExpanded ? post.text : isLongText ? (post.text.substring(0, 100) + '...') : post.text}
+              {renderTextWithMentions(isExpanded ? post.text : isLongText ? (post.text.substring(0, 100) + '...') : post.text)}
             </span>
             {isLongText && !isExpanded && (
               <button 
@@ -452,7 +453,7 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
               {previewComments.map(c => (
                 <div key={c.id} className="text-[14px] flex gap-2 w-full text-gray-900 dark:text-white leading-tight">
                   <span className="font-bold shrink-0">{c.user?.full_name || 'Anonymous User'}</span>
-                  <span className="truncate">{c.content}</span>
+                  <span className="truncate">{renderTextWithMentions(c.content)}</span>
                 </div>
               ))}
             </div>

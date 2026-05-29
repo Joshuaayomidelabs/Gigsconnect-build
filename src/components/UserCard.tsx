@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { User, MapPin, CheckCircle2 } from 'lucide-react';
+import { User, MapPin, Loader2, UserPlus, UserCheck } from 'lucide-react';
 import { motion } from 'motion/react';
 import VerificationBadge from './VerificationBadge';
+import { useAuth } from '../context/AuthContext';
+import { followsService } from '../services/followsService';
 
 interface UserCardProps {
   user: {
@@ -16,6 +18,45 @@ interface UserCardProps {
 }
 
 export const UserCard: React.FC<UserCardProps> = ({ user }) => {
+  const { user: currentUser } = useAuth();
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [isTogglingFollow, setIsTogglingFollow] = useState(false);
+  
+  useEffect(() => {
+    let isMounted = true;
+    if (currentUser && currentUser.id !== user.id) {
+      followsService.checkIfFollowing(currentUser.id, user.id).then((status) => {
+        if (isMounted) {
+          setIsFollowing(status.isFollowing);
+        }
+      }).catch(err => console.error("Follow check error:", err));
+    }
+    return () => { isMounted = false; };
+  }, [currentUser, user.id]);
+
+  const handleFollowToggle = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!currentUser || isTogglingFollow) return;
+
+    setIsTogglingFollow(true);
+    const newFollowingState = !isFollowing;
+    
+    // Optimistic UI update
+    setIsFollowing(newFollowingState);
+
+    const { error } = await followsService.toggleFollow(currentUser.id, user.id, !newFollowingState);
+    
+    if (error) {
+      // Revert on error
+      setIsFollowing(!newFollowingState);
+      console.error("Error toggling follow:", error);
+    }
+    
+    setIsTogglingFollow(false);
+  };
+
   const avatarUrl = user.avatar_url;
 
   const location = user.city && user.country 
@@ -27,9 +68,9 @@ export const UserCard: React.FC<UserCardProps> = ({ user }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -4 }}
-      className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all duration-300"
+      className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all duration-300 relative"
     >
-      <Link to={`/profile/${user.id}`} className="block p-5">
+      <Link to={`/profile/${user.id}`} className="block p-5 pr-20">
         <div className="flex items-center gap-4">
           <div className="relative h-16 w-16 flex-shrink-0">
             {avatarUrl ? (
@@ -84,6 +125,31 @@ export const UserCard: React.FC<UserCardProps> = ({ user }) => {
           </div>
         </div>
       </Link>
+      
+      {currentUser && currentUser.id !== user.id && (
+        <div className="absolute top-5 right-5 z-10 block">
+          <button
+            onClick={handleFollowToggle}
+            disabled={isTogglingFollow}
+            className={`
+              flex items-center justify-center p-2 rounded-full transition-all border
+              ${isFollowing 
+                ? 'bg-gray-100/50 text-gray-700 border-transparent hover:bg-red-50 hover:text-red-600 hover:border-red-100' 
+                : 'bg-primary text-white border-transparent hover:bg-primary/90 hover:shadow-sm'
+              }
+            `}
+            title={isFollowing ? "Unfollow" : "Follow"}
+          >
+            {isTogglingFollow ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : isFollowing ? (
+              <UserCheck className="w-5 h-5" />
+            ) : (
+              <UserPlus className="w-5 h-5" />
+            )}
+          </button>
+        </div>
+      )}
     </motion.div>
   );
 };
