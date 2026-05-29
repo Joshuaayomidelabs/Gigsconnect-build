@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Heart, Trash2, Edit2, Loader2, MoreHorizontal } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow, parseISO } from 'date-fns';
 
 interface CommentItemProps {
   comment: any;
@@ -118,7 +118,19 @@ export function CommentItem({
 
           <div className="flex gap-4 mt-2 text-[12px] font-medium text-gray-500 items-center">
             <span className="text-[12px]">
-              {comment.created_at ? formatDistanceToNow(new Date(comment.created_at), { addSuffix: true }).replace("about ", "") : "Just now"}
+              {(() => {
+                if (!comment.created_at) return "Just now";
+                try {
+                  const safeStr = comment.created_at.endsWith('Z') || comment.created_at.includes('+') ? comment.created_at : `${comment.created_at}Z`;
+                  const date = parseISO(safeStr);
+                  if (date.getTime() > new Date().getTime()) return "Just now";
+                  const res = formatDistanceToNow(date, { addSuffix: true });
+                  if (res.includes('less than a minute') || res.includes('half a minute')) return "Just now";
+                  return res.replace("about ", "").replace("almost ", "").replace("over ", "").replace("minutes", "mins").replace("minute", "min").replace("1 day ago", "Yesterday");
+                } catch(e) {
+                  return "Just now";
+                }
+              })()}
             </span>
             <button 
               onClick={() => onReply(comment.id, comment.user?.username || comment.user?.full_name || 'User')} 

@@ -4,26 +4,36 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { communityService } from '../services/communityService';
 import { toast } from 'sonner';
+import { formatDistanceToNow, parseISO } from 'date-fns';
 
-function timeAgo(date: string | Date) {
-  const seconds = Math.floor((new Date().getTime() - new Date(date).getTime()) / 1000);
-
-  const intervals: Record<string, number> = {
-    year: 31536000,
-    month: 2592000,
-    day: 86400,
-    hour: 3600,
-    minute: 60
-  };
-
-  for (let key in intervals) {
-    const interval = Math.floor(seconds / intervals[key]);
-    if (interval > 0) {
-      return interval + " " + key + (interval > 1 ? "s" : "") + " ago";
+function timeAgo(dateInput: string | Date) {
+  try {
+    const rawString = typeof dateInput === 'string' ? dateInput : dateInput.toISOString();
+    // Supabase can sometimes return timestamps without 'Z' for UTC.
+    const safeString = rawString.endsWith('Z') || rawString.includes('+') ? rawString : `${rawString}Z`;
+    const date = parseISO(safeString);
+    
+    // Check if the date is in the future (can happen to slight clock skews)
+    if (date.getTime() > new Date().getTime()) {
+      return 'Just now';
     }
-  }
 
-  return "Just now";
+    const result = formatDistanceToNow(date, { addSuffix: true });
+    
+    if (result.includes('less than a minute') || result.includes('half a minute')) {
+      return 'Just now';
+    }
+    
+    return result
+      .replace('about ', '')
+      .replace('almost ', '')
+      .replace('over ', '')
+      .replace('minutes', 'mins')
+      .replace('minute', 'min')
+      .replace('1 day ago', 'Yesterday');
+  } catch (err) {
+    return 'Just now';
+  }
 }
 
 interface PostCardProps {

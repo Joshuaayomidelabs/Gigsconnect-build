@@ -15,6 +15,7 @@ import {
   X,
   Save,
   Globe,
+  Check,
 } from "lucide-react";
 import { toast } from "sonner";
 import TextareaAutosize from "react-textarea-autosize";
@@ -61,8 +62,7 @@ const PostGig: React.FC = () => {
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [videoPreview, setVideoPreview] = useState<string | null>(null);
 
-  const [uploadPhase, setUploadPhase] = useState<UploadPhase>(null);
-  const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [uploadStage, setUploadStage] = useState<'idle' | 'uploading' | 'processing' | 'done' | 'error'>('idle');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
@@ -137,30 +137,48 @@ const PostGig: React.FC = () => {
       let imageUrl = null;
       let videoUrl = null;
 
+      if (imageFile || videoFile) {
+        setUploadStage("uploading");
+        toast.loading(imageFile ? "Uploading image..." : "Uploading video...", { id: "upload-toast" });
+      }
+
+      if (videoFile) {
+         try {
+           const compressedVideo = await videoUploadService.compressVideo(videoFile, (progress) => {
+             // Ignoring progress as we use a spinner now
+           });
+           
+           const fileExt = compressedVideo.name.split(".").pop() || "mp4";
+           const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+           const filePath = `${session.user.id}/${fileName}`;
+
+           const { error: uploadError, data } = await supabase.storage
+             .from("post-videos")
+             .upload(filePath, compressedVideo, { upsert: true });
+
+           if (uploadError) {
+             throw new Error("Failed to upload video: " + uploadError.message);
+           } else if (data) {
+             const { data: publicUrlData } = supabase.storage
+               .from("post-videos")
+               .getPublicUrl(filePath);
+             videoUrl = publicUrlData.publicUrl;
+           }
+         } catch (error: any) {
+           throw new Error("Failed to process or upload video: " + error.message);
+         }
+      }
+
       if (imageFile) {
-        setUploadPhase("uploading");
-        setUploadProgress(0);
-        toast.loading("Uploading image...", { id: "upload-toast" });
         const fileExt = imageFile.name.split(".").pop();
         const fileName = `${Math.random()}.${fileExt}`;
         const filePath = `${session.user.id}/${fileName}`;
 
-        // We assume a 'portfolio' bucket exists as fallback
         const { error: uploadError, data } = await supabase.storage
           .from("portfolio")
-          .upload(filePath, imageFile, {
-            upsert: true,
-            // @ts-ignore
-            onUploadProgress: (progress) => {
-              const percent = Math.round(
-                (progress.loaded / progress.total) * 100,
-              );
-              setUploadProgress(percent);
-            },
-          });
+          .upload(filePath, imageFile, { upsert: true });
 
         if (uploadError) {
-          console.error("Image upload error:", uploadError);
           throw new Error("Failed to upload image: " + uploadError.message);
         } else if (data) {
           const { data: publicUrlData } = supabase.storage
@@ -170,29 +188,8 @@ const PostGig: React.FC = () => {
         }
       }
 
-      if (videoFile) {
-        setUploadPhase("preparing");
-        toast.loading("Processing and uploading video...", { id: "upload-toast" });
-
-        videoUrl = await videoUploadService.processAndUploadVideo(
-            videoFile,
-            session.user.id,
-            "post-videos",
-            (phase, progress, error) => {
-                if (error) {
-                    console.error("Video upload error:", error);
-                    toast.error(error.message, { id: "upload-toast" });
-                } else if (phase) {
-                    setUploadPhase(phase);
-                    setUploadProgress(progress);
-                }
-            }
-        );
-      }
-
-      setUploadPhase("publishing");
-      toast.loading("Saving post to community...", { id: "upload-toast" });
-      console.log("Saving post to database...");
+      setUploadStage("processing");
+      toast.loading(videoFile ? "Processing video..." : "Publishing...", { id: "upload-toast" });
       
       const { data, error } = await communityService.createPost({
         user_id: session.user.id,
@@ -203,14 +200,11 @@ const PostGig: React.FC = () => {
       });
 
       if (error) {
-        console.error("Database error creating post:", error);
         throw new Error(error.message || "Failed to create post");
       }
 
-      console.log("Successfully created post:", data);
       toast.success("Post shared with your community!", { id: "upload-toast" });
-
-      setUploadPhase("success");
+      setUploadStage("done");
 
       // Delay to show success animation before navigating
       setTimeout(() => {
@@ -222,8 +216,7 @@ const PostGig: React.FC = () => {
         setVideoPreview(null);
         setIsAvailableForGigs(false);
 
-        setUploadPhase(null);
-        setUploadProgress(0);
+        setUploadStage("idle");
 
         // Safely navigate away now that persistence and state clear are verified
         navigate("/overview");
@@ -233,7 +226,7 @@ const PostGig: React.FC = () => {
       toast.error(err.message || "Error publishing post", {
         id: "upload-toast",
       });
-      setUploadPhase("error");
+      setUploadStage("error");
       setIsLoading(false);
       isSubmittingRef.current = false;
     }
@@ -333,23 +326,23 @@ const PostGig: React.FC = () => {
           {/* 4. MEDIA PREVIEW SECTION */}
           {imagePreview && (
             <div
-              className={`mb-4 group ${uploadPhase ? "upload-wrapper" : "relative rounded-xl overflow-hidden border border-gray-100 dark:border-[#1F1F23]"}`}
+              className={`mb-4 group ${uploadStage !== 'idle' ? "upload-wrapper" : "relative rounded-xl overflow-hidden border border-gray-100 dark:border-[#1F1F23]"}`}
             >
-              <div className={uploadPhase ? "preview" : "relative"}>
+              <div className={uploadStage !== 'idle' ? "preview" : "relative"}>
                 <img
                   src={imagePreview}
                   alt="Preview"
                   className={
-                    !uploadPhase
+                    uploadStage === 'idle'
                       ? "w-full max-h-[400px] object-cover transition-all duration-300"
                       : ""
                   }
                 />
 
                 {/* Upload Status Overlay */}
-                {uploadPhase && (
+                {uploadStage !== 'idle' && (
                   <div className="overlay">
-                    {uploadPhase === "success" ? (
+                    {uploadStage === "done" ? (
                       <div className="flex flex-col items-center animate-fade-in">
                         <div className="w-12 h-12 bg-[#4ade80] rounded-full flex items-center justify-center mb-3 shadow-lg shadow-green-500/30">
                           <svg
@@ -367,13 +360,13 @@ const PostGig: React.FC = () => {
                           </svg>
                         </div>
                         <p className="font-bold text-[15px] drop-shadow-md">
-                          Post uploaded successfully
+                          Upload complete
                         </p>
                       </div>
-                    ) : uploadPhase === "error" ? (
+                    ) : uploadStage === "error" ? (
                       <div
                         className="flex flex-col items-center animate-fade-in cursor-pointer hover:opacity-80 transition-opacity"
-                        onClick={() => setUploadPhase(null)}
+                        onClick={() => setUploadStage('idle')}
                       >
                         <div className="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center mb-3">
                           <X className="w-6 h-6 text-white" />
@@ -383,34 +376,27 @@ const PostGig: React.FC = () => {
                         </p>
                       </div>
                     ) : (
-                      <>
-                        <div className="progress-container">
-                          <div
-                            className="progress-bar"
-                            style={{ width: `${uploadProgress}%` }}
-                          ></div>
+                      <div className="flex flex-col items-center animate-fade-in pointer-events-auto">
+                        <div className="p-3 bg-brand-white/10 dark:bg-black/20 backdrop-blur-md rounded-full shadow-[0_0_20px_rgba(108,43,217,0.3)] mb-4">
+                           <Loader2 className="w-10 h-10 text-brand-purple animate-spin drop-shadow-md" />
                         </div>
-                        <p className="progress-text">
-                          {uploadPhase === "preparing"
-                            ? "Preparing..."
-                            : uploadPhase === "uploading"
-                              ? `${uploadProgress}% uploading...`
-                              : uploadPhase === "publishing"
-                                ? "Publishing..."
-                                : ""}
+                        <p className="font-bold text-[15px] text-white drop-shadow-md text-center">
+                          {uploadStage === "uploading"
+                            ? "Uploading image..."
+                            : "Processing..."}
                         </p>
-                      </>
+                      </div>
                     )}
                   </div>
                 )}
 
-                {(!uploadPhase || uploadPhase === "error") && (
+                {(uploadStage === 'idle' || uploadStage === "error") && (
                   <button
                     type="button"
                     onClick={() => {
                       setImageFile(null);
                       setImagePreview(null);
-                      setUploadPhase(null);
+                      setUploadStage('idle');
                     }}
                     className="absolute top-3 right-3 p-2 bg-[#0F0F12]/60 backdrop-blur-md text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-[#0F0F12]/80 shadow-sm z-20 pointer-events-auto"
                     aria-label="Remove image"
@@ -424,23 +410,23 @@ const PostGig: React.FC = () => {
 
           {videoPreview && (
             <div
-              className={`mb-4 group bg-black/5 dark:bg-white/5 ${uploadPhase ? "upload-wrapper" : "relative rounded-xl overflow-hidden border border-gray-100 dark:border-[#1F1F23]"}`}
+              className={`mb-4 group bg-black/5 dark:bg-white/5 ${uploadStage !== 'idle' ? "upload-wrapper" : "relative rounded-xl overflow-hidden border border-gray-100 dark:border-[#1F1F23]"}`}
             >
-              <div className={uploadPhase ? "preview" : "relative"}>
+              <div className={uploadStage !== 'idle' ? "preview" : "relative"}>
                 <video
                   src={videoPreview}
-                  controls={!uploadPhase || uploadPhase === "error"}
+                  controls={uploadStage === 'idle' || uploadStage === "error"}
                   className={
-                    !uploadPhase
+                    uploadStage === 'idle'
                       ? "w-full max-h-[400px] object-contain transition-all duration-300"
                       : ""
                   }
                 />
 
                 {/* Upload Status Overlay */}
-                {uploadPhase && (
+                {uploadStage !== 'idle' && (
                   <div className="overlay pointer-events-none">
-                    {uploadPhase === "success" ? (
+                    {uploadStage === "done" ? (
                       <div className="flex flex-col items-center animate-fade-in">
                         <div className="w-12 h-12 bg-[#4ade80] rounded-full flex items-center justify-center mb-3 shadow-lg shadow-green-500/30">
                           <svg
@@ -458,13 +444,13 @@ const PostGig: React.FC = () => {
                           </svg>
                         </div>
                         <p className="font-bold text-[15px] drop-shadow-md">
-                          Post uploaded successfully
+                          Upload complete
                         </p>
                       </div>
-                    ) : uploadPhase === "error" ? (
+                    ) : uploadStage === "error" ? (
                       <div
                         className="flex flex-col items-center animate-fade-in cursor-pointer hover:opacity-80 transition-opacity pointer-events-auto"
-                        onClick={() => setUploadPhase(null)}
+                        onClick={() => setUploadStage('idle')}
                       >
                         <div className="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center mb-3">
                           <X className="w-6 h-6 text-white" />
@@ -474,36 +460,27 @@ const PostGig: React.FC = () => {
                         </p>
                       </div>
                     ) : (
-                      <>
-                        <div className="progress-container">
-                          <div
-                            className="progress-bar"
-                            style={{ width: `${uploadProgress}%` }}
-                          ></div>
+                      <div className="flex flex-col items-center animate-fade-in pointer-events-auto">
+                        <div className="p-3 bg-brand-white/10 dark:bg-black/20 backdrop-blur-md rounded-full shadow-[0_0_20px_rgba(108,43,217,0.3)] mb-4">
+                           <Loader2 className="w-10 h-10 text-brand-purple animate-spin drop-shadow-md" />
                         </div>
-                        <p className="progress-text">
-                          {uploadPhase === "preparing"
-                            ? "Preparing..."
-                            : uploadPhase === "compressing"
-                              ? `${uploadProgress}% processing...`
-                              : uploadPhase === "uploading"
-                                ? `${uploadProgress}% uploading...`
-                                : uploadPhase === "publishing"
-                                  ? "Publishing..."
-                                  : ""}
+                        <p className="font-bold text-[15px] text-white drop-shadow-md text-center">
+                          {uploadStage === "uploading"
+                            ? "Uploading video..."
+                            : "Processing video..."}
                         </p>
-                      </>
+                      </div>
                     )}
                   </div>
                 )}
 
-                {(!uploadPhase || uploadPhase === "error") && (
+                {(uploadStage === 'idle' || uploadStage === "error") && (
                   <button
                     type="button"
                     onClick={() => {
                       setVideoFile(null);
                       setVideoPreview(null);
-                      setUploadPhase(null);
+                      setUploadStage('idle');
                     }}
                     className="absolute top-3 right-3 p-2 bg-[#0F0F12]/60 backdrop-blur-md text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-[#0F0F12]/80 shadow-sm z-20 pointer-events-auto"
                     aria-label="Remove video"
@@ -614,24 +591,21 @@ const PostGig: React.FC = () => {
               }
               className="px-8 py-3 rounded-[14px] bg-[#6C2BD9] text-white font-bold hover:bg-[#A78BFA] active:bg-[#4C1D95] transition-all duration-200 shadow-md shadow-[#6C2BD9]/20 flex items-center justify-center gap-2 active:scale-[0.98] disabled:bg-[#1F1F23] disabled:text-[#9CA3AF] disabled:shadow-none disabled:cursor-not-allowed min-w-[140px] relative overflow-hidden"
             >
-              {uploadPhase === "compressing" && (
-                <div
-                  className="absolute left-0 top-0 bottom-0 bg-white/20 transition-all duration-200"
-                  style={{ width: `${uploadProgress}%` }}
-                />
-              )}
               {isLoading ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin relative z-10" />
                   <span className="relative z-10">
-                    {uploadPhase === "compressing"
-                      ? `Processing ${uploadProgress}%`
-                      : uploadPhase === "uploading"
-                        ? "Uploading..."
-                        : uploadPhase === "publishing"
-                          ? "Publishing..."
-                          : "Processing..."}
+                    {uploadStage === "processing" 
+                      ? "Processing video..." 
+                      : (uploadStage === "uploading"
+                        ? (videoFile ? "Uploading video..." : "Uploading image...")
+                        : "Finishing up...")}
                   </span>
+                </>
+              ) : uploadStage === "done" ? (
+                <>
+                  <Check className="w-5 h-5 relative z-10" />
+                  <span className="relative z-10">Upload complete</span>
                 </>
               ) : (
                 "Publish"
