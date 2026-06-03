@@ -71,6 +71,24 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
+  let displayVideoUrl = post.video_url;
+  let displayThumbnailUrl = post.thumbnail_url;
+
+  if (post.video_url && post.video_url.includes('thumb=')) {
+    try {
+      const match = post.video_url.match(/[?&]thumb=([^&]+)/);
+      if (match) {
+        displayThumbnailUrl = decodeURIComponent(match[1]);
+        displayVideoUrl = post.video_url.replace(match[0], '');
+        if (displayVideoUrl.endsWith('?')) {
+          displayVideoUrl = displayVideoUrl.slice(0, -1);
+        }
+      }
+    } catch (e) {
+      console.error("Error parsing thumbnail from video_url:", e);
+    }
+  }
+
   // Comments State
   const [commentsCount, setCommentsCount] = useState(post.comments_count || 0);
   const [previewComments, setPreviewComments] = useState<any[]>([]);
@@ -147,7 +165,7 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
       videoEl.removeEventListener('play', handlePlay);
       videoEl.removeEventListener('pause', handlePause);
     };
-  }, [post.video_url]);
+  }, [displayVideoUrl]);
 
   const handleVideoPress = () => {
     if (videoRef.current) {
@@ -326,7 +344,7 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
         )}
 
         {/* MEDIA */}
-        {(post.image_urls?.length || post.video_url) ? (
+        {(post.image_urls?.length || displayVideoUrl) ? (
           <div className="w-full">
             <div 
               className="card-media group/media"
@@ -346,15 +364,15 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
                   ))}
                 </div>
               )}
-              {post.video_url && (
+              {displayVideoUrl && (
                 <div className="absolute inset-0 w-full h-full cursor-pointer bg-black" onClick={handleVideoPress}>
                   <video 
                     ref={videoRef}
-                    src={post.video_url} 
+                    src={displayVideoUrl} 
                     loop
                     playsInline
                     preload="metadata"
-                    poster={post.thumbnail_url}
+                    poster={displayThumbnailUrl}
                     className="w-full h-full object-cover"
                   />
                   {!isPlaying && (

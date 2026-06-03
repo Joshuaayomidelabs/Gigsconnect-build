@@ -86,9 +86,11 @@ export const communityService = {
     audio_url?: string,
     is_available_for_gigs: boolean 
   }) {
+    // Strip thumbnail_url to avoid database schema cache errors since it is not in the schema
+    const { thumbnail_url, ...insertData } = postData;
     const { data, error } = await supabase
       .from('posts')
-      .insert([postData])
+      .insert([insertData])
       .select()
       .single();
     

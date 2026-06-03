@@ -245,12 +245,16 @@ const PostGig: React.FC = () => {
 
       setUploadStage("processing");
       
+      let finalVideoUrl = videoUrl;
+      if (videoUrl && thumbnailUrl) {
+        finalVideoUrl = `${videoUrl}${videoUrl.includes('?') ? '&' : '?'}thumb=${encodeURIComponent(thumbnailUrl)}`;
+      }
+      
       const { data, error } = await communityService.createPost({
         user_id: session.user.id,
         text: postContent,
         image_urls: imageUrl ? [imageUrl] : undefined,
-        video_url: videoUrl ? videoUrl : undefined,
-        thumbnail_url: thumbnailUrl ? thumbnailUrl : undefined,
+        video_url: finalVideoUrl ? finalVideoUrl : undefined,
         is_available_for_gigs: isAvailableForGigs,
       });
 
