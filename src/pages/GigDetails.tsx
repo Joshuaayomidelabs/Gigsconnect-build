@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { MapPin, Calendar, FileText, Loader2, CheckCircle, ArrowLeft, Trash2 } from 'lucide-react';
+import { MapPin, Calendar, FileText, Loader2, CheckCircle, ArrowLeft, Trash2, AlertTriangle, X } from 'lucide-react';
+import { toast } from 'sonner';
 import { gigsService } from '../services/gigsService';
 import { applicationsService } from '../services/applicationsService';
 import { supabase } from '../services/supabaseClient';
@@ -17,6 +18,7 @@ const GigDetails: React.FC = () => {
   const [hasAlreadyApplied, setHasAlreadyApplied] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
     const fetchGigAndStatus = async () => {
@@ -45,7 +47,7 @@ const GigDetails: React.FC = () => {
         }
       } catch (err: any) {
         console.error('Error in fetchGigAndStatus:', err);
-        alert(err.message);
+        toast.error(err.message);
         navigate('/browse');
       } finally {
         setIsLoading(false);
@@ -64,13 +66,13 @@ const GigDetails: React.FC = () => {
       const applicantId = session?.user?.id;
 
       if (!applicantId) {
-        alert("Please log in first");
+        toast.error("Please log in first");
         return;
       }
 
       // Ensure gig object exists
       if (!gig?.id) {
-        alert("Gig details not loaded");
+        toast.error("Gig details not loaded");
         return;
       }
 
@@ -83,10 +85,10 @@ const GigDetails: React.FC = () => {
       if (appError) {
         console.error("Application error:", appError);
         if ((appError as any).code === '23505') {
-          alert("You have already applied to this gig.");
+          toast.error("You have already applied to this gig.");
           setHasAlreadyApplied(true);
         } else {
-          alert("Application failed: " + appError.message);
+          toast.error("Application failed: " + appError.message);
         }
         return;
       }
@@ -94,21 +96,22 @@ const GigDetails: React.FC = () => {
       console.log("Application data:", appData);
       setSuccess(true);
       setHasAlreadyApplied(true);
-      alert("Application submitted successfully!");
+      toast.success("Application submitted successfully!");
 
     } catch (err) {
       console.error("Unexpected error:", err);
-      alert("Something went wrong. Try again.");
+      toast.error("Something went wrong. Try again.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleDelete = async () => {
-    if (!window.confirm('Are you sure you want to delete this gig? This action cannot be undone.')) {
-      return;
-    }
+  const handleDelete = () => {
+    setShowDeleteConfirm(true);
+  };
 
+  const handleConfirmDelete = async () => {
+    setShowDeleteConfirm(false);
     setIsDeleting(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -117,10 +120,10 @@ const GigDetails: React.FC = () => {
       const { error: deleteError } = await gigsService.deleteGig(gig.id, session.user.id);
       if (deleteError) throw deleteError;
 
-      alert('Gig deleted successfully.');
+      toast.success('Gig deleted successfully.');
       navigate('/posted-gigs');
     } catch (err: any) {
-      alert('Failed to delete gig: ' + err.message);
+      toast.error('Failed to delete gig: ' + err.message);
     } finally {
       setIsDeleting(false);
     }
@@ -271,6 +274,42 @@ const GigDetails: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* CUSTOM GIG DELETION CONFIRMATION DIALOG */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div 
+            className="bg-white dark:bg-brand-dark-card p-6 sm:p-8 rounded-[2rem] max-w-sm w-full shadow-2xl border border-gray-105 dark:border-[#2A2A2F] text-center animate-in fade-in zoom-in-95 duration-200"
+          >
+            <div className="w-16 h-16 rounded-2xl bg-red-50 dark:bg-red-950/20 flex items-center justify-center mb-6 text-red-600 dark:text-red-400 mx-auto">
+              <AlertTriangle className="w-8 h-8" />
+            </div>
+
+            <h3 className="text-xl font-bold text-brand-black dark:text-brand-white mb-2">Delete Gig Listing?</h3>
+            <p className="text-gray-500 dark:text-gray-400 text-sm font-medium leading-relaxed mb-6">
+              Are you sure you want to delete this listing? This action cannot be undone and all candidate applications will be permanently removed.
+            </p>
+
+            <div className="flex gap-3">
+              <button 
+                type="button"
+                onClick={() => setShowDeleteConfirm(false)}
+                className="flex-1 py-3.5 px-4 rounded-xl border border-gray-200 dark:border-brand-black text-brand-black dark:text-brand-white text-sm font-bold hover:bg-brand-gray dark:hover:bg-brand-black active:scale-95 transition-all"
+              >
+                Cancel
+              </button>
+              <button 
+                type="button"
+                onClick={handleConfirmDelete}
+                className="flex-1 py-3.5 px-4 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-bold active:scale-95 transition-all text-center flex items-center justify-center gap-2 shadow-md hover:shadow-red-500/10"
+              >
+                <Trash2 className="w-4 h-4" />
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

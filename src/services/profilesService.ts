@@ -260,5 +260,124 @@ export const profilesService = {
       console.error("Unexpected error searching users:", err);
       return { data: [], error: err };
     }
+  },
+
+  async deleteAccount(userId: string) {
+    try {
+      console.log('Initiating total account deletion & data scrubbing for user:', userId);
+
+      // 1. Delete professions
+      try {
+        await supabase.from('user_professions').delete().eq('user_id', userId);
+      } catch (e) {
+        console.warn('Non-blocking user_professions cleanup warning:', e);
+      }
+
+      // 2. Delete bookmarks
+      try {
+        await supabase.from('bookmarks').delete().eq('user_id', userId);
+      } catch (e) {
+        console.warn('Non-blocking bookmarks cleanup warning:', e);
+      }
+
+      // 3. Delete comments & comment likes
+      try {
+        await supabase.from('comments').delete().eq('user_id', userId);
+      } catch (e) {
+        console.warn('Non-blocking comments cleanup warning:', e);
+      }
+      try {
+        await supabase.from('post_comments').delete().eq('user_id', userId);
+      } catch (e) {
+        console.warn('Non-blocking post_comments cleanup warning:', e);
+      }
+      try {
+        await supabase.from('comment_likes').delete().eq('user_id', userId);
+      } catch (e) {
+        console.warn('Non-blocking comment_likes cleanup warning:', e);
+      }
+
+      // 4. Delete likes
+      try {
+        await supabase.from('likes').delete().eq('user_id', userId);
+      } catch (e) {
+        console.warn('Non-blocking likes cleanup warning:', e);
+      }
+      try {
+        await supabase.from('post_likes').delete().eq('user_id', userId);
+      } catch (e) {
+        console.warn('Non-blocking post_likes cleanup warning:', e);
+      }
+
+      // 5. Delete gigs posted by user
+      try {
+        await supabase.from('gigs').delete().eq('poster_id', userId);
+      } catch (e) {
+        console.warn('Non-blocking gigs cleanup warning:', e);
+      }
+
+      // 6. Delete posts
+      try {
+        await supabase.from('posts').delete().eq('user_id', userId);
+      } catch (e) {
+        console.warn('Non-blocking posts cleanup warning:', e);
+      }
+
+      // 7. Delete follows where user is either follower or following
+      try {
+        await supabase.from('follows').delete().eq('follower_id', userId);
+        await supabase.from('follows').delete().eq('following_id', userId);
+      } catch (e) {
+        console.warn('Non-blocking follows cleanup warning:', e);
+      }
+
+      // 8. Try deleting profile directly first (if a delete policy is configured)
+      const { error: profileDeleteError } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', userId);
+
+      if (profileDeleteError) {
+        console.log('Could not hard-delete profile row, performing complete anonymization scrubbing:', profileDeleteError);
+        
+        // 9. Scrub/anonymize profile row to erase all GDPR/App Store PII
+        const anonymizedData = {
+          full_name: 'Deleted User',
+          username: `deleted_user_${Math.random().toString(36).substring(2, 10)}`,
+          email: '',
+          phone: '',
+          country: '',
+          city_town: '',
+          genres: '',
+          bio: 'This account has been deleted.',
+          avatar_url: null,
+          portfolio_media: [],
+          verification_status: 'Unverified',
+          verification_doc_path: null,
+          facebook_url: null,
+          instagram_url: null,
+          tiktok_url: null,
+          twitter_url: null,
+          linkedin_url: null,
+          updated_at: new Date().toISOString()
+        };
+
+        const { error: scrubError } = await supabase
+          .from('profiles')
+          .update(anonymizedData)
+          .eq('id', userId);
+
+        if (scrubError) {
+          console.error('Fatal: Could not scrub profile row during account deletion:', scrubError);
+          throw scrubError;
+        }
+      }
+
+      console.log('Account scrubbing completed successfully.');
+      return { success: true, error: null };
+    } catch (err: any) {
+      console.error('Error in deleteAccount:', err);
+      return { success: false, error: err };
+    }
   }
 };

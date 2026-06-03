@@ -30,9 +30,10 @@ import {
   Play,
   Image as ImageIcon,
   Video,
-  ExternalLink
+  ExternalLink,
+  AlertTriangle
 } from 'lucide-react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
 import { profilesService } from '../services/profilesService';
 import { followsService } from '../services/followsService';
@@ -64,6 +65,7 @@ const PublicProfile: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedFileType, setSelectedFileType] = useState<'image' | 'video' | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
+  const [portfolioItemToDelete, setPortfolioItemToDelete] = useState<string | null>(null);
 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -171,14 +173,19 @@ const PublicProfile: React.FC = () => {
   };
 
   // Delete Portfolio Item
-  const handleDeletePortfolioItem = async (e: React.MouseEvent, itemId: string) => {
+  const handleDeletePortfolioItem = (e: React.MouseEvent, itemId: string) => {
     e.preventDefault();
     e.stopPropagation();
     
     if (!profile || !currentUser) return;
+    setPortfolioItemToDelete(itemId);
+  };
+
+  const handleConfirmDeletePortfolio = async () => {
+    if (!portfolioItemToDelete || !profile || !currentUser) return;
     
-    const confirmDelete = window.confirm("Are you sure you want to delete this portfolio item?");
-    if (!confirmDelete) return;
+    const itemId = portfolioItemToDelete;
+    setPortfolioItemToDelete(null); // Close modal right away
     
     const toastId = toast.loading("Deleting item...");
     try {
@@ -791,6 +798,47 @@ const PublicProfile: React.FC = () => {
           )}
         </div>
       )}
+
+      {/* CUSTOM PORTFOLIO DELETION CONFIRMATION DIALOG */}
+      <AnimatePresence>
+        {portfolioItemToDelete && (
+          <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white dark:bg-brand-dark-card p-6 sm:p-8 rounded-[2rem] max-w-sm w-full shadow-2xl border border-gray-105 dark:border-[#2A2A2F] text-center"
+            >
+              <div className="w-16 h-16 rounded-2xl bg-red-50 dark:bg-red-950/20 flex items-center justify-center mb-6 text-red-600 dark:text-red-400 mx-auto">
+                <AlertTriangle className="w-8 h-8" />
+              </div>
+
+              <h3 className="text-xl font-bold text-brand-black dark:text-brand-white mb-2">Delete Portfolio Item?</h3>
+              <p className="text-gray-500 dark:text-gray-400 text-sm font-medium leading-relaxed mb-6">
+                Are you sure you want to remove this item from your public portfolio? This item and its uploaded asset will be removed permanently.
+              </p>
+
+              <div className="flex gap-3">
+                <button 
+                  type="button"
+                  onClick={() => setPortfolioItemToDelete(null)}
+                  className="flex-1 py-3.5 px-4 rounded-xl border border-gray-200 dark:border-brand-black text-brand-black dark:text-brand-white text-sm font-bold hover:bg-brand-gray dark:hover:bg-brand-black active:scale-95 transition-all cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="button"
+                  onClick={handleConfirmDeletePortfolio}
+                  className="flex-1 py-3.5 px-4 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-bold active:scale-95 transition-all text-center flex items-center justify-center gap-2 shadow-md hover:shadow-red-500/10 cursor-pointer"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Delete
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

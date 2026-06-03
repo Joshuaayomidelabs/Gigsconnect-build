@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Loader2, AlertCircle, Plus } from 'lucide-react';
+import { Loader2, AlertCircle, Plus, Trash2, AlertTriangle, X } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { toast } from 'sonner';
 import { gigsService } from '../services/gigsService';
 import { supabase } from '../services/supabaseClient';
 import GigCard from '../components/GigCard';
@@ -16,6 +17,7 @@ const MyPostedGigs: React.FC = () => {
   const [selectedGig, setSelectedGig] = useState<any | null>(null);
   const [highlightedAppId, setHighlightedAppId] = useState<string | null>(null);
   const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
+  const [gigToDelete, setGigToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchGigs = async () => {
@@ -49,27 +51,32 @@ const MyPostedGigs: React.FC = () => {
     fetchGigs();
   }, [location.search]);
 
-  const handleDelete = async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this gig? This action cannot be undone.')) {
-      return;
-    }
+  const handleDelete = (id: string) => {
+    setGigToDelete(id);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!gigToDelete) return;
+
+    const targetId = gigToDelete;
+    setGigToDelete(null); // immediately close modal
 
     try {
-      setDeletingIds(prev => new Set(prev).add(id));
+      setDeletingIds(prev => new Set(prev).add(targetId));
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      const { error: deleteError } = await gigsService.deleteGig(id, session.user.id);
+      const { error: deleteError } = await gigsService.deleteGig(targetId, session.user.id);
       if (deleteError) throw deleteError;
 
-      setGigs(prev => prev.filter(gig => gig.id !== id));
-      alert('Gig deleted successfully.');
+      setGigs(prev => prev.filter(gig => gig.id !== targetId));
+      toast.success('Gig deleted successfully.');
     } catch (err: any) {
-      alert('Failed to delete gig: ' + err.message);
+      toast.error('Failed to delete gig: ' + err.message);
     } finally {
       setDeletingIds(prev => {
         const next = new Set(prev);
-        next.delete(id);
+        next.delete(targetId);
         return next;
       });
     }
@@ -136,6 +143,42 @@ const MyPostedGigs: React.FC = () => {
             navigate('/posted-gigs', { replace: true });
           }} 
         />
+      )}
+
+      {/* CUSTOM GIG DELETION CONFIRMATION DIALOG */}
+      {gigToDelete && (
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div 
+            className="bg-white dark:bg-brand-dark-card p-6 sm:p-8 rounded-[2rem] max-w-sm w-full shadow-2xl border border-gray-105 dark:border-[#2A2A2F] text-center animate-in fade-in zoom-in-95 duration-200"
+          >
+            <div className="w-16 h-16 rounded-2xl bg-red-50 dark:bg-red-950/20 flex items-center justify-center mb-6 text-red-600 dark:text-red-400 mx-auto">
+              <AlertTriangle className="w-8 h-8" />
+            </div>
+
+            <h3 className="text-xl font-bold text-brand-black dark:text-brand-white mb-2">Delete Gig Listing?</h3>
+            <p className="text-gray-500 dark:text-gray-400 text-sm font-medium leading-relaxed mb-6">
+              Are you sure you want to delete this listing? This action cannot be undone and all associated application logs will follow.
+            </p>
+
+            <div className="flex gap-3">
+              <button 
+                type="button"
+                onClick={() => setGigToDelete(null)}
+                className="flex-1 py-3.5 px-4 rounded-xl border border-gray-200 dark:border-brand-black text-brand-black dark:text-brand-white text-sm font-bold hover:bg-brand-gray dark:hover:bg-brand-black active:scale-95 transition-all"
+              >
+                Cancel
+              </button>
+              <button 
+                type="button"
+                onClick={handleConfirmDelete}
+                className="flex-1 py-3.5 px-4 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-bold active:scale-95 transition-all text-center flex items-center justify-center gap-2 shadow-md hover:shadow-red-500/10"
+              >
+                <Trash2 className="w-4 h-4" />
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -17,6 +17,7 @@ import { supabase } from '../services/supabaseClient';
 import { profilesService } from '../services/profilesService';
 import { GIG_CATEGORIES } from '../utils/constants';
 import imageCompression from 'browser-image-compression';
+import { toast } from 'sonner';
 
 const STEPS = [
   { id: 'basics', title: 'The Basics', icon: <User className="w-5 h-5" /> },
@@ -87,7 +88,7 @@ const CreateProfile: React.FC = () => {
     if (!file) return;
 
     if (file.size > 5 * 1024 * 1024) {
-      alert('Image must be under 5MB');
+      toast.error('Image must be under 5MB');
       return;
     }
 
@@ -111,8 +112,9 @@ const CreateProfile: React.FC = () => {
       
       // Notify other components (like Header) to refresh
       window.dispatchEvent(new CustomEvent('profile-updated'));
+      toast.success('Avatar uploaded successfully!');
     } catch (err: any) {
-      alert(err.message);
+      toast.error(err.message);
     } finally {
       setIsLoading(false);
       setUploadStatus('');
@@ -145,10 +147,11 @@ const CreateProfile: React.FC = () => {
       
       // Notify other components (like Header) to refresh
       window.dispatchEvent(new CustomEvent('profile-updated'));
+      toast.success('Profile created successfully!');
       
       navigate('/overview');
     } catch (err: any) {
-      alert(err.message);
+      toast.error(err.message);
     } finally {
       setIsLoading(false);
       isSubmittingRef.current = false;

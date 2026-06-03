@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Bell, Check, ExternalLink, MessageSquare, Briefcase, Info, Loader2, XCircle, CheckCircle, UserPlus, User } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Link, useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
 import { useNotificationContext } from '../context/NotificationContext';
 import { notificationsService } from '../services/notificationsService';
@@ -52,9 +53,9 @@ const Notifications: React.FC = () => {
       // Update local state to show it's processed
       setNotifications(prev => prev.map(n => n.id === notificationId ? { ...n, is_processed: true, processed_status: status } : n));
       
-      alert(`Application ${status.toLowerCase()} successfully!`);
+      toast.success(`Application ${status.toLowerCase()} successfully!`);
     } catch (err: any) {
-      alert(err.message);
+      toast.error(err.message);
     } finally {
       setIsProcessing(null);
     }

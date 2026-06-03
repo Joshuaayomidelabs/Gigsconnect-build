@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Loader2, Check, XCircle, User, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import { applicationsService } from '../services/applicationsService';
 import { formatDate } from '../utils/helpers';
 import { Link } from 'react-router-dom';
@@ -24,7 +25,7 @@ const ApplicantsModal: React.FC<ApplicantsModalProps> = ({ gig, onClose, highlig
         if (error) throw error;
         setApplicants(data || []);
       } catch (err: any) {
-        alert(err.message);
+        toast.error(err.message);
       } finally {
         setIsLoading(false);
       }
@@ -43,7 +44,7 @@ const ApplicantsModal: React.FC<ApplicantsModalProps> = ({ gig, onClose, highlig
         app.id === applicationId ? { ...app, status } : app
       ));
     } catch (err: any) {
-      alert(err.message);
+      toast.error(err.message);
     } finally {
       setIsProcessing(null);
     }

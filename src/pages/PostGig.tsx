@@ -311,9 +311,10 @@ const PostGig: React.FC = () => {
       });
 
       if (error) throw error;
+      toast.success("Gig posted successfully!");
       navigate("/overview");
     } catch (err: any) {
-      alert(err.message);
+      toast.error(err.message);
       setIsLoading(false);
       isSubmittingRef.current = false;
     }

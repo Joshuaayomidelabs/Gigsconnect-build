@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Camera, Loader2, Save, MapPin, User, Briefcase, Globe, Edit3, Phone, CheckCircle2, Facebook, Instagram, Twitter, Linkedin, Music2, Video, Image as ImageIcon, Trash2, Plus, ExternalLink, Play, ShieldCheck, Upload, AlertCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase } from '../services/supabaseClient';
 import { profilesService } from '../services/profilesService';
@@ -15,10 +16,14 @@ interface PortfolioItem {
 }
 
 const EditProfile: React.FC = () => {
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+  const [showAccountDeleteConfirm, setShowAccountDeleteConfirm] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [uploadStatus, setUploadStatus] = useState('');
   const [formData, setFormData] = useState({
@@ -88,7 +93,7 @@ const EditProfile: React.FC = () => {
     if (!file) return;
 
     if (file.size > 5 * 1024 * 1024) {
-      alert('Image must be under 5MB');
+      toast.error('Image must be under 5MB');
       return;
     }
 
@@ -116,7 +121,7 @@ const EditProfile: React.FC = () => {
       
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err: any) {
-      alert(err.message);
+      toast.error(err.message);
     } finally {
       setIsLoading(false);
       setUploadStatus('');
@@ -130,14 +135,14 @@ const EditProfile: React.FC = () => {
     if (type === 'video') {
       const validTypes = ["video/mp4", "video/quicktime", "video/webm"];
       if (!validTypes.includes(file.type)) {
-        alert("Please upload an mp4, mov, or webm video file.");
+        toast.error("Please upload an mp4, mov, or webm video file.");
         e.target.value = '';
         return;
       }
       
       const MAX_VIDEO_SIZE = 100 * 1024 * 1024; // 100MB
       if (file.size > MAX_VIDEO_SIZE) {
-        alert("Video must be less than 100MB");
+        toast.error("Video must be less than 100MB");
         e.target.value = '';
         return;
       }
@@ -145,7 +150,7 @@ const EditProfile: React.FC = () => {
 
     const currentMedia = formData.portfolio_media.filter(m => m.type === type);
     if (currentMedia.length >= 3) {
-      alert(`You can only upload up to 3 ${type}s.`);
+      toast.error(`You can only upload up to 3 ${type}s.`);
       e.target.value = '';
       return;
     }
@@ -207,7 +212,7 @@ const EditProfile: React.FC = () => {
       setSuccessMessage(`${type.charAt(0).toUpperCase() + type.slice(1)} uploaded!`);
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err: any) {
-      alert(err.message);
+      toast.error(err.message);
     } finally {
       setIsLoading(false);
     }
@@ -227,7 +232,7 @@ const EditProfile: React.FC = () => {
       setSuccessMessage('Verification submitted');
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err: any) {
-      alert(err.message);
+      toast.error(err.message);
     } finally {
       setIsLoading(false);
     }
@@ -267,9 +272,48 @@ const EditProfile: React.FC = () => {
       setSuccessMessage('Item deleted!');
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err: any) {
-      alert(err.message);
+      toast.error(err.message);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleAccountDelete = async () => {
+    if (deleteConfirmText !== "DELETE MY ACCOUNT") {
+      toast.error("Please type the confirmation text exactly.");
+      return;
+    }
+
+    try {
+      setIsDeletingAccount(true);
+      const toastId = toast.loading("Processing account deletion...");
+      
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session || !session.user) {
+        toast.error("You must be logged in to delete your account.", { id: toastId });
+        return;
+      }
+
+      const result = await profilesService.deleteAccount(session.user.id);
+      
+      if (!result.success || result.error) {
+        throw result.error || new Error("Failed to delete account database records.");
+      }
+
+      await supabase.auth.signOut();
+      
+      // Dispatch profile updated so other components clean up state
+      window.dispatchEvent(new CustomEvent('profile-updated'));
+
+      toast.success("Your GigsConnect account has been deleted.", { id: toastId });
+      navigate("/");
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || "An error occurred during account deletion.");
+    } finally {
+      setIsDeletingAccount(false);
+      setShowAccountDeleteConfirm(false);
+      setDeleteConfirmText('');
     }
   };
 
@@ -294,7 +338,7 @@ const EditProfile: React.FC = () => {
       setTimeout(() => setSuccessMessage(''), 5000);
     } catch (err: any) {
       console.error('Error in handleSubmit:', err);
-      alert(err.message || 'An unexpected error occurred. Please check the console for details.');
+      toast.error(err.message || 'An unexpected error occurred. Please check the console for details.');
     } finally {
       setIsLoading(false);
     }
@@ -877,6 +921,32 @@ const EditProfile: React.FC = () => {
                 </p>
               </div>
 
+              {/* Danger Zone - Account Deletion */}
+              <div className="bg-red-50/50 dark:bg-red-950/15 rounded-3xl p-8 border border-red-100 dark:border-red-900/20 space-y-5 transition-colors">
+                <div className="flex items-start gap-4">
+                  <div className="p-3 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-2xl shrink-0">
+                    <AlertCircle className="w-6 h-6" />
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="text-lg font-bold text-red-800 dark:text-red-400">Danger Zone</h3>
+                    <p className="text-sm text-red-700/80 dark:text-red-400/80 leading-relaxed">
+                      Delete your GigsConnect account and erase all past work, postings, media details, and profile data from our live databases permanently. This action is irreversible.
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowAccountDeleteConfirm(true)}
+                    className="px-6 py-3.5 bg-red-600 hover:bg-red-700 active:scale-95 text-white font-bold rounded-2xl shadow-md cursor-pointer hover:shadow-red-650/10 transition-all text-sm flex items-center gap-2"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Delete My Account
+                  </button>
+                </div>
+              </div>
+
               <div className="sticky bottom-24 lg:bottom-8 left-0 right-0 flex justify-end pt-4 pointer-events-none">
                 <button 
                   type="submit"
@@ -929,6 +999,78 @@ const EditProfile: React.FC = () => {
                   className="flex-1 py-4 px-6 rounded-2xl bg-brand-purple text-brand-white font-bold hover:bg-brand-purple-hover transition-all shadow-lg active:scale-95"
                 >
                   Delete
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Account Deletion Confirmation Modal */}
+      <AnimatePresence>
+        {showAccountDeleteConfirm && (
+          <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white dark:bg-brand-dark-card p-8 rounded-[2.5rem] max-w-md w-full shadow-2xl border border-gray-100 dark:border-[#2A2A2F]"
+            >
+              <div className="w-16 h-16 rounded-2xl bg-red-100 dark:bg-red-950/30 flex items-center justify-center mb-6 text-red-600 dark:text-red-450">
+                <AlertCircle className="w-8 h-8 animate-pulse" />
+              </div>
+              
+              <h3 className="text-2xl font-black text-brand-black dark:text-brand-white mb-3">Delete GigsConnect Account?</h3>
+              
+              <div className="space-y-4 mb-6">
+                <p className="text-gray-600 dark:text-gray-400 font-medium leading-relaxed text-sm">
+                  This action is <span className="text-red-600 font-bold">permanent and irreversible</span>. Once completed:
+                </p>
+                
+                <ul className="list-disc pl-5 text-xs text-gray-500 dark:text-gray-400 space-y-1.5 leading-normal font-medium">
+                  <li>Your public bio and profile details will be cleared.</li>
+                  <li>All your uploaded portfolio images and videos will be unlinked.</li>
+                  <li>Any active gigs posted by you will be permanently removed.</li>
+                  <li>Your comments, bookmarks, and likes will be cleaned up.</li>
+                </ul>
+
+                <p className="text-sm font-bold text-brand-black dark:text-brand-white mt-4">
+                  To confirm deletion, please type <span className="text-red-600">DELETE MY ACCOUNT</span> in the box below:
+                </p>
+
+                <input 
+                  type="text"
+                  placeholder="DELETE MY ACCOUNT"
+                  value={deleteConfirmText}
+                  disabled={isDeletingAccount}
+                  onChange={(e) => setDeleteConfirmText(e.target.value)}
+                  className="w-full p-4 rounded-xl border border-gray-200 dark:border-brand-black bg-brand-gray dark:bg-brand-black font-semibold text-center text-red-600 dark:text-red-400 tracking-wider placeholder:text-gray-305 focus:ring-2 focus:ring-red-500 outline-none transition-all"
+                />
+              </div>
+
+              <div className="flex gap-3">
+                <button 
+                  type="button"
+                  disabled={isDeletingAccount}
+                  onClick={() => {
+                    setShowAccountDeleteConfirm(false);
+                    setDeleteConfirmText('');
+                  }}
+                  className="flex-1 py-4 px-5 rounded-2xl border-2 border-brand-gray dark:border-brand-black text-brand-black dark:text-brand-white text-sm font-bold hover:bg-brand-gray dark:hover:bg-brand-black transition-all active:scale-95 disabled:opacity-50"
+                >
+                  Keep Account
+                </button>
+                <button 
+                  type="button"
+                  disabled={deleteConfirmText !== "DELETE MY ACCOUNT" || isDeletingAccount}
+                  onClick={handleAccountDelete}
+                  className="flex-1 py-4 px-5 rounded-2xl bg-red-600 text-white text-sm font-bold hover:bg-red-700 disabled:bg-gray-200 dark:disabled:bg-brand-black disabled:text-gray-400 hover:shadow-lg hover:shadow-red-500/10 active:scale-95 transition-all text-center flex items-center justify-center gap-2"
+                >
+                  {isDeletingAccount ? (
+                    <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
+                  ) : (
+                    'Delete Forever'
+                  )}
                 </button>
               </div>
             </motion.div>

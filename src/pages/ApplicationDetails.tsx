@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Loader2, User, FileText, Globe, CheckCircle2, XCircle } from 'lucide-react';
 import { supabase } from '../services/supabaseClient';
 import { applicationsService } from '../services/applicationsService';
+import { toast } from 'sonner';
 import VerificationBadge from '../components/VerificationBadge';
 
 const ApplicationDetails: React.FC = () => {
@@ -79,9 +80,10 @@ const ApplicationDetails: React.FC = () => {
       setIsUpdating(true);
       await applicationsService.updateApplicationStatus(id, status);
       setApplication((prev: any) => ({ ...prev, status }));
+      toast.success(`Application status updated to ${status.toLowerCase()}`);
     } catch (err) {
       console.error("Error updating status:", err);
-      alert("Failed to update application status");
+      toast.error("Failed to update application status");
     } finally {
       setIsUpdating(false);
     }
