@@ -21,7 +21,16 @@ import {
   UserCheck,
   MessageCircle,
   LayoutGrid,
-  Bookmark
+  Bookmark,
+  Trash2,
+  Plus,
+  Upload,
+  X,
+  Star,
+  Play,
+  Image as ImageIcon,
+  Video,
+  ExternalLink
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { toast } from 'sonner';
@@ -48,10 +57,196 @@ const PublicProfile: React.FC = () => {
   const [showFollowingModal, setShowFollowingModal] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState<{type: string, url: string} | null>(null);
 
+  // Portfolio States
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFileType, setSelectedFileType] = useState<'image' | 'video' | null>(null);
+  const [filePreview, setFilePreview] = useState<string | null>(null);
+
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const isOwnProfile = currentUser?.id === userId;
+
+  // File Preview Handler
+  const handleFileSelect = (file: File) => {
+    if (file.size > 50 * 1024 * 1024) {
+      toast.error("File size must be under 50MB");
+      return;
+    }
+    
+    const isImage = file.type.startsWith('image/');
+    const isVideo = file.type.startsWith('video/');
+    
+    if (!isImage && !isVideo) {
+      toast.error("Please upload an image (JPG, PNG, WebP) or video (MP4, MOV, WebM).");
+      return;
+    }
+    
+    if (isImage && file.size > 5 * 1024 * 1024) {
+      toast.error("Images must be under 5MB");
+      return;
+    }
+    
+    setSelectedFile(file);
+    const type = isImage ? 'image' : 'video';
+    setSelectedFileType(type);
+    
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setFilePreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFileSelect(e.dataTransfer.files[0]);
+    }
+  };
+
+  const clearSelectedFile = () => {
+    setSelectedFile(null);
+    setSelectedFileType(null);
+    setFilePreview(null);
+  };
+
+  // Add Portfolio Item
+  const handleAddPortfolioItem = async () => {
+    if (!selectedFile || !selectedFileType || !currentUser) return;
+    
+    setIsUploading(true);
+    const toastId = toast.loading(`Uploading ${selectedFileType} to portfolio...`);
+    
+    try {
+      // 1. Upload to storage
+      const publicUrl = await profilesService.uploadPortfolioMedia(currentUser.id, selectedFile, selectedFileType);
+      
+      // 2. Add to profile media
+      const newItem = {
+        id: Math.random().toString(36).substring(2),
+        url: publicUrl,
+        type: selectedFileType,
+        is_featured: !profile.portfolio_media || profile.portfolio_media.length === 0
+      };
+      
+      const currentMedia = profile.portfolio_media || [];
+      const updatedMedia = [...currentMedia, newItem];
+      
+      const { error } = await profilesService.updateProfile({
+        ...profile,
+        portfolio_media: updatedMedia
+      });
+      
+      if (error) throw error;
+      
+      setProfile((prev: any) => ({ ...prev, portfolio_media: updatedMedia }));
+      toast.success(`${selectedFileType.charAt(0).toUpperCase() + selectedFileType.slice(1)} added to portfolio!`, { id: toastId });
+      
+      // Reset form / modal
+      setShowAddModal(false);
+      clearSelectedFile();
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || "Failed to upload portfolio item", { id: toastId });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  // Delete Portfolio Item
+  const handleDeletePortfolioItem = async (e: React.MouseEvent, itemId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!profile || !currentUser) return;
+    
+    const confirmDelete = window.confirm("Are you sure you want to delete this portfolio item?");
+    if (!confirmDelete) return;
+    
+    const toastId = toast.loading("Deleting item...");
+    try {
+      const itemToDelete = profile.portfolio_media.find((m: any) => m.id === itemId);
+      if (!itemToDelete) throw new Error("Item not found");
+      
+      // Extract file path to delete from storage if it belongs to portfolio bucket
+      const urlParts = itemToDelete.url.split('/portfolio/');
+      if (urlParts.length > 1) {
+        const filePath = urlParts[1].split('?')[0];
+        try {
+          await profilesService.deletePortfolioMedia(filePath);
+        } catch (storageErr) {
+          console.warn("Could not delete file from storage, proceeding with database update anyway.", storageErr);
+        }
+      }
+      
+      const updatedMedia = profile.portfolio_media.filter((m: any) => m.id !== itemId);
+      
+      const { error } = await profilesService.updateProfile({
+        ...profile,
+        portfolio_media: updatedMedia
+      });
+      
+      if (error) throw error;
+      
+      setProfile((prev: any) => ({ ...prev, portfolio_media: updatedMedia }));
+      toast.success("Item deleted from portfolio", { id: toastId });
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || "Failed to delete item", { id: toastId });
+    }
+  };
+
+  // Toggle Featured Status
+  const handleToggleFeatured = async (e: React.MouseEvent, itemId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!profile || !currentUser) return;
+    
+    const currentMedia = profile.portfolio_media || [];
+    const itemToToggle = currentMedia.find((m: any) => m.id === itemId);
+    if (!itemToToggle) return;
+    
+    const nextFeaturedVal = !itemToToggle.is_featured;
+    
+    const updatedMedia = currentMedia.map((item: any) => ({
+      ...item,
+      is_featured: item.id === itemId ? nextFeaturedVal : false
+    }));
+    
+    const toastId = toast.loading("Updating featured status...");
+    try {
+      const { error } = await profilesService.updateProfile({
+        ...profile,
+        portfolio_media: updatedMedia
+      });
+      
+      if (error) throw error;
+      
+      setProfile((prev: any) => ({ ...prev, portfolio_media: updatedMedia }));
+      toast.success(nextFeaturedVal ? "Item set as featured!" : "Item removed from featured", { id: toastId });
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || "Failed to update featured item", { id: toastId });
+    }
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -303,34 +498,97 @@ const PublicProfile: React.FC = () => {
 
         {/* Content Render */}
         <div className="mb-12 min-h-[300px]">
-          <h3 className="text-xl font-black text-brand-black dark:text-brand-white mb-6">Portfolio</h3>
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-black text-brand-black dark:text-brand-white">Portfolio</h3>
+            {isOwnProfile && (
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-[#6C2BD9] to-[#5B21B6] text-white text-sm font-bold rounded-xl shadow-md hover:from-[#7C3AED] hover:to-[#6D28D9] active:scale-95 transition-all"
+              >
+                <Plus className="w-4 h-4" />
+                Add Work
+              </button>
+            )}
+          </div>
+
           {profile.portfolio_media && profile.portfolio_media.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-5">
               {profile.portfolio_media.map((item: any, index: number) => (
-                <div key={index} className="relative aspect-square rounded-xl overflow-hidden bg-brand-gray dark:bg-brand-black border border-brand-gray dark:border-[#1F1F23] group">
+                <div 
+                  key={item.id || index} 
+                  className={`relative aspect-square rounded-2xl overflow-hidden bg-brand-gray dark:bg-brand-black border-2 border-brand-gray dark:border-[#1F1F23]/80 group shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 ${
+                    item.is_featured ? 'ring-4 ring-[#6C2BD9] ring-offset-2 dark:ring-offset-brand-black' : ''
+                  }`}
+                >
+                  {/* Media Content */}
                   {item.type === 'video' ? (
-                    <video 
-                      src={item.url} 
-                      className="w-full h-full object-cover"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setSelectedMedia({ type: "video", url: item.url });
-                      }}
-                      style={{ cursor: "pointer" }}
-                    />
+                    <div className="w-full h-full relative cursor-pointer" onClick={() => setSelectedMedia({ type: "video", url: item.url })}>
+                      <video 
+                        src={item.url} 
+                        className="w-full h-full object-cover" 
+                        preload="metadata"
+                      />
+                      {/* Translucent Play Overlay */}
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/15 group-hover:bg-black/30 transition-all duration-200">
+                        <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white border border-white/20 shadow-lg group-hover:scale-110 transition-transform">
+                          <Play className="w-6 h-6 fill-current text-white translate-x-[1px]" />
+                        </div>
+                      </div>
+                      <span className="absolute bottom-2.5 left-2.5 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-sm text-[10px] font-bold text-white flex items-center gap-1">
+                        <Video className="w-3 h-3" />
+                        Video
+                      </span>
+                    </div>
                   ) : (
-                    <img 
-                      src={item.url} 
-                      alt={`Portfolio ${index + 1}`} 
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 cursor-pointer"
-                      referrerPolicy="no-referrer"
-                      onClick={() =>
-                        setSelectedMedia({
-                          type: "image",
-                          url: item.url,
-                        })
-                      }
-                    />
+                    <div className="w-full h-full relative cursor-pointer group" onClick={() => setSelectedMedia({ type: "image", url: item.url })}>
+                      <img 
+                        src={item.url} 
+                        alt={`Portfolio Work ${index + 1}`} 
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        referrerPolicy="no-referrer"
+                      />
+                      {/* Hover subtle zoom and dim */}
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-200" />
+                      <span className="absolute bottom-2.5 left-2.5 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-sm text-[10px] font-bold text-white flex items-center gap-1">
+                        <ImageIcon className="w-3 h-3" />
+                        Image
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Owner Controls (Hover states on desktop, always shown cleanly) */}
+                  {isOwnProfile && (
+                    <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                      {/* Toggle Featured Star */}
+                      <button
+                        onClick={(e) => handleToggleFeatured(e, item.id)}
+                        className={`p-1.5 rounded-lg backdrop-blur-md shadow-md border active:scale-90 transition-all ${
+                          item.is_featured 
+                            ? 'bg-amber-500 text-white border-amber-500 hover:bg-amber-600' 
+                            : 'bg-black/60 text-gray-300 border-white/10 hover:bg-black/80 hover:text-white'
+                        }`}
+                        title={item.is_featured ? "Remove Featured" : "Mark as Featured"}
+                      >
+                        <Star className={`w-3.5 h-3.5 ${item.is_featured ? 'fill-current' : ''}`} />
+                      </button>
+                      
+                      {/* Delete Button */}
+                      <button
+                        onClick={(e) => handleDeletePortfolioItem(e, item.id)}
+                        className="p-1.5 rounded-lg bg-red-600 text-white hover:bg-red-700 backdrop-blur-md shadow-md border border-white/10 active:scale-90 transition-all"
+                        title="Delete past work"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Featured Badge if featured and not in hover state */}
+                  {item.is_featured && (
+                    <div className="absolute top-2.5 left-2.5 pointer-events-none px-2 py-1 bg-amber-500 text-white text-[9px] font-extrabold uppercase tracking-wider rounded-md shadow-sm group-hover:opacity-0 transition-opacity flex items-center gap-1">
+                      <Star className="w-2.5 h-2.5 fill-current" />
+                      Featured
+                    </div>
                   )}
                 </div>
               ))}
@@ -339,9 +597,141 @@ const PublicProfile: React.FC = () => {
             <div className="bg-brand-white dark:bg-brand-dark-card rounded-3xl p-12 text-center border border-brand-gray dark:border-[#1F1F23]">
               <Globe className="w-10 h-10 text-[#9CA3AF] dark:text-gray-600 mx-auto mb-3" />
               <p className="text-gray-700 dark:text-gray-400 font-medium text-sm">No portfolio items saved.</p>
+              {isOwnProfile && (
+                <button
+                  onClick={() => setShowAddModal(true)}
+                  className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 bg-[#6C2BD9]/10 text-[#6C2BD9] dark:text-brand-purple hover:bg-[#6C2BD9]/15 font-bold rounded-xl transition-all animate-pulse"
+                >
+                  <Plus className="w-4 h-4" /> Add your first item
+                </button>
+              )}
             </div>
           )}
         </div>
+
+        {/* ADD WORK MODAL */}
+        {showAddModal && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[9990] p-4">
+            <div 
+              className="w-full max-w-md bg-white dark:bg-brand-dark-card rounded-[2rem] shadow-2xl border border-gray-100 dark:border-[#2A2A2F] overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+            >
+              {/* Header */}
+              <div className="px-6 py-5 border-b border-gray-100 dark:border-[#1F1F23] flex items-center justify-between animate-none">
+                <div>
+                  <h3 className="text-lg font-black text-brand-black dark:text-brand-white">Add Past Work</h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Showcase your talent and gigs</p>
+                </div>
+                <button 
+                  onClick={() => {
+                    setShowAddModal(false);
+                    clearSelectedFile();
+                  }}
+                  disabled={isUploading}
+                  className="p-1 px-1.5 hover:bg-gray-100 dark:hover:bg-[#1F1F23]/60 rounded-lg text-gray-500 dark:text-gray-400 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="p-6">
+                {!selectedFile ? (
+                  /* Drag & Drop Zone */
+                  <div 
+                    onDragEnter={handleDrag}
+                    onDragOver={handleDrag}
+                    onDragLeave={handleDrag}
+                    onDrop={handleDrop}
+                    className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all ${
+                      dragActive 
+                        ? 'border-[#6C2BD9] bg-[#6C2BD9]/5' 
+                        : 'border-gray-200 dark:border-[#2A2A2F] hover:border-[#6C2BD9]/40 hover:bg-gray-50/50 dark:hover:bg-[#1A1A1E]/30'
+                    }`}
+                    onClick={() => document.getElementById('portfolio-file-upload')?.click()}
+                  >
+                    <input 
+                      id="portfolio-file-upload"
+                      type="file" 
+                      className="hidden" 
+                      accept="image/*,video/*"
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) {
+                          handleFileSelect(e.target.files[0]);
+                        }
+                      }}
+                    />
+                    <Upload className="w-10 h-10 text-gray-400 dark:text-gray-600 mx-auto mb-3" />
+                    <p className="text-sm font-bold text-gray-700 dark:text-gray-200 mb-1">
+                      Drag and drop your media, or <span className="text-[#6C2BD9] dark:text-brand-purple hover:underline">browse</span>
+                    </p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 flex flex-col gap-0.5 leading-normal mt-2">
+                      <span>Supports high-quality images and audio-visual recordings</span>
+                      <span>JPEG, PNG, WebP up to 5MB</span>
+                      <span>MP4, MOV, WebM up to 50MB</span>
+                    </p>
+                  </div>
+                ) : (
+                  /* File Selection Preview */
+                  <div className="space-y-4">
+                    <div className="relative aspect-video rounded-xl overflow-hidden bg-black/5 dark:bg-black/30 border border-gray-200 dark:border-[#2A2A2F] flex items-center justify-center">
+                      {selectedFileType === 'image' ? (
+                        <img src={filePreview || ''} alt="Preview" className="w-full h-full object-contain" />
+                      ) : (
+                        <video src={filePreview || ''} className="w-full h-full object-contain" controls />
+                      )}
+                      
+                      {!isUploading && (
+                        <button
+                          onClick={clearSelectedFile}
+                          className="absolute top-2 right-2 p-1 bg-black/60 hover:bg-black/80 rounded-full text-white transition-colors"
+                          title="Remove file"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="flex items-center justify-between text-xs px-1 text-gray-500 dark:text-gray-400">
+                      <span className="font-semibold truncate max-w-[250px]">{selectedFile.name}</span>
+                      <span>{(selectedFile.size / (1024 * 1024)).toFixed(2)} MB</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Footer */}
+              <div className="px-6 py-4 border-t border-gray-100 dark:border-[#1F1F23] flex items-center justify-end gap-3 bg-gray-50/50 dark:bg-[#1A1A1E]/10">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAddModal(false);
+                    clearSelectedFile();
+                  }}
+                  disabled={isUploading}
+                  className="px-4 py-2 text-sm font-bold text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleAddPortfolioItem}
+                  disabled={!selectedFile || isUploading}
+                  className="px-5 py-2 rounded-xl text-sm font-bold bg-[#6C2BD9] hover:bg-[#7C3AED] text-white disabled:opacity-50 disabled:pointer-events-none flex items-center gap-2 shadow-md hover:shadow-[#6C2BD9]/10 active:scale-95 transition-all"
+                >
+                  {isUploading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Uploading...
+                    </>
+                  ) : (
+                    'Upload to Portfolio'
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
         
       </div>
       
