@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Capacitor } from '@capacitor/core';
+import { App as CapApp } from '@capacitor/app';
+import { Network } from '@capacitor/network';
 import TopNav from './components/TopNav';
 import Footer from './components/Footer';
 import BottomNav from './components/BottomNav';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
 import SignUp from './pages/SignUp';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard';
 import Messages from './pages/Messages';
 import BrowseGigs from './pages/BrowseGigs';
@@ -25,15 +30,141 @@ import { useAuth } from './context/AuthContext';
 import { DarkModeProvider } from './context/DarkModeContext';
 import { NotificationProvider } from './context/NotificationContext';
 
-import { Toaster } from 'sonner';
+import { Toaster, toast } from 'sonner';
 
 const App: React.FC = () => {
   const { user, loading, error } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
 
-  const isAuthPage = location.pathname === '/login' || location.pathname === '/signup';
+  const isAuthPage = 
+    location.pathname === '/login' || 
+    location.pathname === '/signup' ||
+    location.pathname === '/forgot-password' ||
+    location.pathname === '/reset-password';
   const isLandingPage = location.pathname === '/';
   const showBottomNav = user && !isAuthPage && !isLandingPage;
+
+  // Deep link routing handler for native apps (Capacitor)
+  useEffect(() => {
+    let active = true;
+
+    const setupDeepLinks = async () => {
+      if (Capacitor.isNativePlatform()) {
+        try {
+          const handler = await CapApp.addListener('appUrlOpen', (event: any) => {
+            if (!active) return;
+            console.log('App opened via deep link custom scheme URL:', event.url);
+
+            const urlString = event.url;
+            if (urlString.includes('reset-password')) {
+              // Extract starting from the reset-password string to handle any query params or hash values
+              const index = urlString.indexOf('reset-password');
+              const routePart = urlString.substring(index); // gets e.g. "reset-password#access_token=...&refresh_token=..."
+              console.log('Navigating native app to:', '/' + routePart);
+              navigate('/' + routePart);
+            }
+          });
+
+          return () => {
+            active = false;
+            handler.remove();
+          };
+        } catch (err) {
+          console.error('Failed to configure mobile deep links listener:', err);
+        }
+      }
+    };
+
+    const cleanupPromise = setupDeepLinks();
+    return () => {
+      active = false;
+      cleanupPromise.then(cleanup => cleanup?.());
+    };
+  }, [navigate]);
+
+  useEffect(() => {
+    let active = true;
+    const setupBackButton = async () => {
+      if (Capacitor.isNativePlatform()) {
+        const handler = await CapApp.addListener('backButton', () => {
+          if (!active) return;
+          if (location.pathname === '/' || location.pathname === '/overview') {
+            CapApp.minimizeApp();
+          } else {
+            window.history.back();
+          }
+        });
+        return () => {
+          active = false;
+          handler.remove();
+        };
+      }
+    };
+
+    const cleanupPromise = setupBackButton();
+    return () => {
+      active = false;
+      cleanupPromise.then(cleanup => cleanup?.());
+    };
+  }, [location.pathname]);
+
+  // Network and App Resume/Pause Monitor for Native Containers
+  useEffect(() => {
+    let active = true;
+    let networkListener: any = null;
+    let appStateListener: any = null;
+
+    const setupListeners = async () => {
+      if (Capacitor.isNativePlatform()) {
+        try {
+          // Check initial network connection status
+          const status = await Network.getStatus();
+          if (!status.connected) {
+            toast.error('You are offline. Connection is required to find gigs.', {
+              id: 'offline-toast',
+              duration: Infinity,
+            });
+          }
+
+          // Monitor network connectivity changes
+          networkListener = await Network.addListener('networkStatusChange', (status) => {
+            if (!active) return;
+            if (!status.connected) {
+              toast.error('You are offline. Connection is required to find gigs.', {
+                id: 'offline-toast',
+                duration: Infinity,
+              });
+            } else {
+              toast.dismiss('offline-toast');
+              toast.success('Your connection has been restored!');
+            }
+          });
+
+          // Handle background and resume app state
+          appStateListener = await CapApp.addListener('appStateChange', ({ isActive }) => {
+            if (!active) return;
+            if (isActive) {
+              console.log('App active from background. Syncing notifications.');
+              window.dispatchEvent(new CustomEvent('profile-updated'));
+            } else {
+              console.log('App paused in background.');
+            }
+          });
+        } catch (err) {
+          console.error('Failed to initialize Capacitor native listeners:', err);
+        }
+      }
+    };
+
+    setupListeners();
+
+    return () => {
+      active = false;
+      if (networkListener) networkListener.remove();
+      if (appStateListener) appStateListener.remove();
+    };
+  }, []);
 
   if (loading) {
     return (
@@ -79,6 +210,8 @@ const App: React.FC = () => {
               <Route path="/" element={<Landing />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<SignUp />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               
               {/* Protected Routes */}
               <Route path="/overview" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
