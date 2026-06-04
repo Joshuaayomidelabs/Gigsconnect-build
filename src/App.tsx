@@ -29,6 +29,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import { useAuth } from './context/AuthContext';
 import { DarkModeProvider } from './context/DarkModeContext';
 import { NotificationProvider } from './context/NotificationContext';
+import { pushNotificationService } from './services/pushNotificationService';
 
 import { Toaster, toast } from 'sonner';
 
@@ -165,6 +166,13 @@ const App: React.FC = () => {
       if (appStateListener) appStateListener.remove();
     };
   }, []);
+
+  // Initialize Native Push Notifications when a user log-in occurs
+  useEffect(() => {
+    if (user?.id) {
+      pushNotificationService.initPushNotifications(navigate);
+    }
+  }, [user?.id, navigate]);
 
   if (loading) {
     return (

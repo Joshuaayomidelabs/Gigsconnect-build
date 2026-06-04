@@ -93,7 +93,15 @@ const Login: React.FC = () => {
 
       <main className="flex-grow flex flex-col px-4 py-8 sm:px-6 lg:px-8">
         <div className="w-full max-w-md mx-auto">
-          <div className="mb-8">
+          <div className="mb-8 text-center sm:text-left">
+            {/* Creative equalizer musical artwork */}
+            <div className="flex items-center justify-center sm:justify-start gap-1 px-4 py-1.5 rounded-full bg-brand-purple/5 border border-brand-purple/10 w-fit mx-auto sm:ml-0 mb-4">
+              <div className="h-4 w-1 bg-brand-purple rounded-full animate-bounce" style={{ animationDelay: '0.2s', animationDuration: '0.8s' }}></div>
+              <div className="h-6 w-1 bg-brand-purple rounded-full animate-bounce" style={{ animationDelay: '0.4s', animationDuration: '0.9s' }}></div>
+              <div className="h-5 w-1 bg-brand-purple rounded-full animate-bounce" style={{ animationDelay: '0.1s', animationDuration: '1.2s' }}></div>
+              <div className="h-3 w-1 bg-brand-purple rounded-full animate-bounce" style={{ animationDelay: '0.3s', animationDuration: '0.7s' }}></div>
+              <span className="text-[10px] font-black uppercase tracking-widest text-brand-purple/90 ml-1.5">Plug In & Vibe</span>
+            </div>
             <h2 className="text-3xl font-black tracking-tight text-brand-black dark:text-brand-white">
               Sign in
             </h2>

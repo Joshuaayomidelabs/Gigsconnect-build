@@ -12,6 +12,7 @@ import GigDetailsModal from '../components/GigDetailsModal';
 import PostCard from '../components/PostCard';
 import CommunityFeed from '../components/CommunityFeed';
 import GigsFeed from '../components/GigsFeed';
+import { OnboardingPrompt } from '../components/OnboardingPrompt';
 
 const CreatorBadge = ({ type }: { type: string }) => {
   const configs: Record<string, { icon: any, color: string, bg: string }> = {
@@ -115,6 +116,24 @@ const Dashboard: React.FC = () => {
     fetchData();
   }, []);
 
+  const refreshProfileOnly = async () => {
+    if (user?.id) {
+      const profileRes = await profilesService.getProfile(user.id);
+      if (profileRes.data) setProfile(profileRes.data);
+    } else {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user?.id) {
+        const profileRes = await profilesService.getProfile(session.user.id);
+        if (profileRes.data) setProfile(profileRes.data);
+      }
+    }
+  };
+
+  useEffect(() => {
+    window.addEventListener('profile-updated', refreshProfileOnly);
+    return () => window.removeEventListener('profile-updated', refreshProfileOnly);
+  }, [user]);
+
   const handleViewDetails = (gig: any) => {
     setSelectedGig(gig);
     setIsModalOpen(true);
@@ -169,6 +188,10 @@ const Dashboard: React.FC = () => {
             {/* Toggle Switch */}
             <Toggle activeTab={activeTab} setActiveTab={setActiveTab} />
           </header>
+
+          {profile && (
+            <OnboardingPrompt profile={profile} onRefresh={refreshProfileOnly} />
+          )}
 
           {/* Featured Creators (Horizontal Scroll) */}
           <section className="space-y-3">

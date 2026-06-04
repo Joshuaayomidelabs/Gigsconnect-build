@@ -1,6 +1,29 @@
 import { supabase } from './supabaseClient';
 
 export const profilesService = {
+  async isUsernameTaken(username: string, currentUserId?: string) {
+    if (!username || !username.trim()) return false;
+    try {
+      let query = supabase
+        .from('profiles')
+        .select('id')
+        .ilike('username', username.trim());
+        
+      if (currentUserId) {
+        query = query.neq('id', currentUserId);
+      }
+      
+      const { data, error } = await query.maybeSingle();
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error checking username:', error);
+      }
+      return !!data;
+    } catch (err) {
+      console.error('Unexpected error checking username:', err);
+      return false;
+    }
+  },
+
   async getProfile(identifier: string) {
     console.log('Fetching profile for identifier:', identifier);
     
@@ -13,7 +36,17 @@ export const profilesService = {
         .maybeSingle();
         
       if (error) console.error(error);
-      if (data) data.city = data.city_town;
+      if (data) {
+        data.city = data.city_town;
+        if (data.onboarding_completed === undefined) {
+          const storedCompleted = localStorage.getItem(`onboarding_completed_${data.id}`);
+          data.onboarding_completed = storedCompleted === 'true';
+        }
+        if (data.onboarding_progress === undefined) {
+          const storedProgress = localStorage.getItem(`onboarding_progress_${data.id}`);
+          data.onboarding_progress = storedProgress ? parseInt(storedProgress, 10) : 0;
+        }
+      }
       return { data, error };
     }
 
@@ -29,6 +62,14 @@ export const profilesService = {
     if (data) {
       // Map backend 'city_town' to frontend 'city'
       data.city = data.city_town;
+      if (data.onboarding_completed === undefined) {
+        const storedCompleted = localStorage.getItem(`onboarding_completed_${data.id}`);
+        data.onboarding_completed = storedCompleted === 'true';
+      }
+      if (data.onboarding_progress === undefined) {
+        const storedProgress = localStorage.getItem(`onboarding_progress_${data.id}`);
+        data.onboarding_progress = storedProgress ? parseInt(storedProgress, 10) : 0;
+      }
     } else {
       console.warn('No profile found for userId:', identifier);
     }
@@ -47,7 +88,8 @@ export const profilesService = {
         'genres', 'bio', 'avatar_url', 'username', 
         'role', 'skills', 'facebook_url', 'instagram_url', 'tiktok_url', 
         'twitter_url', 'linkedin_url',
-        'portfolio_media', 'verification_status', 'verification_doc_path'
+        'portfolio_media', 'verification_status', 'verification_doc_path',
+        'onboarding_completed', 'onboarding_progress'
       ];
 
       const sanitizedData: any = {};
@@ -77,11 +119,45 @@ export const profilesService = {
 
       console.log('Updating profile with data:', sanitizedData);
 
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from('profiles')
         .update(sanitizedData)
         .eq('id', user.id)   // MUST match auth.users.id
         .select();
+
+      if (error) {
+        const isMissingOnboarding = 
+          error.message?.includes('onboarding_completed') || 
+          error.message?.includes('onboarding_progress') ||
+          error.code === 'PGRST104' || 
+          error.code === '42703';
+
+        if (isMissingOnboarding) {
+          console.warn('Onboarding columns lacking in DB Table; saving in localStorage as fallback.');
+          try {
+            if (profileData.onboarding_completed !== undefined) {
+              localStorage.setItem(`onboarding_completed_${user.id}`, String(!!profileData.onboarding_completed));
+            }
+            if (profileData.onboarding_progress !== undefined) {
+              localStorage.setItem(`onboarding_progress_${user.id}`, String(profileData.onboarding_progress));
+            }
+          } catch (storageErr) {
+            console.error('Fallback storage write fail:', storageErr);
+          }
+
+          delete sanitizedData.onboarding_completed;
+          delete sanitizedData.onboarding_progress;
+
+          const retryResult = await supabase
+            .from('profiles')
+            .update(sanitizedData)
+            .eq('id', user.id)
+            .select();
+          
+          data = retryResult.data;
+          error = retryResult.error;
+        }
+      }
 
       if (error) {
         console.error('Supabase error updating profile:', error);

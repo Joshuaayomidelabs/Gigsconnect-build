@@ -20,6 +20,8 @@ CREATE TABLE profiles (
   portfolio_media JSONB DEFAULT '[]'::jsonb,
   verification_status TEXT DEFAULT 'Unverified',
   verification_doc_path TEXT,
+  onboarding_completed BOOLEAN DEFAULT false,
+  onboarding_progress INTEGER DEFAULT 0,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );

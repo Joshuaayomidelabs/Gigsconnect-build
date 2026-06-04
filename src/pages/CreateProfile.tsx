@@ -1,37 +1,37 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 import { 
   User, 
   Briefcase, 
   MapPin, 
   CheckCircle, 
-  ArrowRight, 
-  ArrowLeft, 
   Camera, 
   Music, 
   Globe,
-  Loader2
+  Loader2,
+  Sparkles,
+  Phone,
+  FileText,
+  Sliders,
+  Check
 } from 'lucide-react';
 import { supabase } from '../services/supabaseClient';
 import { profilesService } from '../services/profilesService';
-import { GIG_CATEGORIES } from '../utils/constants';
+import { africanCountries, musicProfessions } from '../utils/locations';
 import imageCompression from 'browser-image-compression';
 import { toast } from 'sonner';
 
-const STEPS = [
-  { id: 'basics', title: 'The Basics', icon: <User className="w-5 h-5" /> },
-  { id: 'craft', title: 'Your Craft', icon: <Music className="w-5 h-5" /> },
-  { id: 'location', title: 'Where & How', icon: <MapPin className="w-5 h-5" /> }
-];
-
 const CreateProfile: React.FC = () => {
   const navigate = useNavigate();
-  const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const isSubmittingRef = useRef(false);
   const [isFetching, setIsFetching] = useState(true);
   const [uploadStatus, setUploadStatus] = useState('');
+  
+  // Clean edit collapse states
+  const [showEditor, setShowEditor] = useState(false);
+
   const [formData, setFormData] = useState({
     full_name: '',
     username: '',
@@ -44,29 +44,42 @@ const CreateProfile: React.FC = () => {
     avatar_url: ''
   });
 
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
   useEffect(() => {
+    let mounted = true;
     const fetchProfile = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        const { data } = await profilesService.getProfile(session.user.id);
-        if (data) {
-          setFormData(prev => ({
-            ...prev,
-            full_name: data.full_name || '',
-            username: data.username || '',
-            bio: data.bio || '',
-            phone: data.phone || '',
-            role: data.role || '',
-            city: data.city || '',
-            country: data.country || '',
-            skills: data.skills || [],
-            avatar_url: data.avatar_url || ''
-          }));
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          const { data } = await profilesService.getProfile(session.user.id);
+          if (data && mounted) {
+            setFormData(prev => ({
+              ...prev,
+              full_name: data.full_name || '',
+              username: data.username || '',
+              bio: data.bio || '',
+              phone: data.phone || '',
+              role: data.role || '',
+              city: data.city || data.city_town || '',
+              country: data.country || '',
+              skills: data.skills || [],
+              avatar_url: data.avatar_url || ''
+            }));
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching onboarding profile:', err);
+      } finally {
+        if (mounted) {
+          setIsFetching(false);
         }
       }
-      setIsFetching(false);
     };
     fetchProfile();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -74,13 +87,18 @@ const CreateProfile: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const toggleSkill = (skill: string) => {
-    setFormData(prev => ({
-      ...prev,
-      skills: prev.skills.includes(skill)
-        ? prev.skills.filter(s => s !== skill)
-        : [...prev.skills, skill]
-    }));
+  const handleSkillsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const skills = e.target.value.split(',').map(s => s.trim()).filter(s => s !== '');
+    setFormData(prev => ({ ...prev, skills }));
+  };
+
+  const toggleProfessionInSkills = (profession: string) => {
+    setFormData(prev => {
+      const skills = prev.skills.includes(profession)
+        ? prev.skills.filter(s => s !== profession)
+        : [...prev.skills, profession];
+      return { ...prev, skills };
+    });
   };
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -110,9 +128,9 @@ const CreateProfile: React.FC = () => {
       const publicUrl = await profilesService.uploadAvatar(session.user.id, compressedFile);
       setFormData(prev => ({ ...prev, avatar_url: publicUrl }));
       
-      // Notify other components (like Header) to refresh
+      // Notify header and related elements
       window.dispatchEvent(new CustomEvent('profile-updated'));
-      toast.success('Avatar uploaded successfully!');
+      toast.success('Avatar updated successfully!');
     } catch (err: any) {
       toast.error(err.message);
     } finally {
@@ -121,37 +139,64 @@ const CreateProfile: React.FC = () => {
     }
   };
 
-  const nextStep = () => {
-    if (currentStep < STEPS.length - 1) {
-      setCurrentStep(prev => prev + 1);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else {
-      handleSubmit();
+  const handleSaveAndLaunch = async () => {
+    if (!formData.full_name.trim()) {
+      toast.error('Full Name is required');
+      return;
     }
-  };
-
-  const prevStep = () => {
-    if (currentStep > 0) {
-      setCurrentStep(prev => prev - 1);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (!formData.username.trim()) {
+      toast.error('Username handle is required');
+      return;
     }
-  };
 
-  const handleSubmit = async () => {
     if (isLoading || isSubmittingRef.current) return;
     isSubmittingRef.current = true;
     setIsLoading(true);
+
     try {
-      const { error } = await profilesService.updateProfile(formData);
+      // Server-side check if username is claimed by someone else
+      const isTaken = await profilesService.isUsernameTaken(formData.username);
+      
+      // Fetch user session to ensure we are editing the right ID
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        // Double check username is indeed not claimed by another user
+        const { data: existingUser } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('username', formData.username.trim())
+          .neq('id', session.user.id)
+          .maybeSingle();
+
+        if (existingUser) {
+          toast.error('This username handle is already claimed by another musician.');
+          setIsLoading(false);
+          isSubmittingRef.current = false;
+          return;
+        }
+      }
+
+      // Sync and persist setup updates
+      const { error } = await profilesService.updateProfile({
+        full_name: formData.full_name,
+        username: formData.username,
+        bio: formData.bio,
+        phone: formData.phone,
+        role: formData.role || formData.skills[0] || 'Musician',
+        city: formData.city,
+        country: formData.country,
+        skills: formData.skills,
+        avatar_url: formData.avatar_url
+      });
+
       if (error) throw error;
       
-      // Notify other components (like Header) to refresh
       window.dispatchEvent(new CustomEvent('profile-updated'));
-      toast.success('Profile created successfully!');
-      
+      toast.success('Your space is officially live!');
       navigate('/overview');
     } catch (err: any) {
-      toast.error(err.message);
+      console.error(err);
+      toast.error(err.message || 'Failed to save profile settings.');
     } finally {
       setIsLoading(false);
       isSubmittingRef.current = false;
@@ -166,236 +211,251 @@ const CreateProfile: React.FC = () => {
     );
   }
 
-  const progress = ((currentStep + 1) / STEPS.length) * 100;
-
   return (
-    <div className="bg-brand-white dark:bg-brand-black min-h-screen pt-main pb-32 px-4 sm:px-6 lg:px-8 transition-colors duration-500 relative overflow-hidden">
-      {/* Decorative background elements */}
-      <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/4 w-[600px] h-[600px] bg-brand-purple/5 rounded-full blur-[120px] pointer-events-none"></div>
-      <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/4 w-[600px] h-[600px] bg-brand-purple/5 rounded-full blur-[120px] pointer-events-none"></div>
+    <div className="bg-brand-gray dark:bg-brand-black min-h-screen pt-[100px] pb-32 px-4 sm:px-6 lg:px-8 transition-colors duration-500 relative overflow-hidden">
+      {/* Decorative ambient elements */}
+      <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/4 w-[600px] h-[600px] bg-brand-purple/5 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/4 w-[600px] h-[600px] bg-brand-purple/5 rounded-full blur-[120px] pointer-events-none" />
 
       <div className="max-w-2xl mx-auto relative z-10">
-        {/* Progress Header */}
-        <div className="mb-12">
-          <div className="flex justify-between items-end mb-6">
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-brand-purple/10 text-brand-purple text-xs font-black uppercase tracking-wider mb-3">
+            <Sparkles className="w-3.5 h-3.5" />
+            Registration Complete!
+          </div>
+          <h1 className="text-4xl font-black text-brand-black dark:text-brand-white tracking-tight">
+            Review Your <span className="text-brand-purple">Musical Identity</span>
+          </h1>
+          <p className="text-gray-500 dark:text-gray-400 font-medium text-sm mt-1">
+            We auto-populated your card using details from signup. Add a quick bio to complete your space.
+          </p>
+        </div>
+
+        {/* Profile preview card */}
+        <div className="bg-brand-white dark:bg-brand-dark-card rounded-[2.5rem] p-6 sm:p-8 shadow-xl border border-brand-purple/10 mb-8 overflow-hidden relative">
+          <div className="absolute top-0 right-0 p-4">
+            <span className="text-[10px] font-black uppercase tracking-wider bg-brand-purple/10 text-brand-purple px-2.5 py-1 rounded-md">
+              LIVE PREVIEW
+            </span>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-6 items-center sm:items-start text-center sm:text-left mt-4 pb-6 border-b border-brand-gray dark:border-zinc-800">
+            {/* Live Profile Circle Photo with camera overlay */}
+            <div className="relative group flex-shrink-0">
+              <div className="w-24 h-24 rounded-full bg-brand-gray dark:bg-brand-black overflow-hidden flex items-center justify-center border-4 border-brand-white dark:border-zinc-900 shadow-md">
+                {formData.avatar_url ? (
+                  <img 
+                    src={formData.avatar_url} 
+                    alt={formData.full_name} 
+                    referrerPolicy="no-referrer" 
+                    className="w-full h-full object-cover" 
+                  />
+                ) : (
+                  <User className="w-10 h-10 text-gray-400 dark:text-gray-600" />
+                )}
+              </div>
+              <label className="absolute bottom-0 right-0 p-1.5 bg-brand-purple text-white rounded-full shadow-md cursor-pointer hover:bg-brand-purple-hover active:scale-95 transition-all">
+                <Camera className="w-3.5 h-3.5" />
+                <input type="file" className="hidden" accept="image/*" onChange={handleAvatarUpload} />
+              </label>
+            </div>
+
+            <div className="space-y-1">
+              <h2 className="text-2xl font-black text-brand-black dark:text-brand-white tracking-tight">
+                {formData.full_name || 'Anonymous Musician'}
+              </h2>
+              <p className="text-brand-purple font-bold text-sm">@{formData.username || 'username'}</p>
+              
+              <div className="flex flex-wrap justify-center sm:justify-start gap-4 text-xs font-bold text-gray-505 mt-2">
+                <span className="flex items-center gap-1 bg-brand-gray dark:bg-brand-black px-2.5 py-1 rounded-md">
+                  <Briefcase className="w-3.5 h-3.5 text-brand-purple" />
+                  {formData.role || formData.skills[0] || 'Musician'}
+                </span>
+                {(formData.city || formData.country) && (
+                  <span className="flex items-center gap-1 bg-brand-gray dark:bg-brand-black px-2.5 py-1 rounded-md">
+                    <MapPin className="w-3.5 h-3.5 text-brand-purple" />
+                    {[formData.city, formData.country].filter(Boolean).join(', ')}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-6 space-y-5">
+            {/* Bios Setup Area */}
             <div>
-              <h1 className="text-4xl font-black text-brand-black dark:text-brand-white tracking-tighter leading-none mb-3">
-                Complete Your <span className="text-brand-purple">Profile</span>
-              </h1>
-              <p className="text-gray-500 dark:text-gray-400 font-bold text-sm uppercase tracking-widest">Step {currentStep + 1} of {STEPS.length}: {STEPS[currentStep].title}</p>
+              <label className="block text-[10px] font-black text-gray-400 dark:text-gray-550 uppercase tracking-[0.15em] mb-2">
+                Introduce Yourself (Bio) <span className="text-zinc-400 font-medium">(Optional)</span>
+              </label>
+              <textarea 
+                name="bio"
+                value={formData.bio}
+                onChange={handleChange}
+                rows={3}
+                placeholder="Tell bands or clients about your playing style, gig history, or equipment..."
+                className="w-full p-4 rounded-xl border border-brand-gray dark:border-zinc-800 focus:ring-1 focus:ring-brand-purple focus:border-transparent transition-all outline-none bg-brand-gray dark:bg-brand-black focus:bg-white dark:focus:bg-brand-dark-card text-brand-black dark:text-brand-white font-medium text-sm placeholder:text-gray-400 resize-none"
+              />
             </div>
-            <div className="text-right">
-              <span className="text-3xl font-black text-brand-purple">{Math.round(progress)}%</span>
+
+            {/* Profession tags read state */}
+            <div>
+              <label className="block text-[10px] font-black text-gray-400 dark:text-gray-550 uppercase tracking-[0.15em] mb-2.5">
+                My Specialties (Pills)
+              </label>
+              <div className="flex flex-wrap gap-1.5 p-3 rounded-xl bg-brand-gray dark:bg-brand-black text-xs border border-brand-purple/5">
+                {formData.skills.map((skill, index) => (
+                  <span 
+                    key={index} 
+                    className="px-2.5 py-1 bg-brand-purple/10 text-brand-purple border border-brand-purple/10 rounded-md text-[10px] font-black uppercase tracking-wider"
+                  >
+                    {skill}
+                  </span>
+                ))}
+                {formData.skills.length === 0 && (
+                  <span className="text-xs text-gray-400 italic">No skills specified yet.</span>
+                )}
+              </div>
             </div>
-          </div>
-          <div className="h-4 w-full bg-brand-gray dark:bg-brand-black rounded-full overflow-hidden border border-brand-gray dark:border-brand-black shadow-inner p-1">
-            <motion.div 
-              initial={{ width: 0 }}
-              animate={{ width: `${progress}%` }}
-              className="h-full bg-brand-purple rounded-full shadow-[0_0_20px_rgba(124,58,237,0.4)]"
-            />
           </div>
         </div>
 
-        {/* Step Content */}
-        <div className="bg-brand-white dark:bg-brand-dark-card rounded-[3rem] p-8 sm:p-12 shadow-2xl shadow-brand-purple/5 border border-brand-gray dark:border-brand-black relative overflow-hidden transition-all duration-500">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={currentStep}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.4, ease: "easeOut" }}
-              className="space-y-10"
-            >
-              {currentStep === 0 && (
-                <div className="space-y-10">
-                  <div className="flex flex-col items-center gap-8">
-                    <div className="relative group">
-                      <div className="w-40 h-40 rounded-[2.5rem] bg-brand-gray dark:bg-brand-black border-8 border-brand-white dark:border-brand-dark-card shadow-2xl overflow-hidden flex items-center justify-center transition-transform duration-500 group-hover:scale-105">
-                        {formData.avatar_url ? (
-                          <img 
-                            src={formData.avatar_url} 
-                            alt="Profile" 
-                            className="w-full h-full object-cover object-center" 
-                            referrerPolicy="no-referrer" 
-                          />
-                        ) : (
-                          <User className="w-16 h-16 text-gray-300 dark:text-gray-600" />
-                        )}
-                      </div>
-                      <label className="absolute -bottom-2 -right-2 p-4 bg-brand-purple text-brand-white rounded-2xl shadow-2xl cursor-pointer hover:bg-brand-purple-hover transition-all active:scale-90 border-4 border-brand-white dark:border-brand-dark-card">
-                        <Camera className="w-6 h-6" />
-                        <input type="file" className="hidden" accept="image/*" onChange={handleAvatarUpload} />
-                      </label>
-                    </div>
-                    <div className="text-center">
-                      <h3 className="text-2xl font-black text-brand-black dark:text-brand-white tracking-tight">Add a Profile Photo</h3>
-                      <p className="text-gray-500 dark:text-gray-400 font-medium mt-1">Help others recognize you in the community. Max size 5MB.</p>
-                      {uploadStatus && (
-                        <p className="text-[14px] text-brand-purple mt-2 flex items-center justify-center gap-2">
-                           <Loader2 className="w-4 h-4 animate-spin" />
-                           {uploadStatus}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="space-y-8">
-                    <div>
-                      <label className="block text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] mb-3">Display Name</label>
-                      <input 
-                        name="full_name"
-                        value={formData.full_name}
-                        onChange={handleChange}
-                        placeholder="e.g. John 'The Bass' Doe"
-                        className="w-full p-5 rounded-2xl border border-brand-gray dark:border-brand-black focus:ring-2 focus:ring-brand-purple focus:border-transparent transition-all outline-none bg-brand-gray dark:bg-brand-black focus:bg-brand-white dark:focus:bg-brand-dark-card text-brand-black dark:text-brand-white font-bold text-lg placeholder:text-gray-300 dark:placeholder:text-gray-700"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] mb-3">Bio</label>
-                      <textarea 
-                        name="bio"
-                        value={formData.bio}
-                        onChange={handleChange}
-                        rows={4}
-                        placeholder="Tell the community about your musical journey..."
-                        className="w-full p-5 rounded-2xl border border-brand-gray dark:border-brand-black focus:ring-2 focus:ring-brand-purple focus:border-transparent transition-all outline-none bg-brand-gray dark:bg-brand-black focus:bg-brand-white dark:focus:bg-brand-dark-card text-brand-black dark:text-brand-white font-bold text-lg placeholder:text-gray-300 dark:placeholder:text-gray-700 resize-none"
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {currentStep === 1 && (
-                <div className="space-y-10">
-                  <div>
-                    <label className="block text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] mb-4 flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-brand-purple/10 flex items-center justify-center text-brand-purple border border-brand-purple/20">
-                        <Briefcase className="w-4 h-4" />
-                      </div>
-                      What is your primary role?
-                    </label>
-                    <input 
-                      name="role"
-                      value={formData.role}
-                      onChange={handleChange}
-                      placeholder="e.g. Session Drummer, Music Producer"
-                      className="w-full p-5 rounded-2xl border border-brand-gray dark:border-brand-black focus:ring-2 focus:ring-brand-purple focus:border-transparent transition-all outline-none bg-brand-gray dark:bg-brand-black focus:bg-brand-white dark:focus:bg-brand-dark-card text-brand-black dark:text-brand-white font-bold text-lg placeholder:text-gray-300 dark:placeholder:text-gray-700"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] mb-6">Select your top skills</label>
-                    <div className="flex flex-wrap gap-3">
-                      {['Mixing', 'Mastering', 'Live Performance', 'Songwriting', 'Vocalist', 'Guitarist', 'Pianist', 'Drummer', 'Bassist', 'Producer'].map(skill => (
-                        <button
-                          key={skill}
-                          type="button"
-                          onClick={() => toggleSkill(skill)}
-                          className={`px-6 py-3.5 rounded-2xl text-xs font-black transition-all border tracking-tight ${
-                            formData.skills.includes(skill)
-                              ? 'bg-brand-purple text-brand-white border-brand-purple shadow-xl shadow-brand-purple/20 scale-105'
-                              : 'bg-brand-gray dark:bg-brand-black text-gray-500 dark:text-gray-400 border-brand-gray dark:border-brand-black hover:border-brand-purple/50'
-                          }`}
-                        >
-                          {skill}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {currentStep === 2 && (
-                <div className="space-y-10">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-                    <div>
-                      <label className="block text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] mb-3 flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-brand-purple/10 flex items-center justify-center text-brand-purple border border-brand-purple/20">
-                          <Globe className="w-4 h-4" />
-                        </div>
-                        Country
-                      </label>
-                      <input 
-                        name="country"
-                        value={formData.country}
-                        onChange={handleChange}
-                        placeholder="e.g. Nigeria"
-                        className="w-full p-5 rounded-2xl border border-brand-gray dark:border-brand-black focus:ring-2 focus:ring-brand-purple focus:border-transparent transition-all outline-none bg-brand-gray dark:bg-brand-black focus:bg-brand-white dark:focus:bg-brand-dark-card text-brand-black dark:text-brand-white font-bold text-lg placeholder:text-gray-300 dark:placeholder:text-gray-700"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] mb-3 flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-brand-purple/10 flex items-center justify-center text-brand-purple border border-brand-purple/20">
-                          <MapPin className="w-4 h-4" />
-                        </div>
-                        City
-                      </label>
-                      <input 
-                        name="city"
-                        value={formData.city}
-                        onChange={handleChange}
-                        placeholder="e.g. Lagos"
-                        className="w-full p-5 rounded-2xl border border-brand-gray dark:border-brand-black focus:ring-2 focus:ring-brand-purple focus:border-transparent transition-all outline-none bg-brand-gray dark:bg-brand-black focus:bg-brand-white dark:focus:bg-brand-dark-card text-brand-black dark:text-brand-white font-bold text-lg placeholder:text-gray-300 dark:placeholder:text-gray-700"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] mb-3">Phone Number</label>
-                    <input 
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      placeholder="+234 ..."
-                      className="w-full p-5 rounded-2xl border border-brand-gray dark:border-brand-black focus:ring-2 focus:ring-brand-purple focus:border-transparent transition-all outline-none bg-brand-gray dark:bg-brand-black focus:bg-brand-white dark:focus:bg-brand-dark-card text-brand-black dark:text-brand-white font-bold text-lg placeholder:text-gray-300 dark:placeholder:text-gray-700"
-                    />
-                  </div>
-                </div>
-              )}
-            </motion.div>
-          </AnimatePresence>
-
-          {/* Navigation Buttons */}
-          <div className="mt-16 flex items-center justify-between gap-6">
-            <button
-              onClick={prevStep}
-              disabled={currentStep === 0 || isLoading}
-              className={`flex items-center gap-3 px-8 py-5 rounded-2xl font-black text-sm uppercase tracking-widest transition-all ${
-                currentStep === 0 
-                  ? 'opacity-0 pointer-events-none' 
-                  : 'text-gray-400 dark:text-gray-500 hover:bg-brand-gray dark:hover:bg-brand-black'
-              }`}
-            >
-              <ArrowLeft className="w-5 h-5" />
-              Back
-            </button>
-
-            <button
-              onClick={nextStep}
-              disabled={isLoading}
-              className="flex-1 sm:flex-none px-12 py-5 rounded-2xl bg-brand-purple text-brand-white font-black hover:bg-brand-purple-hover transition-all shadow-2xl shadow-brand-purple/30 flex items-center justify-center gap-4 active:scale-95 disabled:opacity-70 group"
-            >
-              {isLoading ? (
-                <Loader2 className="w-6 h-6 animate-spin" />
-              ) : (
-                <>
-                  <span className="uppercase tracking-widest text-sm">{currentStep === STEPS.length - 1 ? 'Finish Setup' : 'Continue'}</span>
-                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-
-        {/* Skip Option */}
-        <div className="mt-10 text-center">
-          <button 
-            onClick={() => navigate('/overview')}
-            className="text-gray-400 dark:text-gray-500 font-black text-xs uppercase tracking-[0.2em] hover:text-brand-purple transition-colors"
+        {/* Option to toggle collapsible detailed editor */}
+        <div className="mb-8">
+          <button
+            type="button"
+            onClick={() => setShowEditor(!showEditor)}
+            className="flex items-center gap-2 text-xs font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest hover:text-brand-purple transition-all outline-none"
           >
-            Skip for now, I'll do this later
+            <Sliders className="w-4 h-4 text-brand-purple animate-pulse" />
+            {showEditor ? 'Hide Profile Details Editor' : 'Tweak Account Details (Name, Location, Username)'}
+          </button>
+
+          {showEditor && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-4 p-6 bg-brand-white dark:bg-brand-dark-card rounded-[2rem] border border-brand-purple/10 shadow-lg space-y-5"
+            >
+              <h3 className="text-sm font-black uppercase tracking-wider text-brand-black dark:text-brand-white">
+                Edit Prefilled Details
+              </h3>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-1.5">Display Name</label>
+                  <input 
+                    name="full_name"
+                    value={formData.full_name}
+                    onChange={handleChange}
+                    className="w-full p-3.5 rounded-xl border border-brand-gray dark:border-zinc-800 bg-brand-gray dark:bg-brand-black text-brand-black dark:text-brand-white text-sm outline-none focus:bg-white focus:ring-1 focus:ring-brand-purple"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-1.5">Username Handle</label>
+                  <input 
+                    name="username"
+                    value={formData.username}
+                    onChange={handleChange}
+                    className="w-full p-3.5 rounded-xl border border-brand-gray dark:border-zinc-800 bg-brand-gray dark:bg-brand-black text-brand-black dark:text-brand-white text-sm outline-none focus:bg-white focus:ring-1 focus:ring-brand-purple"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-1.5">Primary Role</label>
+                  <input 
+                    name="role"
+                    value={formData.role}
+                    onChange={handleChange}
+                    className="w-full p-3.5 rounded-xl border border-brand-gray dark:border-zinc-800 bg-brand-gray dark:bg-brand-black text-brand-black dark:text-brand-white text-sm outline-none focus:bg-white focus:ring-1 focus:ring-brand-purple"
+                    placeholder="e.g. Bassist"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-1.5">Phone Number</label>
+                  <input 
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    className="w-full p-3.5 rounded-xl border border-brand-gray dark:border-zinc-800 bg-brand-gray dark:bg-brand-black text-brand-black dark:text-brand-white text-sm outline-none focus:bg-white focus:ring-1 focus:ring-brand-purple"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-1.5">Country</label>
+                  <select 
+                    name="country"
+                    value={formData.country}
+                    onChange={handleChange}
+                    className="w-full p-3.5 rounded-xl border border-brand-gray dark:border-zinc-800 bg-brand-gray dark:bg-brand-black text-brand-black dark:text-brand-white text-sm outline-none focus:bg-white focus:ring-1 focus:ring-brand-purple"
+                  >
+                    <option value="">Select Country</option>
+                    {africanCountries.map((c: any) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-1.5">City / Town</label>
+                  <input 
+                    name="city"
+                    value={formData.city}
+                    onChange={handleChange}
+                    className="w-full p-3.5 rounded-xl border border-brand-gray dark:border-zinc-800 bg-brand-gray dark:bg-brand-black text-brand-black dark:text-brand-white text-sm outline-none focus:bg-white focus:ring-1 focus:ring-brand-purple"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2">Tweak Skills & Professions</label>
+                <div className="flex flex-wrap gap-1.5 p-3 rounded-xl bg-brand-gray dark:bg-brand-black max-h-32 overflow-y-auto">
+                  {musicProfessions.map((prof: any) => (
+                    <button
+                      key={prof}
+                      type="button"
+                      onClick={() => toggleProfessionInSkills(prof)}
+                      className={`px-2 py-1 rounded text-[9px] font-black uppercase tracking-wider transition-all duration-150 flex items-center gap-1 ${
+                        formData.skills.includes(prof)
+                          ? 'bg-brand-purple text-white'
+                          : 'bg-white dark:bg-brand-dark-card text-gray-500 dark:text-gray-400 border border-brand-purple/10'
+                      }`}
+                    >
+                      {prof}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </div>
+
+        {/* CTA Launch actions */}
+        <div className="flex flex-col gap-4">
+          <button
+            onClick={handleSaveAndLaunch}
+            disabled={isLoading}
+            className="w-full py-5 bg-brand-purple hover:bg-brand-purple-hover text-white text-sm font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-brand-purple/20 active:scale-[0.99] transition-all flex items-center justify-center gap-3 cursor-pointer"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Launching My Profile...
+              </>
+            ) : (
+              <>
+                Lock It In & Launch Space 🚀
+              </>
+            )}
+          </button>
+
+          <button
+            onClick={() => navigate('/overview')}
+            disabled={isLoading}
+            className="w-full py-4 text-gray-400 dark:text-gray-500 hover:text-brand-purple font-black text-xs uppercase tracking-[0.2em] transition-colors"
+          >
+            Skip for now &gt;
           </button>
         </div>
       </div>

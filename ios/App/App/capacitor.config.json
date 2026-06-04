@@ -31,6 +31,7 @@
 		"FilesystemPlugin",
 		"KeyboardPlugin",
 		"CAPNetworkPlugin",
+		"PushNotificationsPlugin",
 		"SplashScreenPlugin",
 		"StatusBarPlugin"
 	]
