@@ -340,7 +340,7 @@ const PublicProfile: React.FC = () => {
   // Social Stats State
   const [stats, setStats] = useState({ followers: 0, following: 0 });
   const [isFollowing, setIsFollowing] = useState(false);
-  const [activeTab, setActiveTab] = useState<'portfolio' | 'posts' | 'videos' | 'tagged'>('portfolio');
+  const [activeTab, setActiveTab] = useState<'portfolio' | 'posts'>('portfolio');
   const [showFollowersModal, setShowFollowersModal] = useState(false);
   const [showFollowingModal, setShowFollowingModal] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState<{type: string, url: string} | null>(null);
@@ -348,8 +348,6 @@ const PublicProfile: React.FC = () => {
   // Expanded social tabs states
   const [posts, setPosts] = useState<any[]>([]);
   const [isLoadingPosts, setIsLoadingPosts] = useState(false);
-  const [myApplications, setMyApplications] = useState<any[]>([]);
-  const [isLoadingApplications, setIsLoadingApplications] = useState(false);
 
   // Portfolio States
   const [showAddModal, setShowAddModal] = useState(false);
@@ -618,7 +616,7 @@ const PublicProfile: React.FC = () => {
 
   // Fetch creator posts inside 'posts' tab dynamically
   useEffect(() => {
-    if ((activeTab === 'posts' || activeTab === 'videos') && posts.length === 0 && userId) {
+    if (activeTab === 'posts' && posts.length === 0 && userId) {
       const fetchPosts = async () => {
         try {
           setIsLoadingPosts(true);
@@ -635,26 +633,6 @@ const PublicProfile: React.FC = () => {
       fetchPosts();
     }
   }, [activeTab, userId, currentUser]);
-
-  // Fetch creator's tagged matches or applied gigs dynamically
-  useEffect(() => {
-    if (activeTab === 'tagged' && myApplications.length === 0 && userId) {
-      const fetchApps = async () => {
-        try {
-          setIsLoadingApplications(true);
-          const { data, error } = await applicationsService.getMyApplications(userId);
-          if (!error && data) {
-            setMyApplications(data);
-          }
-        } catch (err) {
-          console.error("Error loading gig applications:", err);
-        } finally {
-          setIsLoadingApplications(false);
-        }
-      };
-      fetchApps();
-    }
-  }, [activeTab, userId]);
 
   const handleFollowToggle = async () => {
     if (!currentUser) {
@@ -857,7 +835,7 @@ const PublicProfile: React.FC = () => {
           </div>
 
           {/* Followers metrics counters */}
-          <div className="grid grid-cols-3 gap-4 border-t border-b border-gray-50 dark:border-[#1F1F23]/80 py-5 my-6">
+          <div className="grid grid-cols-2 gap-4 border-t border-b border-gray-50 dark:border-[#1F1F23]/80 py-5 my-6">
             <div 
               className="flex flex-col items-center cursor-pointer group/stat border-r border-gray-50 dark:border-[#1F1F23]/80"
               onClick={() => setShowFollowersModal(true)}
@@ -871,7 +849,7 @@ const PublicProfile: React.FC = () => {
             </div>
             
             <div 
-              className="flex flex-col items-center cursor-pointer group/stat border-r border-gray-50 dark:border-[#1F1F23]/80"
+              className="flex flex-col items-center cursor-pointer group/stat"
               onClick={() => setShowFollowingModal(true)}
             >
               <span className="text-2xl font-black text-brand-black dark:text-brand-white group-hover:text-brand-purple transition-colors duration-200">
@@ -879,15 +857,6 @@ const PublicProfile: React.FC = () => {
               </span>
               <span className="text-[10px] font-black uppercase tracking-wider text-gray-400 dark:text-gray-500">
                 Following
-              </span>
-            </div>
-
-            <div className="flex flex-col items-center">
-              <span className="text-2xl font-black text-brand-black dark:text-brand-white">
-                {(profile.portfolio_media || []).length}
-              </span>
-              <span className="text-[10px] font-black uppercase tracking-wider text-gray-400 dark:text-gray-500">
-                Portfolio size
               </span>
             </div>
           </div>
@@ -1034,42 +1003,6 @@ const PublicProfile: React.FC = () => {
                 />
               )}
             </button>
-
-            <button
-              onClick={() => setActiveTab('videos')}
-              className={`flex items-center gap-1.5 py-1.5 px-3 rounded-xl text-xs font-black uppercase tracking-wider relative transition-colors duration-300 ${
-                activeTab === 'videos' 
-                  ? 'text-brand-purple' 
-                  : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
-              }`}
-            >
-              <Video className="w-4 h-4" />
-              Videos
-              {activeTab === 'videos' && (
-                <motion.div 
-                  layoutId="activeTabUnderline" 
-                  className="absolute -bottom-4 left-0 right-0 h-[3px] bg-brand-purple rounded-full" 
-                />
-              )}
-            </button>
-
-            <button
-              onClick={() => setActiveTab('tagged')}
-              className={`flex items-center gap-1.5 py-1.5 px-3 rounded-xl text-xs font-black uppercase tracking-wider relative transition-colors duration-300 ${
-                activeTab === 'tagged' 
-                  ? 'text-brand-purple' 
-                  : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
-              }`}
-            >
-              <Bookmark className="w-4 h-4" />
-              Tagged
-              {activeTab === 'tagged' && (
-                <motion.div 
-                  layoutId="activeTabUnderline" 
-                  className="absolute -bottom-4 left-0 right-0 h-[3px] bg-brand-purple rounded-full" 
-                />
-              )}
-            </button>
           </div>
         </div>
 
@@ -1173,140 +1106,6 @@ const PublicProfile: React.FC = () => {
                       className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 bg-brand-purple text-white hover:bg-brand-purple-hover font-bold rounded-xl transition-all"
                     >
                       Create first post
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* TAB 3: VIDEOS (TIKTOK STREAM ZONE) */}
-          {activeTab === 'videos' && (
-            <div className="space-y-6">
-              <h3 className="text-lg font-black text-brand-black dark:text-brand-white uppercase tracking-wider flex items-center gap-2 mb-2">
-                <Video className="w-5 h-5 text-brand-purple" />
-                TikTok Stream Zone
-              </h3>
-
-              {isLoadingPosts ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                  {[1, 2, 3].map(n => (
-                    <div key={n} className="aspect-[9/16] bg-gray-200 dark:bg-gray-800 rounded-3xl animate-pulse" />
-                  ))}
-                </div>
-              ) : allVideos.length > 0 ? (
-                /* 2-3 Column beautiful layout */
-                <div className="space-y-4">
-                  <p className="text-xs text-gray-400 dark:text-gray-500 font-medium">✨ Videos autoplay as you scroll. Tap icon to toggle sound.</p>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
-                    {allVideos.map((video, index) => (
-                      <AutoplayVideoCard
-                        key={video.id || index}
-                        url={video.url}
-                        thumbnailUrl={video.thumbnailUrl}
-                        title={video.title}
-                        likesCount={video.likes_count}
-                        commentsCount={video.comments_count}
-                        isOwn={isOwnProfile && !video.isFromPost}
-                        onDelete={async () => {
-                          if (video.isFromPost) {
-                            toast.error("Go to Posts tab to delete Feed post clips.");
-                            return;
-                          }
-                          // Triggers standard delete dialog
-                          setPortfolioItemToDelete(video.id);
-                        }}
-                        onClick={() => setSelectedMedia({ type: "video", url: video.url })}
-                      />
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <div className="bg-white dark:bg-brand-dark-card rounded-3xl p-12 text-center border border-gray-150 dark:border-[#1F1F23]">
-                  <Video className="w-10 h-10 text-gray-400 dark:text-gray-600 mx-auto mb-3" />
-                  <p className="text-gray-600 dark:text-gray-400 font-bold text-sm">No creative videos shared yet.</p>
-                  {isOwnProfile && (
-                    <button
-                      onClick={() => setShowAddModal(true)}
-                      className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 bg-brand-purple text-white hover:bg-brand-purple-hover font-bold rounded-xl transition-all"
-                    >
-                      <Plus className="w-4 h-4" /> Upload short video
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* TAB 4: TAGGED ENGAGEMENTS */}
-          {activeTab === 'tagged' && (
-            <div className="space-y-6">
-              <h3 className="text-lg font-black text-brand-black dark:text-brand-white uppercase tracking-wider flex items-center gap-2 mb-2">
-                <Bookmark className="w-5 h-5 text-brand-purple" />
-                Active Bookings & Applications
-              </h3>
-
-              {isLoadingApplications ? (
-                <div className="space-y-3">
-                  {[1, 2].map(n => (
-                    <div key={n} className="h-28 bg-gray-200 dark:bg-gray-800 rounded-3xl animate-pulse" />
-                  ))}
-                </div>
-              ) : myApplications.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {myApplications.map((app) => (
-                    <div 
-                      key={app.id} 
-                      onClick={() => navigate(`/applications/${app.id}`)}
-                      className="p-5 rounded-2xl bg-white dark:bg-brand-dark-card border border-gray-150 dark:border-[#1F1F23]/80 group hover:shadow-md cursor-pointer transition-all duration-300 relative overflow-hidden"
-                    >
-                      {/* Left color bar depending on status */}
-                      <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${
-                        app.status === 'accepted' ? 'bg-emerald-500' : app.status === 'declined' ? 'bg-red-400' : 'bg-amber-400'
-                      }`} />
-
-                      <div className="flex flex-col h-full justify-between space-y-3.5">
-                        <div className="space-y-1">
-                          <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider ${
-                            app.status === 'accepted' 
-                              ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-400' 
-                              : app.status === 'declined'
-                              ? 'bg-red-100 text-red-800 dark:bg-red-950/40 dark:text-red-400'
-                              : 'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-400'
-                          }`}>
-                            {app.status || 'Pending'}
-                          </span>
-                          <h4 className="text-sm font-black text-brand-black dark:text-brand-white group-hover:text-brand-purple transition-colors truncate">
-                            {app.gigs?.title || 'Unknown Event Gig'}
-                          </h4>
-                          {app.gigs?.location && (
-                            <p className="text-[11px] text-gray-400 dark:text-gray-500 flex items-center gap-1 font-semibold truncate">
-                              <MapPin className="w-3 h-3 shrink-0" />
-                              {app.gigs.location}
-                            </p>
-                          )}
-                        </div>
-
-                        <div className="flex items-center justify-between border-t border-gray-50 dark:border-[#1F1F23]/40 pt-3">
-                          <span className="text-[10px] font-extrabold text-gray-400 uppercase tracking-widest leading-none">Budget Offer</span>
-                          <span className="text-xs font-black text-brand-purple leading-none">
-                            {app.gigs?.currency || '$'}{app.gigs?.budget || 'TBD'}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="bg-white dark:bg-brand-dark-card rounded-3xl p-12 text-center border border-gray-150 dark:border-[#1F1F23]">
-                  <Briefcase className="w-10 h-10 text-gray-400 dark:text-gray-600 mx-auto mb-3" />
-                  <p className="text-gray-600 dark:text-gray-400 font-bold text-sm">No tagged engagements or applied gigs listed yet.</p>
-                  {isOwnProfile && (
-                    <button
-                      onClick={() => navigate('/gigs')}
-                      className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 bg-brand-purple text-white hover:bg-brand-purple-hover font-bold rounded-xl transition-all"
-                    >
-                      Find local gigs
                     </button>
                   )}
                 </div>
