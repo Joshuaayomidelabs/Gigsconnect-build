@@ -197,7 +197,7 @@ const Dashboard: React.FC = () => {
           <section className="space-y-3">
             <div className="flex justify-between items-center px-2">
               <h3 className="text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-[0.2em]">Featured Creators</h3>
-              <button className="text-[10px] font-black text-brand-purple uppercase tracking-widest hover:underline">View All</button>
+              <Link to="/browse?tab=creators" className="text-[10px] font-black text-brand-purple uppercase tracking-widest hover:underline">View All</Link>
             </div>
             <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar px-2 snap-x">
               {featuredCreators.map((creator) => (
