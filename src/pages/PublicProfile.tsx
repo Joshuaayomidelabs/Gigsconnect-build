@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   User, 
@@ -31,16 +31,303 @@ import {
   Image as ImageIcon,
   Video,
   ExternalLink,
-  AlertTriangle
+  AlertTriangle,
+  BadgeCheck,
+  Heart,
+  Volume2,
+  VolumeX,
+  Radio,
+  FileText
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
 import { profilesService } from '../services/profilesService';
 import { followsService } from '../services/followsService';
+import { communityService } from '../services/communityService';
+import { applicationsService } from '../services/applicationsService';
 import { supabase } from '../services/supabaseClient';
 import { useAuth } from '../context/AuthContext';
 import VerificationBadge from '../components/VerificationBadge';
 import FollowListModal from '../components/FollowListModal';
+import PostCard from '../components/PostCard';
+
+// AUTOPLAYING VIDEO COMPONENT WITH INTERSECTION OBSERVER (TIKTOK EXPERIENCE)
+interface AutoplayVideoCardProps {
+  url: string;
+  thumbnailUrl?: string;
+  title: string;
+  likesCount?: number;
+  commentsCount?: number;
+  isOwn?: boolean;
+  onDelete?: () => void;
+  onClick: () => void;
+}
+
+const AutoplayVideoCard: React.FC<AutoplayVideoCardProps> = ({
+  url,
+  thumbnailUrl,
+  title,
+  likesCount = 0,
+  commentsCount = 0,
+  isOwn = false,
+  onDelete,
+  onClick
+}) => {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const videoElement = videoRef.current;
+    if (!videoElement) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            videoElement.play()
+              .then(() => setIsPlaying(true))
+              .catch((err) => {
+                console.log("Autoplay blocked by client context:", err);
+                setIsPlaying(false);
+              });
+          } else {
+            videoElement.pause();
+            setIsPlaying(false);
+          }
+        });
+      },
+      { threshold: 0.5 }
+    );
+
+    observer.observe(videoElement);
+
+    const handleWaiting = () => setIsLoading(true);
+    const handlePlaying = () => {
+      setIsLoading(false);
+      setIsPlaying(true);
+    };
+    const handlePause = () => setIsPlaying(false);
+
+    videoElement.addEventListener('waiting', handleWaiting);
+    videoElement.addEventListener('playing', handlePlaying);
+    videoElement.addEventListener('pause', handlePause);
+
+    return () => {
+      observer.disconnect();
+      if (videoElement) {
+        videoElement.removeEventListener('waiting', handleWaiting);
+        videoElement.removeEventListener('playing', handlePlaying);
+        videoElement.removeEventListener('pause', handlePause);
+      }
+    };
+  }, [url]);
+
+  const toggleMute = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (videoRef.current) {
+      videoRef.current.muted = !videoRef.current.muted;
+      setIsMuted(videoRef.current.muted);
+    }
+  };
+
+  return (
+    <div 
+      className="relative aspect-[9/16] rounded-3xl overflow-hidden bg-black group shadow-lg border border-gray-100 dark:border-[#1F1F23]/80 cursor-pointer snap-start transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
+      onClick={onClick}
+    >
+      {/* Video element */}
+      <video
+        ref={videoRef}
+        src={url}
+        muted={isMuted}
+        loop
+        playsInline
+        preload="metadata"
+        poster={thumbnailUrl}
+        className="w-full h-full object-cover"
+      />
+
+      {/* Loading indicator */}
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm z-10">
+          <Loader2 className="w-8 h-8 animate-spin text-brand-purple" />
+        </div>
+      )}
+
+      {/* Play indicator fallback */}
+      {!isPlaying && !isLoading && (
+        <div className="absolute inset-0 bg-black/10 flex items-center justify-center pointer-events-none z-10">
+          <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white border border-white/20">
+            <Play className="w-6 h-6 fill-current text-white translate-x-[1px]" />
+          </div>
+        </div>
+      )}
+
+      {/* Muted/Unmuted Floating Indicator */}
+      <button
+        onClick={toggleMute}
+        className="absolute top-3.5 right-3.5 z-25 p-2 rounded-xl bg-black/40 backdrop-blur-md text-white border border-white/10 hover:bg-black/60 active:scale-90 transition-all"
+        title={isMuted ? "Unmute" : "Mute"}
+      >
+        {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+      </button>
+
+      {/* Custom delete buttons on video overlay if owned */}
+      {isOwn && onDelete && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete();
+          }}
+          className="absolute top-3.5 left-3.5 z-25 p-2 rounded-xl bg-red-600/90 text-white border border-white/10 hover:bg-red-700 active:scale-95 transition-all shadow-md group-hover:scale-105"
+          title="Delete video"
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
+      )}
+
+      {/* Full ambient visual gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/10 to-transparent pointer-events-none z-10" />
+
+      {/* Metadata content */}
+      <div className="absolute bottom-4 left-4 right-4 z-20 text-white pointer-events-none space-y-1.5">
+        <p className="text-xs font-black tracking-wide text-brand-purple uppercase flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full bg-brand-purple animate-pulse"></span>
+          Live Session
+        </p>
+        <p className="text-sm font-bold leading-snug line-clamp-2 drop-shadow">
+          {title || "Original Audio Session"}
+        </p>
+
+        {/* Dynamic Engagement indicators */}
+        <div className="flex items-center gap-3.5 text-xs text-white/95 pt-1">
+          <span className="flex items-center gap-1">
+            <Heart className="w-4 h-4 text-rose-500 fill-rose-500" />
+            <span className="font-extrabold">{likesCount}</span>
+          </span>
+          <span className="flex items-center gap-1">
+            <MessageCircle className="w-4 h-4 text-sky-400 fill-[#38BDF8]/10" />
+            <span className="font-extrabold">{commentsCount}</span>
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// PORTFOLIO MEDIA CARD WITH LOAD STATE OPTIMIZATION (PREVENT CLS & LAYOUT SHIFTS)
+interface PortfolioMediaCardProps {
+  item: any;
+  index: number;
+  isOwnProfile: boolean;
+  onSelect: (media: { type: string; url: string }) => void;
+  onToggleFeatured: (e: React.MouseEvent, id: string) => void;
+  onDelete: (e: React.MouseEvent, id: string) => void;
+}
+
+const PortfolioMediaCard: React.FC<PortfolioMediaCardProps> = ({
+  item,
+  index,
+  isOwnProfile,
+  onSelect,
+  onToggleFeatured,
+  onDelete,
+}) => {
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  return (
+    <div 
+      className={`relative aspect-square rounded-2xl overflow-hidden bg-gray-100 dark:bg-[#121214] border border-gray-200 dark:border-[#1F1F23]/80 group shadow-sm transition-all duration-300 hover:scale-[1.02] hover:shadow-md cursor-pointer ${
+        item.is_featured ? 'ring-2 md:ring-4 ring-brand-purple ring-offset-2 dark:ring-offset-[#09090B]' : ''
+      }`}
+      onClick={() => onSelect({ type: item.type, url: item.url })}
+    >
+      {/* Absolute background placeholder to maintain visual footprint without laying out layout shifts */}
+      {!isLoaded && (
+        <div className="absolute inset-0 bg-gray-200/50 dark:bg-[#18181B] animate-pulse z-0" />
+      )}
+
+      {item.type === 'video' ? (
+        <div className="absolute inset-0 w-full h-full">
+          <video 
+            src={item.url} 
+            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} 
+            preload="metadata"
+            onLoadedData={() => setIsLoaded(true)}
+            muted
+            playsInline
+          />
+          <div className="absolute inset-0 flex items-center justify-center bg-black/15 group-hover:bg-black/35 transition-all duration-200">
+            <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white border border-white/20 shadow-lg group-hover:scale-110 transition-transform">
+              <Play className="w-4 h-4 fill-current text-white translate-x-[1px]" />
+            </div>
+          </div>
+          <span className="absolute bottom-2 left-2 px-1.5 py-0.5 rounded-md bg-black/60 backdrop-blur-sm text-[8px] sm:text-[9px] font-black uppercase tracking-wider text-white flex items-center gap-1">
+            <Video className="w-2.5 h-2.5" />
+            Highlight
+          </span>
+        </div>
+      ) : (
+        <div className="absolute inset-0 w-full h-full">
+          <img 
+            src={item.url} 
+            alt={`Portfolio creative work ${index + 1}`} 
+            className={`absolute inset-0 w-full h-full object-cover transition-all duration-500 group-hover:scale-105 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+            referrerPolicy="no-referrer"
+            loading="lazy"
+            onLoad={() => setIsLoaded(true)}
+          />
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/15 transition-all duration-200" />
+          <span className="absolute bottom-2 left-2 px-1.5 py-0.5 rounded-md bg-black/60 backdrop-blur-sm text-[8px] sm:text-[9px] font-black uppercase tracking-wider text-white flex items-center gap-1">
+            <ImageIcon className="w-2.5 h-2.5" />
+            Snapshot
+          </span>
+        </div>
+      )}
+
+      {/* Owner editing controls on hover */}
+      {isOwnProfile && (
+        <div className="absolute top-2 left-2 right-2 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleFeatured(e, item.id);
+            }}
+            className={`p-1.5 rounded-lg backdrop-blur-md shadow-md border active:scale-95 transition-all ${
+              item.is_featured 
+                ? 'bg-amber-500 text-white border-amber-500 hover:bg-amber-600' 
+                : 'bg-black/60 text-gray-300 border-white/10 hover:bg-black/80 hover:text-white'
+            }`}
+            title={item.is_featured ? "Remove Featured" : "Mark as Featured"}
+          >
+            <Star className={`w-3 h-3 ${item.is_featured ? 'fill-current' : ''}`} />
+          </button>
+          
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(e, item.id);
+            }}
+            className="p-1.5 rounded-lg bg-red-650 text-white hover:bg-red-700 backdrop-blur-md shadow-md border border-white/10 active:scale-95 transition-all"
+            title="Delete past work"
+          >
+            <Trash2 className="w-3 h-3" />
+          </button>
+        </div>
+      )}
+
+      {/* Featured star badge statically displayed */}
+      {item.is_featured && (
+        <div className="absolute top-2 left-2 pointer-events-none px-2 py-0.5 bg-amber-500 text-white text-[8px] sm:text-[9px] font-extrabold uppercase tracking-wider rounded-md shadow group-hover:opacity-0 transition-opacity flex items-center gap-1 z-10">
+          <Star className="w-2 h-2 fill-current" />
+          Featured
+        </div>
+      )}
+    </div>
+  );
+};
 
 const PublicProfile: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();
@@ -53,10 +340,16 @@ const PublicProfile: React.FC = () => {
   // Social Stats State
   const [stats, setStats] = useState({ followers: 0, following: 0 });
   const [isFollowing, setIsFollowing] = useState(false);
-  const [activeTab, setActiveTab] = useState<'portfolio'>('portfolio');
+  const [activeTab, setActiveTab] = useState<'portfolio' | 'posts' | 'videos' | 'tagged'>('portfolio');
   const [showFollowersModal, setShowFollowersModal] = useState(false);
   const [showFollowingModal, setShowFollowingModal] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState<{type: string, url: string} | null>(null);
+
+  // Expanded social tabs states
+  const [posts, setPosts] = useState<any[]>([]);
+  const [isLoadingPosts, setIsLoadingPosts] = useState(false);
+  const [myApplications, setMyApplications] = useState<any[]>([]);
+  const [isLoadingApplications, setIsLoadingApplications] = useState(false);
 
   // Portfolio States
   const [showAddModal, setShowAddModal] = useState(false);
@@ -72,7 +365,7 @@ const PublicProfile: React.FC = () => {
 
   const isOwnProfile = currentUser?.id === userId;
 
-  // File Preview Handler
+  // File Selection
   const handleFileSelect = (file: File) => {
     if (file.size > 50 * 1024 * 1024) {
       toast.error("File size must be under 50MB");
@@ -176,7 +469,6 @@ const PublicProfile: React.FC = () => {
   const handleDeletePortfolioItem = (e: React.MouseEvent, itemId: string) => {
     e.preventDefault();
     e.stopPropagation();
-    
     if (!profile || !currentUser) return;
     setPortfolioItemToDelete(itemId);
   };
@@ -185,14 +477,13 @@ const PublicProfile: React.FC = () => {
     if (!portfolioItemToDelete || !profile || !currentUser) return;
     
     const itemId = portfolioItemToDelete;
-    setPortfolioItemToDelete(null); // Close modal right away
+    setPortfolioItemToDelete(null); // Close modal
     
     const toastId = toast.loading("Deleting item...");
     try {
       const itemToDelete = profile.portfolio_media.find((m: any) => m.id === itemId);
       if (!itemToDelete) throw new Error("Item not found");
       
-      // Extract file path to delete from storage if it belongs to portfolio bucket
       const urlParts = itemToDelete.url.split('/portfolio/');
       if (urlParts.length > 1) {
         const filePath = urlParts[1].split('?')[0];
@@ -255,6 +546,7 @@ const PublicProfile: React.FC = () => {
     }
   };
 
+  // Profile data fetch & Subscriptions
   useEffect(() => {
     let isMounted = true;
     const fetchData = async () => {
@@ -265,7 +557,6 @@ const PublicProfile: React.FC = () => {
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session) {
-          // Fetch applied gig IDs
           const { data: applications } = await supabase
             .from('applications')
             .select('gig_id')
@@ -303,7 +594,6 @@ const PublicProfile: React.FC = () => {
 
     fetchData();
 
-    // Realtime subscription for profile updates (verification status, etc.)
     const channel = supabase
       .channel(`public-profile-${userId}`)
       .on(
@@ -326,6 +616,46 @@ const PublicProfile: React.FC = () => {
     };
   }, [userId, currentUser, isOwnProfile]);
 
+  // Fetch creator posts inside 'posts' tab dynamically
+  useEffect(() => {
+    if ((activeTab === 'posts' || activeTab === 'videos') && posts.length === 0 && userId) {
+      const fetchPosts = async () => {
+        try {
+          setIsLoadingPosts(true);
+          const { data, error } = await communityService.getUserPosts(userId, currentUser?.id);
+          if (!error && data) {
+            setPosts(data);
+          }
+        } catch (err) {
+          console.error("Error loading user feed posts:", err);
+        } finally {
+          setIsLoadingPosts(false);
+        }
+      };
+      fetchPosts();
+    }
+  }, [activeTab, userId, currentUser]);
+
+  // Fetch creator's tagged matches or applied gigs dynamically
+  useEffect(() => {
+    if (activeTab === 'tagged' && myApplications.length === 0 && userId) {
+      const fetchApps = async () => {
+        try {
+          setIsLoadingApplications(true);
+          const { data, error } = await applicationsService.getMyApplications(userId);
+          if (!error && data) {
+            setMyApplications(data);
+          }
+        } catch (err) {
+          console.error("Error loading gig applications:", err);
+        } finally {
+          setIsLoadingApplications(false);
+        }
+      };
+      fetchApps();
+    }
+  }, [activeTab, userId]);
+
   const handleFollowToggle = async () => {
     if (!currentUser) {
       toast.error("Please sign in to follow users.");
@@ -344,7 +674,6 @@ const PublicProfile: React.FC = () => {
     const { error } = await followsService.toggleFollow(currentUser.id, userId, !newFollowingState);
     
     if (error) {
-      // Revert on error
       setIsFollowing(!newFollowingState);
       setStats(prev => ({
         ...prev,
@@ -354,24 +683,66 @@ const PublicProfile: React.FC = () => {
     }
   };
 
+  // Gather video files from portfolio + posts for the centralized TikTok visual stream
+  const portfolioVideos = (profile?.portfolio_media || [])
+    .filter((m: any) => m.type === 'video')
+    .map((item: any) => ({
+      id: item.id,
+      url: item.url,
+      type: 'video',
+      title: 'Portfolio Reel Spotlight',
+      isFromPost: false,
+      likes_count: 12, // subtle default overlay values
+      comments_count: 2
+    }));
+
+  const postVideos = posts
+    .filter((p: any) => p.video_url)
+    .map((post: any) => {
+      let videoUrl = post.video_url;
+      let thumbUrl = post.thumbnail_url;
+      if (videoUrl && videoUrl.includes('thumb=')) {
+        try {
+          const match = videoUrl.match(/[?&]thumb=([^&]+)/);
+          if (match) {
+            thumbUrl = decodeURIComponent(match[1]);
+            videoUrl = videoUrl.replace(match[0], '');
+          }
+        } catch (e) {}
+      }
+      return {
+        id: post.id,
+        url: videoUrl,
+        thumbnailUrl: thumbUrl,
+        type: 'video',
+        title: post.text || 'GigsConnect Clip',
+        isFromPost: true,
+        likes_count: post.likes_count || 0,
+        comments_count: post.comments_count || 0
+      };
+    });
+
+  const allVideos = [...portfolioVideos, ...postVideos];
+
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-brand-gray dark:bg-brand-black transition-colors">
-        <Loader2 className="w-10 h-10 animate-spin text-brand-purple" />
+      <div className="flex flex-col items-center justify-center min-h-screen bg-[#FAFAFA] dark:bg-[#09090B] transition-colors">
+        <Loader2 className="w-12 h-12 animate-spin text-brand-purple mb-4" />
+        <p className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-650">Tuning Creative Feed...</p>
       </div>
     );
   }
 
   if (error || !profile) {
     return (
-      <div className="pt-main pb-12 px-4 text-center min-h-screen bg-brand-gray dark:bg-brand-black transition-colors">
-        <div className="max-w-md mx-auto bg-brand-white dark:bg-brand-dark-card p-12 rounded-[3rem] shadow-xl border border-brand-gray dark:border-brand-black">
-          <User className="w-16 h-16 text-gray-400 dark:text-gray-600 mx-auto mb-6" />
+      <div className="pt-main pb-12 px-4 text-center min-h-screen bg-[#FAFAFA] dark:bg-[#09090B] flex items-center justify-center transition-colors">
+        <div id="not-found-card" className="max-w-md w-full bg-white dark:bg-brand-dark-card p-10 rounded-[3rem] shadow-xl border border-gray-100 dark:border-[#1F1F23]">
+          <User className="w-16 h-16 text-gray-300 dark:text-gray-700 mx-auto mb-6" />
           <h2 className="text-2xl font-black text-brand-black dark:text-brand-white mb-2">Profile Not Found</h2>
-          <p className="text-gray-700 dark:text-gray-200 mb-8">{error || "The profile you're looking for doesn't exist."}</p>
+          <p className="text-gray-500 dark:text-gray-400 text-sm mb-8 leading-relaxed">{error || "The creator profile you search for doesn't exist or was removed."}</p>
           <button 
             onClick={() => navigate(-1)}
-            className="px-8 py-3 bg-brand-purple text-brand-white font-bold rounded-2xl hover:bg-brand-purple-hover transition-all"
+            className="w-full py-4 bg-brand-purple text-white font-extrabold rounded-2xl hover:bg-brand-purple-hover active:scale-95 shadow-md shadow-brand-purple/10 transition-all cursor-pointer"
           >
             Go Back
           </button>
@@ -381,367 +752,695 @@ const PublicProfile: React.FC = () => {
   }
 
   return (
-    <div className="bg-brand-gray dark:bg-brand-black min-h-screen pt-20 sm:pt-24 pb-12 transition-colors duration-500">
-      {/* Top Banner Gradient */}
-      <div className="h-40 bg-gradient-to-r from-[#6C2BD9]/80 to-[#4C1D95]/90 w-full relative">
-        {/* Back Button */}
-        <button 
-          onClick={() => navigate(-1)}
-          className="absolute top-6 left-4 sm:left-8 flex items-center justify-center w-10 h-10 bg-black/20 backdrop-blur-md rounded-full text-white hover:bg-black/40 transition-colors z-10"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-      </div>
+    <div className="bg-[#FAFAFA] dark:bg-[#09090B] min-h-screen pt-16 sm:pt-20 pb-16 transition-colors duration-500 font-sans">
       
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 relative -mt-12 sm:-mt-16 z-10">
-        {/* Profile Header Card */}
-        <div className="bg-brand-white dark:bg-brand-dark-card rounded-[2rem] shadow-md border border-brand-gray dark:border-brand-black p-5 sm:p-8 mb-6 relative">
+      {/* 1. TOP COVER ACTION ZONE */}
+      <div id="profile-cover" className="h-52 sm:h-64 bg-gradient-to-br from-[#8B5CF6]/90 via-[#6D28D9]/95 to-[#4C1D95]/95 w-full relative overflow-hidden">
+        {/* Animated backdrop decoration for luxury vibe */}
+        <div className="absolute inset-x-0 bottom-0 top-1/4 bg-radial-gradient from-transparent to-black/20 pointer-events-none" />
+        <div className="absolute top-10 left-10 w-44 h-44 rounded-full bg-brand-purple/20 blur-3xl" />
+        <div className="absolute right-20 bottom-5 w-60 h-60 rounded-full bg-indigo-500/25 blur-3xl" />
+        
+        {/* Cover back button wrapper */}
+        <div className="max-w-5xl mx-auto px-4 sm:px-8 h-full flex items-start justify-between pt-6 relative z-10">
+          <button 
+            onClick={() => navigate(-1)}
+            className="flex items-center justify-center w-11 h-11 bg-black/20 backdrop-blur-md rounded-2xl text-white border border-white/10 hover:bg-black/40 active:scale-95 transition-all shadow-sm shadow-black/10 z-10"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
           
-          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 mb-6">
-            {/* Avatar */}
-            <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full border-4 border-brand-white dark:border-brand-dark-card shadow-lg overflow-hidden bg-brand-gray dark:bg-brand-black flex-shrink-0 flex items-center justify-center relative -mt-14 sm:-mt-16 z-20 mx-auto sm:mx-0">
-              {profile.avatar_url ? (
-                <img 
-                  src={profile.avatar_url} 
-                  alt={profile.full_name} 
-                  className="w-full h-full object-cover object-center" 
-                  referrerPolicy="no-referrer" 
-                />
-              ) : (
-                <User className="w-12 h-12 text-gray-400 dark:text-gray-600" />
+          {/* Own badge indicator */}
+          {isOwnProfile && (
+            <span className="px-3 py-1 flex items-center gap-1.5 bg-white/20 backdrop-blur-md rounded-xl text-white text-[11px] font-black uppercase tracking-wider border border-white/15">
+              <Radio className="w-3.5 h-3.5 animate-pulse text-emerald-400" />
+              Creator Room Live
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* 2. PREMIUM INSTAGRAM/TIKTOK PROFILE ROW */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-8 relative -mt-16 sm:-mt-20 z-10">
+        
+        {/* Premium Profile Card */}
+        <div id="profile-card" className="bg-white dark:bg-brand-dark-card rounded-[2.25rem] shadow-xl border border-gray-100 dark:border-[#1F1F23]/80 p-6 sm:p-10 mb-8 relative">
+          
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 sm:gap-10">
+            {/* Immersive Avatar block */}
+            <div id="user-avatar" className="relative group/avatar">
+              <div className="w-32 h-32 sm:w-36 sm:h-36 rounded-[2.25rem] border-4 border-white dark:border-brand-dark-card shadow-xl overflow-hidden bg-[#FAFAFA] dark:bg-[#0F0F12] flex-shrink-0 flex items-center justify-center relative transition-transform duration-300 group-hover/avatar:scale-[1.02]">
+                {profile.avatar_url ? (
+                  <img 
+                    src={profile.avatar_url} 
+                    alt={profile.full_name} 
+                    className="w-full h-full object-cover object-center" 
+                    referrerPolicy="no-referrer" 
+                  />
+                ) : (
+                  <User className="w-14 h-14 text-gray-300 dark:text-gray-700" />
+                )}
+              </div>
+              
+              {/* verification state inside visual wrap */}
+              {profile.verification_status === 'verified' && (
+                <div className="absolute -bottom-1 -right-1 z-20 bg-brand-purple text-white p-1.5 rounded-2xl border-4 border-white dark:border-brand-dark-card shadow">
+                  <BadgeCheck className="w-5 h-5 text-white fill-current" />
+                </div>
               )}
             </div>
 
-            <div className="text-center sm:text-left flex-1 min-w-0 w-full">
-              <h1 className="text-2xl font-black text-brand-black dark:text-brand-white tracking-tight flex items-center justify-center sm:justify-start gap-2 flex-wrap">
-                <span className="truncate">{profile.full_name || 'Anonymous User'}</span>
-                <VerificationBadge 
-                  verificationStatus={profile.verification_status} 
-                />
-              </h1>
-              {profile.username && (
-                <p className="text-gray-500 dark:text-gray-400 font-medium truncate">@{profile.username}</p>
+            {/* Middle Identity Row */}
+            <div className="text-center sm:text-left flex-1 min-w-0 w-full space-y-3.5">
+              <div>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3 justify-center sm:justify-start">
+                  <h1 className="text-2xl sm:text-3xl font-black text-brand-black dark:text-brand-white tracking-tight leading-tight truncate">
+                    {profile.full_name || 'Anonymous Creator'}
+                  </h1>
+                  {profile.role && (
+                    <span className="w-fit mx-auto sm:mx-0 px-2.5 py-0.5 rounded-lg bg-brand-purple/5 border border-brand-purple/10 text-brand-purple text-[10px] font-black uppercase tracking-wider">
+                      {profile.role}
+                    </span>
+                  )}
+                </div>
+                {profile.username && (
+                  <p className="text-gray-500 dark:text-gray-400 font-bold text-sm mt-0.5">@{profile.username}</p>
+                )}
+              </div>
+
+              {/* Bio block */}
+              {profile.bio ? (
+                <p className="text-gray-600 dark:text-gray-300 text-[14px] leading-relaxed max-w-xl whitespace-pre-wrap font-medium">
+                  {profile.bio}
+                </p>
+              ) : (
+                <p className="text-gray-400 dark:text-gray-600 text-xs italic font-medium">No bio provided by this talent.</p>
               )}
-              
-              <div className="flex items-center justify-center sm:justify-start gap-1 text-gray-500 dark:text-gray-400 text-sm font-medium mt-1 truncate">
-                <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
-                <span className="truncate">{profile.city ? `${profile.city}, ${profile.country}` : profile.country || 'Global'}</span>
+
+              {/* Badges / Skills tags array */}
+              {profile.skills && profile.skills.length > 0 && (
+                <div className="flex flex-wrap justify-center sm:justify-start gap-1.5 mt-2">
+                  {profile.skills.map((skill: string) => (
+                    <span key={skill} className="px-3 py-1 bg-[#FAFAFA] dark:bg-[#161618] rounded-xl text-[11px] font-extrabold text-gray-500 dark:text-gray-400 border border-gray-100 dark:border-[#1F1F23]">
+                      #{skill}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* Location indicator */}
+              <div className="flex items-center justify-center sm:justify-start gap-1 text-gray-400 dark:text-gray-500 text-xs font-bold pt-1">
+                <MapPin className="w-3.5 h-3.5" />
+                <span>{profile.city ? `${profile.city}, ${profile.country}` : profile.country || 'Global Talent'}</span>
               </div>
             </div>
           </div>
 
-          {/* Social Stats Row */}
-          <div className="flex items-center justify-center sm:justify-start gap-8 sm:gap-10 py-5 border-t border-brand-gray dark:border-[#1F1F23] mb-6">
-            <div className="flex flex-col items-center sm:items-start group cursor-pointer" onClick={() => setShowFollowersModal(true)}>
-              <span className="text-xl font-black text-brand-black dark:text-brand-white group-hover:text-brand-purple transition-colors">
+          {/* Followers metrics counters */}
+          <div className="grid grid-cols-3 gap-4 border-t border-b border-gray-50 dark:border-[#1F1F23]/80 py-5 my-6">
+            <div 
+              className="flex flex-col items-center cursor-pointer group/stat border-r border-gray-50 dark:border-[#1F1F23]/80"
+              onClick={() => setShowFollowersModal(true)}
+            >
+              <span className="text-2xl font-black text-brand-black dark:text-brand-white group-hover:text-brand-purple transition-colors duration-200">
                 {stats.followers >= 1000 ? (stats.followers / 1000).toFixed(1) + 'K' : stats.followers}
               </span>
-              <span className="text-[11px] uppercase tracking-wider font-bold text-gray-500 text-center sm:text-left">
-                {stats.followers === 0 ? "No followers" : "Followers"}
+              <span className="text-[10px] font-black uppercase tracking-wider text-gray-400 dark:text-gray-500">
+                Followers
               </span>
             </div>
-            <div className="flex flex-col items-center sm:items-start group cursor-pointer" onClick={() => setShowFollowingModal(true)}>
-              <span className="text-xl font-black text-brand-black dark:text-brand-white group-hover:text-brand-purple transition-colors">
+            
+            <div 
+              className="flex flex-col items-center cursor-pointer group/stat border-r border-gray-50 dark:border-[#1F1F23]/80"
+              onClick={() => setShowFollowingModal(true)}
+            >
+              <span className="text-2xl font-black text-brand-black dark:text-brand-white group-hover:text-brand-purple transition-colors duration-200">
                 {stats.following >= 1000 ? (stats.following / 1000).toFixed(1) + 'K' : stats.following}
               </span>
-              <span className="text-[11px] uppercase tracking-wider font-bold text-gray-500 text-center sm:text-left">
-                {stats.following === 0 ? "None following" : "Following"}
+              <span className="text-[10px] font-black uppercase tracking-wider text-gray-400 dark:text-gray-500">
+                Following
+              </span>
+            </div>
+
+            <div className="flex flex-col items-center">
+              <span className="text-2xl font-black text-brand-black dark:text-brand-white">
+                {(profile.portfolio_media || []).length}
+              </span>
+              <span className="text-[10px] font-black uppercase tracking-wider text-gray-400 dark:text-gray-500">
+                Portfolio size
               </span>
             </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex flex-col xs:flex-row sm:flex-row gap-3 justify-center sm:justify-start mb-6">
+          {/* Social Links Row of icons */}
+          {(profile.facebook_url || profile.instagram_url || profile.tiktok_url || profile.twitter_url || profile.linkedin_url || profile.phone) && (
+            <div className="flex items-center justify-center sm:justify-start gap-2.5 mb-6 flex-wrap">
+              {profile.instagram_url && (
+                <a 
+                  href={profile.instagram_url.startsWith('http') ? profile.instagram_url : `https://${profile.instagram_url}`} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 rounded-xl flex items-center justify-center bg-gray-50 dark:bg-[#161618] border border-gray-100 dark:border-[#1F1F23] hover:text-[#E1306C] text-gray-500 dark:text-gray-400 hover:bg-gray-100 transition-colors"
+                >
+                  <Instagram className="w-4 h-4" />
+                </a>
+              )}
+              {profile.tiktok_url && (
+                <a 
+                  href={profile.tiktok_url.startsWith('http') ? profile.tiktok_url : `https://${profile.tiktok_url}`} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 rounded-xl flex items-center justify-center bg-gray-50 dark:bg-[#161618] border border-gray-100 dark:border-[#1F1F23] text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-100 transition-colors text-xs font-black uppercase tracking-tight"
+                >
+                  Tik
+                </a>
+              )}
+              {profile.twitter_url && (
+                <a 
+                  href={profile.twitter_url.startsWith('http') ? profile.twitter_url : `https://${profile.twitter_url}`} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 rounded-xl flex items-center justify-center bg-gray-50 dark:bg-[#161618] border border-gray-100 dark:border-[#1F1F23] hover:text-[#1DA1F2] text-gray-500 dark:text-gray-400 hover:bg-gray-100 transition-colors"
+                >
+                  <Twitter className="w-4 h-4" />
+                </a>
+              )}
+              {profile.facebook_url && (
+                <a 
+                  href={profile.facebook_url.startsWith('http') ? profile.facebook_url : `https://${profile.facebook_url}`} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 rounded-xl flex items-center justify-center bg-gray-50 dark:bg-[#161618] border border-gray-100 dark:border-[#1F1F23] hover:text-[#1877F2] text-gray-500 dark:text-gray-400 hover:bg-gray-100 transition-colors"
+                >
+                  <Facebook className="w-4 h-4" />
+                </a>
+              )}
+              {profile.linkedin_url && (
+                <a 
+                  href={profile.linkedin_url.startsWith('http') ? profile.linkedin_url : `https://${profile.linkedin_url}`} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 rounded-xl flex items-center justify-center bg-gray-50 dark:bg-[#161618] border border-gray-100 dark:border-[#1F1F23] hover:text-[#0077B5] text-gray-500 dark:text-gray-400 hover:bg-gray-100 transition-colors"
+                >
+                  <Linkedin className="w-4 h-4" />
+                </a>
+              )}
+              {profile.phone && (
+                <a 
+                  href={`tel:${profile.phone}`} 
+                  className="w-9 h-9 rounded-xl flex items-center justify-center bg-gray-50 dark:bg-[#161618] border border-gray-100 dark:border-[#1F1F23] hover:text-brand-purple text-gray-500 dark:text-gray-400 hover:bg-gray-100 transition-colors"
+                  title="Call Creator"
+                >
+                  <Phone className="w-4 h-4" />
+                </a>
+              )}
+            </div>
+          )}
+
+          {/* Immersive Action Buttons */}
+          <div className="flex flex-row gap-3.5 w-full">
             {isOwnProfile ? (
               <button 
+                id="edit-btn"
                 onClick={() => navigate('/edit-profile')} 
-                className="w-full sm:flex-1 sm:max-w-[200px] py-2.5 rounded-xl font-bold text-sm bg-gray-100 dark:bg-[#1F1F23] text-brand-black dark:text-brand-white hover:bg-gray-200 dark:hover:bg-[#2A2A2F] active:scale-95 transition-all"
+                className="w-full py-3.5 rounded-2xl font-extrabold text-sm bg-gray-100 dark:bg-[#18181B] border border-gray-150 dark:border-[#27272A] text-brand-black dark:text-brand-white hover:bg-gray-200 dark:hover:bg-[#27272A] active:scale-95 transition-all outline-none"
               >
-                Edit Profile
+                Edit Creator ProfileCard
               </button>
             ) : (
               <>
                 <button 
+                  id="follow-btn"
                   onClick={handleFollowToggle} 
-                  className={`w-full sm:flex-1 sm:max-w-[160px] py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all duration-200 active:scale-95 ${
+                  className={`flex-1 py-3.5 rounded-2xl font-black text-sm flex items-center justify-center gap-2 transition-all duration-200 active:scale-95 shadow-md ${
                     isFollowing 
-                      ? 'bg-gray-100 dark:bg-[#1F1F23] text-brand-black dark:text-brand-white hover:bg-gray-200 dark:hover:bg-[#2A2A2F]' 
-                      : 'bg-[#6C2BD9] hover:bg-[#8A4DFF] text-white shadow-md shadow-[#6C2BD9]/20'
+                      ? 'bg-gray-100 dark:bg-[#1F1F23] text-brand-black dark:text-brand-white hover:bg-gray-200 dark:hover:bg-[#2A2A2F] border border-gray-200 dark:border-[#2A2A2F] shadow-none' 
+                      : 'bg-brand-purple hover:bg-[#8A4DFF] text-white shadow-[#6C2BD9]/20'
                   }`}
                 >
                   {isFollowing ? (
-                    <><UserCheck className="w-4 h-4" /> Following</>
+                    <><UserCheck className="w-4.5 h-4.5" /> Following</>
                   ) : (
-                    <><UserPlus className="w-4 h-4" /> Follow</>
+                    <><UserPlus className="w-4.5 h-4.5" /> Follow</>
                   )}
                 </button>
                 <button 
-                  onClick={() => toast("Messaging coming soon")}
-                  className="w-full sm:flex-1 sm:max-w-[160px] py-2.5 rounded-xl font-bold text-sm bg-gray-100 dark:bg-[#1F1F23] text-brand-black dark:text-brand-white hover:bg-gray-200 dark:hover:bg-[#2A2A2F] active:scale-95 transition-all flex items-center justify-center gap-2"
+                  id="message-btn"
+                  onClick={() => toast("Messaging starting shortly!")}
+                  className="flex-1 py-3.5 rounded-2xl font-black text-sm bg-gray-100 dark:bg-[#1F1F23] border border-gray-200 dark:border-[#2A2A2F] text-brand-black dark:text-brand-white hover:bg-gray-200 dark:hover:bg-[#2A2A2F] active:scale-95 transition-all flex items-center justify-center gap-2"
                 >
-                  <MessageCircle className="w-4 h-4" /> Message
+                  <MessageCircle className="w-4.5 h-4.5" /> Message
                 </button>
               </>
             )}
           </div>
-
-          {/* Bio */}
-          <div className="text-center sm:text-left w-full break-words">
-            {profile.bio && (
-              <p className="text-gray-800 dark:text-gray-200 text-sm whitespace-pre-wrap leading-relaxed">{profile.bio}</p>
-            )}
-            
-            {profile.skills && profile.skills.length > 0 && (
-              <div className="mt-4 flex flex-wrap justify-center sm:justify-start gap-2">
-                {profile.skills.map((skill: string) => (
-                  <span key={skill} className="px-3 py-1 bg-gray-50 dark:bg-[#161618] rounded-lg text-xs font-bold text-gray-500 dark:text-gray-400 border border-gray-100 dark:border-[#1F1F23] max-w-full truncate">
-                    {skill}
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
         </div>
 
-        {/* Content Render */}
-        <div className="mb-12 min-h-[300px]">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-black text-brand-black dark:text-brand-white">Portfolio</h3>
-            {isOwnProfile && (
-              <button
-                onClick={() => setShowAddModal(true)}
-                className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-[#6C2BD9] to-[#5B21B6] text-white text-sm font-bold rounded-xl shadow-md hover:from-[#7C3AED] hover:to-[#6D28D9] active:scale-95 transition-all"
-              >
-                <Plus className="w-4 h-4" />
-                Add Work
-              </button>
-            )}
-          </div>
-
-          {profile.portfolio_media && profile.portfolio_media.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-5">
-              {profile.portfolio_media.map((item: any, index: number) => (
-                <div 
-                  key={item.id || index} 
-                  className={`relative aspect-square rounded-2xl overflow-hidden bg-brand-gray dark:bg-brand-black border-2 border-brand-gray dark:border-[#1F1F23]/80 group shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 ${
-                    item.is_featured ? 'ring-4 ring-[#6C2BD9] ring-offset-2 dark:ring-offset-brand-black' : ''
-                  }`}
-                >
-                  {/* Media Content */}
-                  {item.type === 'video' ? (
-                    <div className="w-full h-full relative cursor-pointer" onClick={() => setSelectedMedia({ type: "video", url: item.url })}>
-                      <video 
-                        src={item.url} 
-                        className="w-full h-full object-cover" 
-                        preload="metadata"
-                      />
-                      {/* Translucent Play Overlay */}
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/15 group-hover:bg-black/30 transition-all duration-200">
-                        <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white border border-white/20 shadow-lg group-hover:scale-110 transition-transform">
-                          <Play className="w-6 h-6 fill-current text-white translate-x-[1px]" />
-                        </div>
-                      </div>
-                      <span className="absolute bottom-2.5 left-2.5 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-sm text-[10px] font-bold text-white flex items-center gap-1">
-                        <Video className="w-3 h-3" />
-                        Video
-                      </span>
-                    </div>
-                  ) : (
-                    <div className="w-full h-full relative cursor-pointer group" onClick={() => setSelectedMedia({ type: "image", url: item.url })}>
-                      <img 
-                        src={item.url} 
-                        alt={`Portfolio Work ${index + 1}`} 
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        referrerPolicy="no-referrer"
-                      />
-                      {/* Hover subtle zoom and dim */}
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-200" />
-                      <span className="absolute bottom-2.5 left-2.5 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-sm text-[10px] font-bold text-white flex items-center gap-1">
-                        <ImageIcon className="w-3 h-3" />
-                        Image
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Owner Controls (Hover states on desktop, always shown cleanly) */}
-                  {isOwnProfile && (
-                    <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                      {/* Toggle Featured Star */}
-                      <button
-                        onClick={(e) => handleToggleFeatured(e, item.id)}
-                        className={`p-1.5 rounded-lg backdrop-blur-md shadow-md border active:scale-90 transition-all ${
-                          item.is_featured 
-                            ? 'bg-amber-500 text-white border-amber-500 hover:bg-amber-600' 
-                            : 'bg-black/60 text-gray-300 border-white/10 hover:bg-black/80 hover:text-white'
-                        }`}
-                        title={item.is_featured ? "Remove Featured" : "Mark as Featured"}
-                      >
-                        <Star className={`w-3.5 h-3.5 ${item.is_featured ? 'fill-current' : ''}`} />
-                      </button>
-                      
-                      {/* Delete Button */}
-                      <button
-                        onClick={(e) => handleDeletePortfolioItem(e, item.id)}
-                        className="p-1.5 rounded-lg bg-red-600 text-white hover:bg-red-700 backdrop-blur-md shadow-md border border-white/10 active:scale-90 transition-all"
-                        title="Delete past work"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Featured Badge if featured and not in hover state */}
-                  {item.is_featured && (
-                    <div className="absolute top-2.5 left-2.5 pointer-events-none px-2 py-1 bg-amber-500 text-white text-[9px] font-extrabold uppercase tracking-wider rounded-md shadow-sm group-hover:opacity-0 transition-opacity flex items-center gap-1">
-                      <Star className="w-2.5 h-2.5 fill-current" />
-                      Featured
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="bg-brand-white dark:bg-brand-dark-card rounded-3xl p-12 text-center border border-brand-gray dark:border-[#1F1F23]">
-              <Globe className="w-10 h-10 text-[#9CA3AF] dark:text-gray-600 mx-auto mb-3" />
-              <p className="text-gray-700 dark:text-gray-400 font-medium text-sm">No portfolio items saved.</p>
-              {isOwnProfile && (
-                <button
-                  onClick={() => setShowAddModal(true)}
-                  className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 bg-[#6C2BD9]/10 text-[#6C2BD9] dark:text-brand-purple hover:bg-[#6C2BD9]/15 font-bold rounded-xl transition-all animate-pulse"
-                >
-                  <Plus className="w-4 h-4" /> Add your first item
-                </button>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* ADD WORK MODAL */}
-        {showAddModal && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[9990] p-4">
-            <div 
-              className="w-full max-w-md bg-white dark:bg-brand-dark-card rounded-[2rem] shadow-2xl border border-gray-100 dark:border-[#2A2A2F] overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+        {/* 3. STICKY INTERACTIVE PROFILE TABS */}
+        <div className="sticky top-[4.2rem] sm:top-[5rem] z-30 bg-[#FAFAFA]/90 dark:bg-[#09090B]/90 backdrop-blur-md py-4 border-b border-gray-100 dark:border-[#1F1F23] mb-6">
+          <div className="flex items-center justify-around">
+            <button
+              onClick={() => setActiveTab('portfolio')}
+              className={`flex items-center gap-1.5 py-1.5 px-3 rounded-xl text-xs font-black uppercase tracking-wider relative transition-colors duration-300 ${
+                activeTab === 'portfolio' 
+                  ? 'text-brand-purple' 
+                  : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
+              }`}
             >
-              {/* Header */}
-              <div className="px-6 py-5 border-b border-gray-100 dark:border-[#1F1F23] flex items-center justify-between animate-none">
-                <div>
-                  <h3 className="text-lg font-black text-brand-black dark:text-brand-white">Add Past Work</h3>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Showcase your talent and gigs</p>
-                </div>
-                <button 
-                  onClick={() => {
-                    setShowAddModal(false);
-                    clearSelectedFile();
-                  }}
-                  disabled={isUploading}
-                  className="p-1 px-1.5 hover:bg-gray-100 dark:hover:bg-[#1F1F23]/60 rounded-lg text-gray-500 dark:text-gray-400 transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
+              <LayoutGrid className="w-4 h-4" />
+              Portfolio
+              {activeTab === 'portfolio' && (
+                <motion.div 
+                  layoutId="activeTabUnderline" 
+                  className="absolute -bottom-4 left-0 right-0 h-[3px] bg-brand-purple rounded-full" 
+                />
+              )}
+            </button>
 
-              {/* Body */}
-              <div className="p-6">
-                {!selectedFile ? (
-                  /* Drag & Drop Zone */
-                  <div 
-                    onDragEnter={handleDrag}
-                    onDragOver={handleDrag}
-                    onDragLeave={handleDrag}
-                    onDrop={handleDrop}
-                    className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all ${
-                      dragActive 
-                        ? 'border-[#6C2BD9] bg-[#6C2BD9]/5' 
-                        : 'border-gray-200 dark:border-[#2A2A2F] hover:border-[#6C2BD9]/40 hover:bg-gray-50/50 dark:hover:bg-[#1A1A1E]/30'
-                    }`}
-                    onClick={() => document.getElementById('portfolio-file-upload')?.click()}
+            <button
+              onClick={() => setActiveTab('posts')}
+              className={`flex items-center gap-1.5 py-1.5 px-3 rounded-xl text-xs font-black uppercase tracking-wider relative transition-colors duration-300 ${
+                activeTab === 'posts' 
+                  ? 'text-brand-purple' 
+                  : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
+              }`}
+            >
+              <FileText className="w-4 h-4" />
+              Posts
+              {activeTab === 'posts' && (
+                <motion.div 
+                  layoutId="activeTabUnderline" 
+                  className="absolute -bottom-4 left-0 right-0 h-[3px] bg-brand-purple rounded-full" 
+                />
+              )}
+            </button>
+
+            <button
+              onClick={() => setActiveTab('videos')}
+              className={`flex items-center gap-1.5 py-1.5 px-3 rounded-xl text-xs font-black uppercase tracking-wider relative transition-colors duration-300 ${
+                activeTab === 'videos' 
+                  ? 'text-brand-purple' 
+                  : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
+              }`}
+            >
+              <Video className="w-4 h-4" />
+              Videos
+              {activeTab === 'videos' && (
+                <motion.div 
+                  layoutId="activeTabUnderline" 
+                  className="absolute -bottom-4 left-0 right-0 h-[3px] bg-brand-purple rounded-full" 
+                />
+              )}
+            </button>
+
+            <button
+              onClick={() => setActiveTab('tagged')}
+              className={`flex items-center gap-1.5 py-1.5 px-3 rounded-xl text-xs font-black uppercase tracking-wider relative transition-colors duration-300 ${
+                activeTab === 'tagged' 
+                  ? 'text-brand-purple' 
+                  : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
+              }`}
+            >
+              <Bookmark className="w-4 h-4" />
+              Tagged
+              {activeTab === 'tagged' && (
+                <motion.div 
+                  layoutId="activeTabUnderline" 
+                  className="absolute -bottom-4 left-0 right-0 h-[3px] bg-brand-purple rounded-full" 
+                />
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* 4. TABBED CONTENT RENDER AREA */}
+        <div className="min-h-[400px]">
+          
+          {/* TAB 1: PORTFOLIO */}
+          {activeTab === 'portfolio' && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-black text-brand-black dark:text-brand-white uppercase tracking-wider flex items-center gap-2">
+                  <LayoutGrid className="w-5 h-5 text-brand-purple" />
+                  Portfolio Records
+                </h3>
+                {isOwnProfile && (
+                  <button
+                    id="add-work-btn"
+                    onClick={() => setShowAddModal(true)}
+                    className="flex items-center gap-1.5 px-4 py-2.5 bg-gradient-to-r from-brand-purple to-indigo-600 text-white text-xs font-bold rounded-xl shadow-md hover:from-[#7C3AED] hover:to-[#4F46E5] active:scale-95 transition-all cursor-pointer"
                   >
-                    <input 
-                      id="portfolio-file-upload"
-                      type="file" 
-                      className="hidden" 
-                      accept="image/*,video/*"
-                      onChange={(e) => {
-                        if (e.target.files && e.target.files[0]) {
-                          handleFileSelect(e.target.files[0]);
-                        }
-                      }}
-                    />
-                    <Upload className="w-10 h-10 text-gray-400 dark:text-gray-600 mx-auto mb-3" />
-                    <p className="text-sm font-bold text-gray-700 dark:text-gray-200 mb-1">
-                      Drag and drop your media, or <span className="text-[#6C2BD9] dark:text-brand-purple hover:underline">browse</span>
-                    </p>
-                    <p className="text-xs text-gray-400 dark:text-gray-500 flex flex-col gap-0.5 leading-normal mt-2">
-                      <span>Supports high-quality images and audio-visual recordings</span>
-                      <span>JPEG, PNG, WebP up to 5MB</span>
-                      <span>MP4, MOV, WebM up to 50MB</span>
-                    </p>
-                  </div>
-                ) : (
-                  /* File Selection Preview */
-                  <div className="space-y-4">
-                    <div className="relative aspect-video rounded-xl overflow-hidden bg-black/5 dark:bg-black/30 border border-gray-200 dark:border-[#2A2A2F] flex items-center justify-center">
-                      {selectedFileType === 'image' ? (
-                        <img src={filePreview || ''} alt="Preview" className="w-full h-full object-contain" />
-                      ) : (
-                        <video src={filePreview || ''} className="w-full h-full object-contain" controls />
-                      )}
-                      
-                      {!isUploading && (
-                        <button
-                          onClick={clearSelectedFile}
-                          className="absolute top-2 right-2 p-1 bg-black/60 hover:bg-black/80 rounded-full text-white transition-colors"
-                          title="Remove file"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      )}
-                    </div>
-
-                    <div className="flex items-center justify-between text-xs px-1 text-gray-500 dark:text-gray-400">
-                      <span className="font-semibold truncate max-w-[250px]">{selectedFile.name}</span>
-                      <span>{(selectedFile.size / (1024 * 1024)).toFixed(2)} MB</span>
-                    </div>
-                  </div>
+                    <Plus className="w-4 h-4" />
+                    Upload Work
+                  </button>
                 )}
               </div>
 
-              {/* Footer */}
-              <div className="px-6 py-4 border-t border-gray-100 dark:border-[#1F1F23] flex items-center justify-end gap-3 bg-gray-50/50 dark:bg-[#1A1A1E]/10">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowAddModal(false);
-                    clearSelectedFile();
-                  }}
-                  disabled={isUploading}
-                  className="px-4 py-2 text-sm font-bold text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 disabled:opacity-50"
-                >
-                  Cancel
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleAddPortfolioItem}
-                  disabled={!selectedFile || isUploading}
-                  className="px-5 py-2 rounded-xl text-sm font-bold bg-[#6C2BD9] hover:bg-[#7C3AED] text-white disabled:opacity-50 disabled:pointer-events-none flex items-center gap-2 shadow-md hover:shadow-[#6C2BD9]/10 active:scale-95 transition-all"
-                >
-                  {isUploading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Uploading...
-                    </>
-                  ) : (
-                    'Upload to Portfolio'
+              {profile.portfolio_media && profile.portfolio_media.length > 0 ? (
+                /* Consistent 3-column layout maintaining square aspect ratio with zero layout shifts */
+                <div className="grid grid-cols-3 gap-2 sm:gap-4 md:gap-6">
+                  {profile.portfolio_media.map((item: any, index: number) => (
+                    <PortfolioMediaCard
+                      key={item.id || index}
+                      item={item}
+                      index={index}
+                      isOwnProfile={isOwnProfile}
+                      onSelect={setSelectedMedia}
+                      onToggleFeatured={handleToggleFeatured}
+                      onDelete={handleDeletePortfolioItem}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-white dark:bg-brand-dark-card rounded-3xl p-12 text-center border border-gray-150 dark:border-[#1F1F23]">
+                  <Globe className="w-10 h-10 text-gray-400 dark:text-gray-600 mx-auto mb-3" />
+                  <p className="text-gray-600 dark:text-gray-400 font-bold text-sm">No portfolio items saved yet.</p>
+                  {isOwnProfile && (
+                    <button
+                      onClick={() => setShowAddModal(true)}
+                      className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 bg-brand-purple/10 text-brand-purple hover:bg-brand-purple/15 font-bold rounded-xl transition-all"
+                    >
+                      <Plus className="w-4 h-4" /> Add your first item
+                    </button>
                   )}
-                </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB 2: POSTS */}
+          {activeTab === 'posts' && (
+            <div className="space-y-6">
+              <h3 className="text-lg font-black text-brand-black dark:text-brand-white uppercase tracking-wider flex items-center gap-2 mb-2">
+                <FileText className="w-5 h-5 text-brand-purple" />
+                Latest Updates
+              </h3>
+
+              {isLoadingPosts ? (
+                <div className="space-y-4">
+                  {[1, 2].map(n => (
+                    <div key={n} className="bg-white dark:bg-brand-dark-card p-6 rounded-3xl animate-pulse border border-gray-100 dark:border-[#1F1F23]/80 space-y-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-800" />
+                        <div className="space-y-2">
+                          <div className="h-3.5 w-32 bg-gray-200 dark:bg-gray-800 rounded" />
+                          <div className="h-3 w-16 bg-gray-200 dark:bg-gray-800 rounded" />
+                        </div>
+                      </div>
+                      <div className="h-20 bg-gray-200 dark:bg-gray-800 rounded-2xl" />
+                    </div>
+                  ))}
+                </div>
+              ) : posts.length > 0 ? (
+                <div className="space-y-4 max-w-[600px] mx-auto">
+                  {posts.map((post) => (
+                    <PostCard 
+                      key={post.id} 
+                      post={post} 
+                      onDelete={(deletedId) => {
+                        setPosts(prev => prev.filter(p => p.id !== deletedId));
+                      }}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-white dark:bg-brand-dark-card rounded-3xl p-12 text-center border border-gray-150 dark:border-[#1F1F23]">
+                  <Radio className="w-10 h-10 text-gray-400 dark:text-gray-600 mx-auto mb-3 animate-pulse" />
+                  <p className="text-gray-600 dark:text-gray-400 font-bold text-sm">No updates posted on feed yet.</p>
+                  {isOwnProfile && (
+                    <button
+                      onClick={() => navigate('/dashboard')}
+                      className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 bg-brand-purple text-white hover:bg-brand-purple-hover font-bold rounded-xl transition-all"
+                    >
+                      Create first post
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB 3: VIDEOS (TIKTOK STREAM ZONE) */}
+          {activeTab === 'videos' && (
+            <div className="space-y-6">
+              <h3 className="text-lg font-black text-brand-black dark:text-brand-white uppercase tracking-wider flex items-center gap-2 mb-2">
+                <Video className="w-5 h-5 text-brand-purple" />
+                TikTok Stream Zone
+              </h3>
+
+              {isLoadingPosts ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                  {[1, 2, 3].map(n => (
+                    <div key={n} className="aspect-[9/16] bg-gray-200 dark:bg-gray-800 rounded-3xl animate-pulse" />
+                  ))}
+                </div>
+              ) : allVideos.length > 0 ? (
+                /* 2-3 Column beautiful layout */
+                <div className="space-y-4">
+                  <p className="text-xs text-gray-400 dark:text-gray-500 font-medium">✨ Videos autoplay as you scroll. Tap icon to toggle sound.</p>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
+                    {allVideos.map((video, index) => (
+                      <AutoplayVideoCard
+                        key={video.id || index}
+                        url={video.url}
+                        thumbnailUrl={video.thumbnailUrl}
+                        title={video.title}
+                        likesCount={video.likes_count}
+                        commentsCount={video.comments_count}
+                        isOwn={isOwnProfile && !video.isFromPost}
+                        onDelete={async () => {
+                          if (video.isFromPost) {
+                            toast.error("Go to Posts tab to delete Feed post clips.");
+                            return;
+                          }
+                          // Triggers standard delete dialog
+                          setPortfolioItemToDelete(video.id);
+                        }}
+                        onClick={() => setSelectedMedia({ type: "video", url: video.url })}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-white dark:bg-brand-dark-card rounded-3xl p-12 text-center border border-gray-150 dark:border-[#1F1F23]">
+                  <Video className="w-10 h-10 text-gray-400 dark:text-gray-600 mx-auto mb-3" />
+                  <p className="text-gray-600 dark:text-gray-400 font-bold text-sm">No creative videos shared yet.</p>
+                  {isOwnProfile && (
+                    <button
+                      onClick={() => setShowAddModal(true)}
+                      className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 bg-brand-purple text-white hover:bg-brand-purple-hover font-bold rounded-xl transition-all"
+                    >
+                      <Plus className="w-4 h-4" /> Upload short video
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB 4: TAGGED ENGAGEMENTS */}
+          {activeTab === 'tagged' && (
+            <div className="space-y-6">
+              <h3 className="text-lg font-black text-brand-black dark:text-brand-white uppercase tracking-wider flex items-center gap-2 mb-2">
+                <Bookmark className="w-5 h-5 text-brand-purple" />
+                Active Bookings & Applications
+              </h3>
+
+              {isLoadingApplications ? (
+                <div className="space-y-3">
+                  {[1, 2].map(n => (
+                    <div key={n} className="h-28 bg-gray-200 dark:bg-gray-800 rounded-3xl animate-pulse" />
+                  ))}
+                </div>
+              ) : myApplications.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {myApplications.map((app) => (
+                    <div 
+                      key={app.id} 
+                      onClick={() => navigate(`/applications/${app.id}`)}
+                      className="p-5 rounded-2xl bg-white dark:bg-brand-dark-card border border-gray-150 dark:border-[#1F1F23]/80 group hover:shadow-md cursor-pointer transition-all duration-300 relative overflow-hidden"
+                    >
+                      {/* Left color bar depending on status */}
+                      <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${
+                        app.status === 'accepted' ? 'bg-emerald-500' : app.status === 'declined' ? 'bg-red-400' : 'bg-amber-400'
+                      }`} />
+
+                      <div className="flex flex-col h-full justify-between space-y-3.5">
+                        <div className="space-y-1">
+                          <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider ${
+                            app.status === 'accepted' 
+                              ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-400' 
+                              : app.status === 'declined'
+                              ? 'bg-red-100 text-red-800 dark:bg-red-950/40 dark:text-red-400'
+                              : 'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-400'
+                          }`}>
+                            {app.status || 'Pending'}
+                          </span>
+                          <h4 className="text-sm font-black text-brand-black dark:text-brand-white group-hover:text-brand-purple transition-colors truncate">
+                            {app.gigs?.title || 'Unknown Event Gig'}
+                          </h4>
+                          {app.gigs?.location && (
+                            <p className="text-[11px] text-gray-400 dark:text-gray-500 flex items-center gap-1 font-semibold truncate">
+                              <MapPin className="w-3 h-3 shrink-0" />
+                              {app.gigs.location}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="flex items-center justify-between border-t border-gray-50 dark:border-[#1F1F23]/40 pt-3">
+                          <span className="text-[10px] font-extrabold text-gray-400 uppercase tracking-widest leading-none">Budget Offer</span>
+                          <span className="text-xs font-black text-brand-purple leading-none">
+                            {app.gigs?.currency || '$'}{app.gigs?.budget || 'TBD'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-white dark:bg-brand-dark-card rounded-3xl p-12 text-center border border-gray-150 dark:border-[#1F1F23]">
+                  <Briefcase className="w-10 h-10 text-gray-400 dark:text-gray-600 mx-auto mb-3" />
+                  <p className="text-gray-600 dark:text-gray-400 font-bold text-sm">No tagged engagements or applied gigs listed yet.</p>
+                  {isOwnProfile && (
+                    <button
+                      onClick={() => navigate('/gigs')}
+                      className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 bg-brand-purple text-white hover:bg-brand-purple-hover font-bold rounded-xl transition-all"
+                    >
+                      Find local gigs
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+        </div>
+
+      </div>
+
+      {/* 5. ADD PORTFOLIO WORK MODAL */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[9990] p-4">
+          <div 
+            className="w-full max-w-md bg-white dark:bg-brand-dark-card rounded-[2rem] shadow-2xl border border-gray-100 dark:border-[#2A2A2F] overflow-hidden animate-in fade-in zoom-in-95 duration-250"
+          >
+            {/* Header */}
+            <div className="px-6 py-5 border-b border-gray-105 dark:border-[#1F1F23] flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-black text-brand-black dark:text-brand-white">Add Past Work</h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Showcase your live vibes & talent</p>
               </div>
+              <button 
+                onClick={() => {
+                  setShowAddModal(false);
+                  clearSelectedFile();
+                }}
+                disabled={isUploading}
+                className="p-1 px-1.5 hover:bg-gray-100 dark:hover:bg-[#1F1F23]/60 rounded-lg text-gray-500 dark:text-gray-400 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-6">
+              {!selectedFile ? (
+                <div 
+                  onDragEnter={handleDrag}
+                  onDragOver={handleDrag}
+                  onDragLeave={handleDrag}
+                  onDrop={handleDrop}
+                  className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all ${
+                    dragActive 
+                      ? 'border-[#6C2BD9] bg-[#6C2BD9]/5' 
+                      : 'border-gray-250 dark:border-[#2A2A2F] hover:border-[#6C2BD9]/40 hover:bg-gray-50/50 dark:hover:bg-[#1A1A1E]/30'
+                  }`}
+                  onClick={() => document.getElementById('portfolio-file-upload')?.click()}
+                >
+                  <input 
+                    id="portfolio-file-upload"
+                    type="file" 
+                    className="hidden" 
+                    accept="image/*,video/*"
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        handleFileSelect(e.target.files[0]);
+                      }
+                    }}
+                  />
+                  <Upload className="w-10 h-10 text-gray-400 dark:text-gray-600 mx-auto mb-3 animate-bounce" style={{ animationDuration: '2.5s' }} />
+                  <p className="text-sm font-bold text-gray-750 dark:text-gray-200 mb-1">
+                    Drag and drop your media, or <span className="text-brand-purple hover:underline">browse</span>
+                  </p>
+                  <p className="text-[11px] text-gray-400 dark:text-gray-500 flex flex-col gap-0.5 leading-normal mt-2.5">
+                    <span>Supports high-quality images and vertical/horizontal session logs</span>
+                    <span>JPEG, PNG, WebP up to 5MB</span>
+                    <span>MP4, MOV, WebM up to 50MB</span>
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="relative aspect-video rounded-xl overflow-hidden bg-black/5 dark:bg-black/30 border border-gray-200 dark:border-[#2A2A2F] flex items-center justify-center">
+                    {selectedFileType === 'image' ? (
+                      <img src={filePreview || ''} alt="Preview" className="w-full h-full object-contain animate-fade-in" />
+                    ) : (
+                      <video src={filePreview || ''} className="w-full h-full object-contain" controls />
+                    )}
+                    
+                    {!isUploading && (
+                      <button
+                        onClick={clearSelectedFile}
+                        className="absolute top-2.5 right-2.5 p-1 bg-black/60 hover:bg-black/80 rounded-full text-white transition-colors"
+                        title="Remove file"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs px-1 text-gray-500 dark:text-gray-400">
+                    <span className="font-semibold truncate max-w-[250px]">{selectedFile.name}</span>
+                    <span>{(selectedFile.size / (1024 * 1024)).toFixed(2)} MB</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-4 border-t border-gray-105 dark:border-[#1F1F23] flex items-center justify-end gap-3 bg-gray-50/50 dark:bg-[#1A1A1E]/10">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowAddModal(false);
+                  clearSelectedFile();
+                }}
+                disabled={isUploading}
+                className="px-4 py-2 text-xs font-bold uppercase tracking-wider text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 disabled:opacity-50 cursor-pointer"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                onClick={handleAddPortfolioItem}
+                disabled={!selectedFile || isUploading}
+                className="px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider bg-brand-purple hover:bg-brand-purple-hover text-white disabled:opacity-50 disabled:pointer-events-none flex items-center gap-2 shadow-md hover:shadow-brand-purple/10 active:scale-95 transition-all cursor-pointer"
+              >
+                {isUploading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Uploading...
+                  </>
+                ) : (
+                  'Upload to Portfolio'
+                )}
+              </button>
             </div>
           </div>
-        )}
-        
-      </div>
-      
+        </div>
+      )}
+
+      {/* 6. MODALS / LIGHTBOXES */}
       {userId && showFollowersModal && (
         <FollowListModal 
           userId={userId} 
@@ -761,45 +1460,39 @@ const PublicProfile: React.FC = () => {
       {selectedMedia && (
         <div
           onClick={() => setSelectedMedia(null)}
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            background: "rgba(0,0,0,0.9)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 9999,
-          }}
+          className="fixed inset-0 bg-black/95 z-[9999] flex items-center justify-center p-4"
         >
+          {/* Close lightbox helper */}
+          <button 
+            onClick={() => setSelectedMedia(null)}
+            className="absolute top-6 right-6 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white border border-white/10 transition-colors cursor-pointer"
+          >
+            <X className="w-5 h-5" />
+          </button>
+
           {selectedMedia.type === "image" && (
             <img
               src={selectedMedia.url}
-              style={{
-                maxWidth: "90%",
-                maxHeight: "90%",
-                objectFit: "contain",
-              }}
+              alt="Expanded preview"
+              className="max-w-full max-h-[90vh] object-contain rounded-2xl animate-in zoom-in-95 duration-200"
             />
           )}
 
           {selectedMedia.type === "video" && (
-            <video
-              src={selectedMedia.url}
-              controls
-              autoPlay
-              style={{
-                maxWidth: "90%",
-                maxHeight: "90%",
-              }}
-            />
+            <div className="max-w-[500px] w-full max-h-[90vh] aspect-[9/16] rounded-2xl overflow-hidden bg-black select-none" onClick={(e) => e.stopPropagation()}>
+              <video
+                src={selectedMedia.url}
+                controls
+                autoPlay
+                playsInline
+                className="w-full h-full object-contain"
+              />
+            </div>
           )}
         </div>
       )}
 
-      {/* CUSTOM PORTFOLIO DELETION CONFIRMATION DIALOG */}
+      {/* 7. PORTFOLIO DELETION DIALOG */}
       <AnimatePresence>
         {portfolioItemToDelete && (
           <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
@@ -807,7 +1500,7 @@ const PublicProfile: React.FC = () => {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white dark:bg-brand-dark-card p-6 sm:p-8 rounded-[2rem] max-w-sm w-full shadow-2xl border border-gray-105 dark:border-[#2A2A2F] text-center"
+              className="bg-white dark:bg-brand-dark-card p-6 sm:p-8 rounded-[2.25rem] max-w-sm w-full shadow-2xl border border-gray-150 dark:border-[#2A2A2F] text-center"
             >
               <div className="w-16 h-16 rounded-2xl bg-red-50 dark:bg-red-950/20 flex items-center justify-center mb-6 text-red-600 dark:text-red-400 mx-auto">
                 <AlertTriangle className="w-8 h-8" />
@@ -822,7 +1515,7 @@ const PublicProfile: React.FC = () => {
                 <button 
                   type="button"
                   onClick={() => setPortfolioItemToDelete(null)}
-                  className="flex-1 py-3.5 px-4 rounded-xl border border-gray-200 dark:border-brand-black text-brand-black dark:text-brand-white text-sm font-bold hover:bg-brand-gray dark:hover:bg-brand-black active:scale-95 transition-all cursor-pointer"
+                  className="flex-1 py-3.5 px-4 rounded-xl border border-gray-200 dark:border-brand-black text-brand-black dark:text-brand-white text-sm font-bold hover:bg-[#FAFAFA] dark:hover:bg-brand-black active:scale-95 transition-all cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -839,6 +1532,7 @@ const PublicProfile: React.FC = () => {
           </div>
         )}
       </AnimatePresence>
+
     </div>
   );
 };

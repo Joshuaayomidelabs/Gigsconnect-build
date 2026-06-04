@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { MapPin, Calendar, ArrowRight, Trash2, Star, Clock, Loader2, Shield, CheckCircle } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
 import { formatCurrency, formatDate } from '../utils/helpers';
 import VerificationBadge from './VerificationBadge';

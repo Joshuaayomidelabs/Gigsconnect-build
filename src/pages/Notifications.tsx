@@ -7,8 +7,6 @@ import { useAuth } from '../context/AuthContext';
 import { useNotificationContext } from '../context/NotificationContext';
 import { notificationsService } from '../services/notificationsService';
 import { applicationsService } from '../services/applicationsService';
-import { pushNotificationService } from '../services/pushNotificationService';
-import { Smartphone, Send, ThumbsUp } from 'lucide-react';
 
 const Notifications: React.FC = () => {
   const { user } = useAuth();
@@ -82,65 +80,6 @@ const Notifications: React.FC = () => {
           <p className="text-gray-500 dark:text-gray-400 text-lg">Stay updated with your music career.</p>
         </div>
       </header>
-
-      {/* Mobile Push Notification Sandbox */}
-      <div className="bg-brand-white dark:bg-brand-dark-card rounded-[2rem] p-6 mb-8 border border-brand-purple/20 shadow-sm">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="p-2.5 rounded-xl bg-brand-purple/10 text-brand-purple">
-            <Smartphone className="w-5 h-5" />
-          </div>
-          <div>
-            <h2 className="text-lg font-black text-brand-black dark:text-brand-white">Native Mobile Push Sandbox</h2>
-            <p className="text-xs font-bold text-gray-500 dark:text-gray-400">Test push registrations & deep linking routes</p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mt-3 font-sans">
-          <div className="p-4 rounded-xl bg-brand-gray dark:bg-brand-black">
-            <p className="font-bold text-brand-black dark:text-brand-white mb-1">Capacitor Push Service Status</p>
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
-                {localStorage.getItem('gigsconnect_fcm_token') ? 'Registered & Connected' : 'Ready (Active on Device)'}
-              </span>
-            </div>
-            {localStorage.getItem('gigsconnect_fcm_token') && (
-              <p className="text-[10px] font-mono mt-2 break-all text-gray-400 dark:text-gray-500 max-w-full">
-                Token: {localStorage.getItem('gigsconnect_fcm_token')?.substring(0, 30)}...
-              </p>
-            )}
-          </div>
-
-          <div className="p-4 rounded-xl bg-brand-gray dark:bg-brand-black flex flex-col justify-between">
-            <p className="font-bold text-brand-black dark:text-brand-white mb-2">Simulate Deep Link Push Alerts</p>
-            <div className="flex gap-2">
-              <button
-                onClick={() => pushNotificationService.simulatePushNotification(navigate, {
-                  title: 'New Message from James 💬',
-                  body: 'Hey, is the soundcheck scheduled for 6 PM or 7 PM tonight?',
-                  link: '/messages',
-                  type: 'message_new'
-                })}
-                className="flex-grow inline-flex justify-center items-center gap-1.5 h-10 rounded-xl bg-brand-purple text-white text-xs font-black uppercase tracking-wider shadow-sm hover:scale-[1.02] active:scale-[0.98] transition-transform cursor-pointer"
-              >
-                <MessageSquare className="w-3.5 h-3.5" /> Message Link
-              </button>
-              
-              <button
-                onClick={() => pushNotificationService.simulatePushNotification(navigate, {
-                  title: 'New Application Submitted 💼',
-                  body: 'Alex applied to your gig "Main Stage Vocals" at Sunset Lounge.',
-                  link: '/applications',
-                  type: 'gig_application'
-                })}
-                className="flex-grow inline-flex justify-center items-center gap-1.5 h-10 rounded-xl bg-brand-black dark:bg-brand-dark-card border border-brand-purple/20 text-brand-purple text-xs font-black uppercase tracking-wider hover:scale-[1.02] active:scale-[0.98] transition-transform cursor-pointer"
-              >
-                <Briefcase className="w-3.5 h-3.5" /> Gig Link
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
 
       {isLoading ? (
         <div className="flex items-center justify-center py-20">

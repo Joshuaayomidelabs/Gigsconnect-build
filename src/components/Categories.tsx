@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { Music, Mic2, Disc, Radio, Guitar, Piano, Drum, Headphones } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
