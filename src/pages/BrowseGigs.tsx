@@ -48,21 +48,6 @@ const BrowseGigs: React.FC = () => {
   const [selectedGig, setSelectedGig] = useState<any | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const location = useLocation();
-  const searchParams = new URLSearchParams(location.search);
-  const initialMode = searchParams.get('tab') === 'creators' ? 'creators' : 'gigs';
-  const [searchMode, setSearchMode] = useState<'gigs' | 'creators'>(initialMode);
-
-  // Sync tab search mode with query parameter
-  useEffect(() => {
-    const tabParam = new URLSearchParams(location.search).get('tab');
-    if (tabParam === 'creators') {
-      setSearchMode('creators');
-    } else if (tabParam === 'gigs') {
-      setSearchMode('gigs');
-    }
-  }, [location.search]);
-
   // Debounce search term
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -77,81 +62,40 @@ const BrowseGigs: React.FC = () => {
     const performSearch = async () => {
       setError(null);
       
-      if (searchMode === 'gigs') {
-        if (!debouncedSearchTerm.trim()) {
+      if (!debouncedSearchTerm.trim()) {
+        try {
+          setIsLoading(true);
+          const gigsRes = await gigsService.getAllGigs();
+          if (gigsRes.error) throw gigsRes.error;
+
           setUsers([]);
-          try {
-            setIsLoading(true);
-            const { data, error: fetchError } = await gigsService.getAllGigs();
-            if (fetchError) throw fetchError;
-            setGigs(data || []);
-          } catch (err: any) {
-            setError(err.message);
-          } finally {
-            setIsLoading(false);
-          }
-          return;
-        }
-
-        try {
-          setIsSearching(true);
-          const { gigs: searchGigs, users: searchUsers } = await gigsService.searchGigsAndUsers(debouncedSearchTerm);
-          setGigs(searchGigs || []);
-          const mappedUsers = searchUsers?.map((u: any) => ({
-            ...u,
-            city: u.city || u.city_town
-          })) || [];
-          setUsers(mappedUsers);
+          setGigs(gigsRes.data || []);
         } catch (err: any) {
-          console.error('Error during search:', err);
+          setError(err.message);
         } finally {
-          setIsSearching(false);
+          setIsLoading(false);
         }
-      } else {
-        // searchMode === 'creators'
-        if (!debouncedSearchTerm.trim()) {
-          setGigs([]);
-          try {
-            setIsLoading(true);
-            const { data, error: fetchError } = await supabase
-              .from('profiles')
-              .select('id, full_name, username, avatar_url, skills, city_town, country, verification_status')
-              .order('verification_status', { ascending: false });
-            if (fetchError) throw fetchError;
-            
-            const mapped = data?.map((u: any) => ({
-              ...u,
-              city: u.city_town
-            })) || [];
-            
-            setUsers(mapped);
-          } catch (err: any) {
-            setError(err.message);
-          } finally {
-            setIsLoading(false);
-          }
-          return;
-        }
+        return;
+      }
 
-        try {
-          setIsSearching(true);
-          const { gigs: searchGigs, users: searchUsers } = await gigsService.searchGigsAndUsers(debouncedSearchTerm);
-          const mappedUsers = searchUsers?.map((u: any) => ({
-            ...u,
-            city: u.city || u.city_town
-          })) || [];
-          setUsers(mappedUsers);
-          setGigs([]); // hide gigs in creators list view
-        } catch (err: any) {
-          console.error('Error during search:', err);
-        } finally {
-          setIsSearching(false);
-        }
+      try {
+        setIsSearching(true);
+        const { gigs: searchGigs, users: searchUsers } = await gigsService.searchGigsAndUsers(debouncedSearchTerm);
+        setGigs(searchGigs || []);
+        const mappedUsers = searchUsers?.map((u: any) => ({
+          ...u,
+          city: u.city || u.city_town
+        })) || [];
+        setUsers(mappedUsers);
+      } catch (err: any) {
+        console.error('Error during search:', err);
+      } finally {
+        setIsSearching(false);
       }
     };
 
     performSearch();
-  }, [debouncedSearchTerm, searchMode]);
+  }, [debouncedSearchTerm]);
 
   const filteredGigs = gigs
     .filter(gig => {
@@ -180,54 +124,13 @@ const BrowseGigs: React.FC = () => {
         <p className="text-gray-700 dark:text-gray-200 text-sm lg:text-base font-medium">Find people and opportunities across the continent.</p>
       </section>
 
-      {/* Search Mode Tab Toggle */}
-      <div className="flex w-[280px] sm:mx-0 bg-gray-100 dark:bg-[#121214] rounded-full p-1 border border-gray-200 dark:border-[#1F1F23]/80 mb-6 relative">
-        <button
-          onClick={() => {
-            setSearchMode("gigs");
-            navigate('/browse?tab=gigs', { replace: true });
-          }}
-          className={`relative flex-1 py-2 rounded-full text-xs font-black uppercase tracking-wider transition-all duration-200 z-10 outline-none ${
-            searchMode === "gigs" ? "text-gray-900 dark:text-white" : "text-[#9CA3AF] hover:text-gray-900 dark:hover:text-gray-200"
-          }`}
-        >
-          {searchMode === "gigs" && (
-            <motion.div
-              layoutId="searchTabIndicator"
-              className="absolute inset-0 bg-white dark:bg-[#27272A] rounded-full shadow-md z-[-1]"
-              transition={{ type: "spring", stiffness: 350, damping: 30 }}
-            />
-          )}
-          <span className="relative z-10 transition-transform duration-200 inline-block active:scale-95">Find Gigs</span>
-        </button>
-
-        <button
-          onClick={() => {
-            setSearchMode("creators");
-            navigate('/browse?tab=creators', { replace: true });
-          }}
-          className={`relative flex-1 py-2 rounded-full text-xs font-black uppercase tracking-wider transition-all duration-200 z-10 outline-none ${
-            searchMode === "creators" ? "text-gray-900 dark:text-white" : "text-[#9CA3AF] hover:text-gray-900 dark:hover:text-gray-200"
-          }`}
-        >
-          {searchMode === "creators" && (
-            <motion.div
-              layoutId="searchTabIndicator"
-              className="absolute inset-0 bg-white dark:bg-[#27272A] rounded-full shadow-md z-[-1]"
-              transition={{ type: "spring", stiffness: 350, damping: 30 }}
-            />
-          )}
-          <span className="relative z-10 transition-transform duration-200 inline-block active:scale-95">Find Creators</span>
-        </button>
-      </div>
-
       <div className="flex flex-col gap-4 mb-8 px-2">
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-grow">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
             <input 
               type="text" 
-              placeholder={searchMode === 'gigs' ? "Search gigs by title, description, or skills..." : "Search creators by name, username, or skills..."} 
+              placeholder="Search creators and gigs by name, title, description, or skills..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-12 pr-4 py-3.5 rounded-2xl border border-brand-gray dark:border-brand-black focus:ring-2 focus:ring-brand-purple/20 focus:border-brand-purple/30 transition-all outline-none shadow-sm bg-brand-white dark:bg-brand-dark-card text-brand-black dark:text-brand-white text-sm font-medium"
@@ -317,169 +220,60 @@ const BrowseGigs: React.FC = () => {
 
       {isLoading || isSearching ? (
         <div className="space-y-12">
-          {searchMode === 'gigs' ? (
-            <>
-              {searchTerm.trim() !== '' && (
-                <div className="px-2">
-                  <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-bold text-brand-black dark:text-brand-white tracking-tight">
-                      Searching <span className="text-brand-purple">People</span>
-                    </h2>
-                    <Loader2 className="w-5 h-5 animate-spin text-brand-purple" />
-                  </div>
-                  <div className="flex flex-col">
-                    {[...Array(3)].map((_, i) => (
-                      <div key={i} className="flex items-center gap-4 p-3 rounded-2xl animate-pulse">
-                        <div className="w-14 h-14 bg-gray-200 dark:bg-gray-800 rounded-full flex-shrink-0"></div>
-                        <div className="flex-1">
-                          <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded w-1/3 mb-2"></div>
-                          <div className="h-3 bg-gray-200 dark:bg-gray-800 rounded w-1/2"></div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <div className="px-2">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-bold text-brand-black dark:text-brand-white tracking-tight">
-                    {searchTerm.trim() !== '' ? 'Searching ' : 'Loading '} 
-                    <span className="text-brand-purple">{searchTerm.trim() !== '' ? 'Posts' : 'Gigs'}</span>
-                  </h2>
-                  <Loader2 className="w-5 h-5 animate-spin text-brand-purple" />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {[...Array(6)].map((_, i) => (
-                    <GigCardSkeleton key={i} />
-                  ))}
-                </div>
-              </div>
-            </>
-          ) : (
+          {/* Creators Skeletons */}
+          {searchTerm.trim() !== '' && (
             <div className="px-2">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold text-brand-black dark:text-brand-white tracking-tight">
-                  {searchTerm.trim() !== '' ? 'Searching ' : 'Loading '} 
-                  <span className="text-brand-purple">Creators</span>
+                  Searching <span className="text-brand-purple">Creators</span>
                 </h2>
                 <Loader2 className="w-5 h-5 animate-spin text-brand-purple" />
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {[...Array(4)].map((_, i) => (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[...Array(3)].map((_, i) => (
                   <UserCardSkeleton key={i} />
                 ))}
               </div>
             </div>
           )}
+
+          {/* Gigs Skeletons */}
+          <div className="px-2">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-brand-black dark:text-brand-white tracking-tight">
+                {searchTerm.trim() !== '' ? 'Searching ' : 'Loading '} 
+                <span className="text-brand-purple">Gigs</span>
+              </h2>
+              <Loader2 className="w-5 h-5 animate-spin text-brand-purple" />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[...Array(6)].map((_, i) => (
+                <GigCardSkeleton key={i} />
+              ))}
+            </div>
+          </div>
         </div>
       ) : error ? (
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/40 rounded-[2rem] p-8 text-center mx-2">
           <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <h3 className="text-xl font-bold text-red-900 dark:text-red-100 mb-2">Failed to load gigs</h3>
+          <h3 className="text-xl font-bold text-red-900 dark:text-red-100 mb-2">Failed to load search results</h3>
           <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
         </div>
       ) : (
         <>
-          {searchMode === 'gigs' ? (
-            <>
-              {searchTerm.trim() !== '' && (
-                <div className="mb-10 px-2">
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-bold text-brand-black dark:text-brand-white tracking-tight">
-                      People
-                    </h2>
-                  </div>
-
-                  {users.length > 0 ? (
-                    <div className="flex flex-col">
-                      {users.map((user, i) => (
-                        <motion.div
-                          key={user.id}
-                          initial={{ opacity: 0, y: 5 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: i * 0.03 }}
-                        >
-                          <Link 
-                            to={`/profile/${user.id}`} 
-                            className="flex items-center gap-4 p-3 rounded-2xl hover:bg-black/5 dark:hover:bg-white/5 active:scale-[0.98] transition-all cursor-pointer"
-                          >
-                            <div className="w-14 h-14 rounded-full bg-brand-gray dark:bg-brand-black flex-shrink-0 flex items-center justify-center overflow-hidden border border-brand-gray dark:border-brand-black">
-                              {user.avatar_url ? (
-                                <img src={user.avatar_url} alt={user.username || user.full_name} className="w-full h-full object-cover" />
-                              ) : (
-                                <User className="w-6 h-6 text-gray-400" />
-                              )}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <h3 className="font-bold text-brand-black dark:text-brand-white text-base truncate flex items-center gap-1">
-                                {user.username || user.full_name || 'User'}
-                                {user.verification_status === 'verified' && (
-                                  <VerificationBadge verificationStatus="verified" className="ml-0" />
-                                )}
-                              </h3>
-                              <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
-                                {user.full_name}
-                                {user.skills && user.skills.length > 0 && ` • ${user.skills[0]}`}
-                              </p>
-                            </div>
-                          </Link>
-                        </motion.div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8">
-                      <p className="text-gray-500 dark:text-gray-400 font-medium">No people found.</p>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              <div className="mb-4 px-2">
+          {/* Creators Section (First) */}
+          {searchTerm.trim() !== '' && (
+            <div className="mb-12 px-2">
+              <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold text-brand-black dark:text-brand-white tracking-tight">
-                  {searchTerm.trim() !== '' ? 'Posts' : 'Gigs'}
+                  Matched <span className="text-brand-purple">Creators</span>
                 </h2>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <AnimatePresence>
-                  {filteredGigs.length > 0 ? (
-                    filteredGigs.map((gig, i) => (
-                      <motion.div
-                        key={gig.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.05 }}
-                      >
-                        <GigCard 
-                          gig={gig} 
-                          onViewDetails={handleViewDetails}
-                          onApply={handleApply}
-                          initialIsApplied={appliedGigIds.has(gig.id)}
-                        />
-                      </motion.div>
-                    ))
-                  ) : (
-                    <div className="col-span-full text-center py-20 bg-brand-white dark:bg-brand-dark-card rounded-[2.5rem] border border-brand-gray dark:border-brand-black border-dashed mx-2">
-                      <p className="text-gray-500 dark:text-gray-400 text-lg font-medium">No gigs found matching your search.</p>
-                      <button onClick={() => setSearchTerm('')} className="mt-4 text-brand-purple font-bold hover:underline">Clear search</button>
-                    </div>
-                  )}
-                </AnimatePresence>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="mb-6 px-2">
-                <h2 className="text-xl font-bold text-brand-black dark:text-brand-white tracking-tight">
-                  {searchTerm.trim() !== '' ? 'Matched ' : ''} <span className="text-brand-purple">Creators</span>
-                </h2>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 px-2">
-                <AnimatePresence>
-                  {users.length > 0 ? (
-                    users.map((item, i) => (
+              {users.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <AnimatePresence>
+                    {users.map((item, i) => (
                       <motion.div
                         key={item.id}
                         initial={{ opacity: 0, y: 10 }}
@@ -488,17 +282,54 @@ const BrowseGigs: React.FC = () => {
                       >
                         <UserCard user={item} />
                       </motion.div>
-                    ))
-                  ) : (
-                    <div className="col-span-full text-center py-20 bg-brand-white dark:bg-brand-dark-card rounded-[2.5rem] border border-brand-gray dark:border-brand-black border-dashed">
-                      <p className="text-gray-500 dark:text-gray-400 text-lg font-medium">No creators found matching your search.</p>
-                      <button onClick={() => setSearchTerm('')} className="mt-4 text-brand-purple font-bold hover:underline">Clear search</button>
-                    </div>
-                  )}
+                    ))}
+                  </AnimatePresence>
+                </div>
+              ) : (
+                <div className="text-center py-12 bg-brand-white dark:bg-brand-dark-card rounded-3xl border border-brand-gray dark:border-[#1F1F23] border-dashed">
+                  <p className="text-gray-500 dark:text-gray-400 font-medium">No creators matched your search.</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Gigs Section (Secondary) */}
+          <div className="mb-12 px-2">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-brand-black dark:text-brand-white tracking-tight">
+                {searchTerm.trim() !== '' ? 'Matched ' : ''}<span className="text-brand-purple">Gigs</span>
+              </h2>
+            </div>
+
+            {filteredGigs.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <AnimatePresence>
+                  {filteredGigs.map((gig, i) => (
+                    <motion.div
+                      key={gig.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.05 }}
+                    >
+                      <GigCard 
+                        gig={gig} 
+                        onViewDetails={handleViewDetails}
+                        onApply={handleApply}
+                        initialIsApplied={appliedGigIds.has(gig.id)}
+                      />
+                    </motion.div>
+                  ))}
                 </AnimatePresence>
               </div>
-            </>
-          )}
+            ) : (
+              <div className="col-span-full text-center py-20 bg-brand-white dark:bg-brand-dark-card rounded-[2.5rem] border border-brand-gray dark:border-[#1F1F23]/80 border-dashed mx-2">
+                <p className="text-gray-500 dark:text-gray-400 text-lg font-medium">No gigs found matching your search.</p>
+                {searchTerm.trim() !== '' && (
+                  <button onClick={() => setSearchTerm('')} className="mt-4 text-brand-purple font-bold hover:underline">Clear search</button>
+                )}
+              </div>
+            )}
+          </div>
         </>
       )}
 

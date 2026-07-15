@@ -5,6 +5,7 @@ import { motion } from 'motion/react';
 import VerificationBadge from './VerificationBadge';
 import { useAuth } from '../context/AuthContext';
 import { followsService } from '../services/followsService';
+import { useModeration } from '../hooks/useModeration';
 
 interface UserCardProps {
   user: {
@@ -19,8 +20,14 @@ interface UserCardProps {
 
 export const UserCard: React.FC<UserCardProps> = ({ user }) => {
   const { user: currentUser } = useAuth();
+  const { isUserBlocked } = useModeration();
   const [isFollowing, setIsFollowing] = useState(false);
   const [isTogglingFollow, setIsTogglingFollow] = useState(false);
+
+  // Filter blocked users out of listing grids completely
+  if (isUserBlocked(user.id)) {
+    return null;
+  }
   
   useEffect(() => {
     let isMounted = true;

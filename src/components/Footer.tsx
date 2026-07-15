@@ -18,7 +18,7 @@ const Footer: React.FC = () => {
               GigsConnect
             </Link>
             <p className="text-gray-400 leading-relaxed mb-8">
-              The leading community platform for music professionals in Africa. Connect, collaborate, and grow.
+              Africa's leading creator ecosystem. Showcase your portfolio, discover opportunities, and build your creative career.
             </p>
             <div className="flex gap-4">
               <button className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-brand-purple transition-all"><Share2 className="w-5 h-5" /></button>

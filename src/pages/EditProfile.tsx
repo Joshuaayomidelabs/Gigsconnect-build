@@ -7,6 +7,7 @@ import { profilesService } from '../services/profilesService';
 import { motion, AnimatePresence } from 'motion/react';
 import imageCompression from 'browser-image-compression';
 import { checkVideoConstraints } from '../utils/validation';
+import { generateVideoThumbnail, dataUrlToFile } from '../utils/videoUtils';
 
 interface PortfolioItem {
   url: string;
@@ -163,9 +164,27 @@ const EditProfile: React.FC = () => {
       let publicUrl: string;
       if (type === 'video') {
          const toastId = toast.loading(`Uploading ${type}...`);
+         
+         let thumbnailUrl = '';
          const fileExt = file.name.split(".").pop() || "mp4";
          const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
          const filePath = `raw/${session.user.id}/${fileName}`;
+
+         try {
+           const thumbDataUrl = await generateVideoThumbnail(file);
+           const thumbFile = dataUrlToFile(thumbDataUrl, 'thumbnail.jpg');
+           const thumbPath = `raw/${session.user.id}/thumb_${fileName}.jpg`;
+           
+           const { error: thumbErr } = await supabase.storage
+             .from("post-videos")
+             .upload(thumbPath, thumbFile);
+             
+           if (!thumbErr) {
+             thumbnailUrl = supabase.storage.from("post-videos").getPublicUrl(thumbPath).data.publicUrl;
+           }
+         } catch (thumbGenErr) {
+           console.error("Failed to generate/upload portfolio video thumbnail image", thumbGenErr);
+         }
          
          const { error: uploadError, data } = await supabase.storage
            .from("post-videos")
@@ -188,7 +207,11 @@ const EditProfile: React.FC = () => {
            .from("post-videos")
            .getPublicUrl(filePath);
            
-         publicUrl = publicUrlData.publicUrl;
+         if (thumbnailUrl) {
+           publicUrl = `${publicUrlData.publicUrl}?thumb=${encodeURIComponent(thumbnailUrl)}`;
+         } else {
+           publicUrl = publicUrlData.publicUrl;
+         }
          toast.success('Upload complete', { id: toastId });
       } else {
          const toastId = toast.loading(`Uploading ${type}...`);
@@ -880,7 +903,19 @@ const EditProfile: React.FC = () => {
                         <img src={item.url} alt="Portfolio" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                       ) : (
                         <div className="w-full h-full relative">
-                          <video src={item.url} className="w-full h-full object-cover" />
+                          <video 
+                            src={item.url.includes('?thumb=') || item.url.includes('&thumb=') ? item.url.replace(/[?&]thumb=[^&]+/g, '') : item.url} 
+                            poster={(() => {
+                              try {
+                                const match = item.url.match(/[?&]thumb=([^&]+)/);
+                                return match ? decodeURIComponent(match[1]) : undefined;
+                              } catch {
+                                return undefined;
+                              }
+                            })()}
+                            className="w-full h-full object-cover" 
+                            preload="metadata"
+                          />
                           <div className="absolute inset-0 flex items-center justify-center bg-brand-black/20">
                             <Play className="w-8 h-8 text-brand-white fill-current" />
                           </div>

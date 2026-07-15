@@ -19,11 +19,16 @@ import MyApplications from './pages/MyApplications';
 import MyPostedGigs from './pages/MyPostedGigs';
 import EditProfile from './pages/EditProfile';
 import CreateProfile from './pages/CreateProfile';
+import CreatorCategories from './pages/CreatorCategories';
+import CreatorSkills from './pages/CreatorSkills';
+import CreatorLocation from './pages/CreatorLocation';
+import CreatorWelcome from './pages/CreatorWelcome';
 import Notifications from './pages/Notifications';
 import GigDetails from './pages/GigDetails';
 import PublicProfile from './pages/PublicProfile';
 import ApplicationDetails from './pages/ApplicationDetails';
 import PostDetails from './pages/PostDetails';
+import { FeaturedCreators } from './pages/FeaturedCreators';
 
 import ProtectedRoute from './components/ProtectedRoute';
 import { useAuth } from './context/AuthContext';
@@ -223,6 +228,7 @@ const App: React.FC = () => {
               
               {/* Protected Routes */}
               <Route path="/overview" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+              <Route path="/featured-creators" element={<ProtectedRoute><FeaturedCreators /></ProtectedRoute>} />
               <Route path="/browse" element={<ProtectedRoute><BrowseGigs /></ProtectedRoute>} />
               <Route path="/gig/:id" element={<ProtectedRoute><GigDetails /></ProtectedRoute>} />
               <Route path="/post/:id" element={<ProtectedRoute><PostDetails /></ProtectedRoute>} />
@@ -232,6 +238,10 @@ const App: React.FC = () => {
               <Route path="/posted-gigs" element={<ProtectedRoute><MyPostedGigs /></ProtectedRoute>} />
               <Route path="/edit-profile" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
               <Route path="/create-profile" element={<ProtectedRoute><CreateProfile /></ProtectedRoute>} />
+              <Route path="/creator-categories" element={<ProtectedRoute><CreatorCategories /></ProtectedRoute>} />
+              <Route path="/creator-skills" element={<ProtectedRoute><CreatorSkills /></ProtectedRoute>} />
+              <Route path="/creator-location" element={<ProtectedRoute><CreatorLocation /></ProtectedRoute>} />
+              <Route path="/creator-welcome" element={<ProtectedRoute><CreatorWelcome /></ProtectedRoute>} />
               <Route path="/profile/:userId" element={<ProtectedRoute><PublicProfile /></ProtectedRoute>} />
               <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
               <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />

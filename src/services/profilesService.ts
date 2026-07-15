@@ -315,9 +315,8 @@ export const profilesService = {
 
       let query = supabase
         .from('profiles')
-        .select('id, full_name, avatar_url, skills, city_town, country, verification_status')
-        .overlaps('skills', [searchTerm.toLowerCase().trim()])
-        .limit(10);
+        .select('id, full_name, username, avatar_url, skills, city_town, country, verification_status, bio')
+        .overlaps('skills', [searchTerm.toLowerCase().trim()]);
 
       if (currentUserId) {
         query = query.neq('id', currentUserId);
@@ -325,13 +324,60 @@ export const profilesService = {
 
       const { data, error } = await query;
       
+      // Filter out empty/un-onboarded profiles, deactivated/deleted accounts, system accounts, and placeholders
+      const filteredData = (data || []).filter(u => {
+        if (!u.full_name || !u.full_name.trim() || !u.username || !u.username.trim()) {
+          return false;
+        }
+
+        const fullNameLower = u.full_name.toLowerCase();
+        const userNameLower = u.username.toLowerCase();
+
+        // 1. Exclude platform/system official automation accounts
+        if (fullNameLower.includes('gigsconnect') || userNameLower.includes('gigsconnect')) {
+          return false;
+        }
+
+        // 2. Exclude test, demo, sample, placeholder, admin, or developer seed profiles
+        const isPlaceholder = [
+          'test', 'demo', 'sample', 'placeholder', 'example', 'admin', 
+          'new user', 'alex smith', 'john doe'
+        ].some(keyword => fullNameLower.includes(keyword) || userNameLower.includes(keyword));
+        
+        if (isPlaceholder) {
+          return false;
+        }
+
+        // 3. Exclude deleted / anonymized accounts
+        if (
+          fullNameLower.includes('deleted user') || 
+          fullNameLower.includes('deleteduser') || 
+          userNameLower.includes('deleted_user') || 
+          userNameLower.includes('deleteduser')
+        ) {
+          return false;
+        }
+
+        // 4. Exclude empty shell profiles with zero skills and zero biography
+        const hasSkills = Array.isArray(u.skills) && u.skills.length > 0;
+        const hasBio = !!(u.bio && u.bio.trim());
+        if (!hasSkills && !hasBio) {
+          return false;
+        }
+
+        return true;
+      });
+
       // Map city_town to city for frontend consistency
-      const mappedData = data?.map(user => ({
+      const mappedData = filteredData.map(user => ({
         ...user,
         city: user.city_town
-      })) || [];
+      }));
 
-      return { data: mappedData, error };
+      // Limit results after filtering
+      const finalData = mappedData.slice(0, 10);
+
+      return { data: finalData, error };
     } catch (err: any) {
       console.error("Unexpected error searching users:", err);
       return { data: [], error: err };

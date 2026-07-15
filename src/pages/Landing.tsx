@@ -1,645 +1,550 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import React, { useState, useRef } from 'react';
+import { motion, AnimatePresence, useInView } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { 
-  CheckCircle, 
-  Zap, 
-  PlusCircle, 
-  Music, 
-  Mic2, 
-  Disc, 
-  Settings, 
-  Calendar,
-  Star,
-  ArrowRight,
-  MapPin,
-  MessageSquare,
-  Share2,
-  Heart,
-  Clock
+  CheckCircle, Zap, PlusCircle, Music, Mic2, Disc, Settings, Calendar,
+  Star, ArrowRight, MapPin, MessageSquare, Share2, Heart, Clock, Briefcase,
+  Camera, Video, PenTool, Edit3, MonitorPlay, Mic, Scissors, Shirt, Code,
+  Film, Grid, Handshake, ArrowRightCircle, Quote, BadgeCheck, ChevronLeft, ChevronRight,
+  Search, Filter, Users, TrendingUp, Shield, CreditCard, Bell
 } from 'lucide-react';
-
-import Logo from '../components/Logo';
 
 const Landing: React.FC = () => {
   const { user } = useAuth();
   const isLoggedIn = !!user;
+  
+  const carouselRef = useRef<HTMLDivElement>(null);
 
-  const [visibleCount, setVisibleCount] = useState(8);
-
-  const sampleGigs = [
-    {
-      title: "Live Band Needed for Wedding Reception",
-      location: "Lagos, Nigeria",
-      role: "Band",
-      postedBy: "David Adebayo",
-      price: "₦150,000",
-      avatar: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&q=80&w=300",
-      verificationStatus: 'verified'
-    },
-    {
-      title: "Female Vocalist for Studio Recording",
-      location: "Abuja, Nigeria",
-      role: "Vocalist",
-      postedBy: "Michael Okoro",
-      price: "₦80,000",
-      avatar: "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?auto=format&fit=crop&q=80&w=300",
-      verificationStatus: 'verified'
-    },
-    {
-      title: "Saxophonist for Private Dinner Event",
-      location: "Lekki, Lagos",
-      role: "Saxophonist",
-      postedBy: "Chioma Nwankwo",
-      price: "₦60,000",
-      avatar: "https://plus.unsplash.com/premium_photo-1682614336946-c0d8ec83cf57?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-      verificationStatus: 'verified'
-    },
-    {
-      title: "Music Producer Needed for Afrobeats EP",
-      location: "Accra, Ghana",
-      role: "Producer",
-      postedBy: "Kwame Mensah",
-      price: "$150",
-      avatar: "https://plus.unsplash.com/premium_photo-1680955436007-264b858768e4?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-      verificationStatus: 'verified'
-    },
-    {
-      title: "Lead Guitarist for Rock Band",
-      location: "Nairobi, Kenya",
-      role: "Guitarist",
-      postedBy: "John Kamau",
-      price: "$200",
-      avatar: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&q=80&w=300",
-      verificationStatus: 'verified'
-    },
-    {
-      title: "Drummer for Sunday Church Service",
-      location: "Enugu, Nigeria",
-      role: "Drummer",
-      postedBy: "Blessing Okafor",
-      price: "₦25,000",
-      avatar: "https://images.unsplash.com/photo-1524230659092-07f99a75c013?auto=format&fit=crop&q=80&w=300",
-      verificationStatus: 'none'
-    },
-    {
-      title: "Keyboardist for Jazz Night",
-      location: "Cape Town, SA",
-      role: "Keyboardist",
-      postedBy: "Zola Mbeki",
-      price: "R2,500",
-      avatar: "https://images.unsplash.com/photo-1520522186724-2856e1a38f1e?auto=format&fit=crop&q=80&w=300",
-      verificationStatus: 'verified'
-    },
-    {
-      title: "Sound Engineer for Outdoor Festival",
-      location: "Dakar, Senegal",
-      role: "Engineer",
-      postedBy: "Moussa Diop",
-      price: "€500",
-      avatar: "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?auto=format&fit=crop&q=80&w=300",
-      verificationStatus: 'verified'
-    },
-    {
-      title: "Bass Player for Afro-Jazz Fusion",
-      location: "Lagos, Nigeria",
-      role: "Bassist",
-      postedBy: "Femi Kuti",
-      price: "₦100,000",
-      avatar: "https://images.unsplash.com/photo-1564186763535-ebb21ef5277f?auto=format&fit=crop&q=80&w=300",
-      verificationStatus: 'verified'
-    },
-    {
-      title: "Violinist for Classical Concert",
-      location: "Cairo, Egypt",
-      role: "Violinist",
-      postedBy: "Amira Hassan",
-      price: "$300",
-      avatar: "https://images.unsplash.com/photo-1465821185615-20b3c2fbf41b?auto=format&fit=crop&q=80&w=300",
-      verificationStatus: 'none'
-    },
-    {
-      title: "DJ for High-End Corporate Party",
-      location: "Johannesburg, SA",
-      role: "DJ",
-      postedBy: "Thabo Molefe",
-      price: "R5,000",
-      avatar: "https://images.unsplash.com/photo-1571266028243-e4bb33394c31?auto=format&fit=crop&q=80&w=300",
-      verificationStatus: 'verified'
-    },
-    {
-      title: "Backing Vocalists for Tour",
-      location: "Abidjan, Ivory Coast",
-      role: "Vocalist",
-      postedBy: "Didier Drogba",
-      price: "$1,000",
-      avatar: "https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&q=80&w=300",
-      verificationStatus: 'verified'
+  const scrollCarousel = (direction: 'left' | 'right') => {
+    if (carouselRef.current) {
+      const scrollAmount = window.innerWidth > 768 ? 400 : 300;
+      carouselRef.current.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
     }
-  ];
-
-  const categories = [
-    { name: "Musicians", icon: <Music className="w-6 h-6" />, count: "1.2k+" },
-    { name: "Vocalists", icon: <Mic2 className="w-6 h-6" />, count: "800+" },
-    { name: "Producers", icon: <Disc className="w-6 h-6" />, count: "450+" },
-    { name: "Sound Engineers", icon: <Settings className="w-6 h-6" />, count: "300+" },
-    { name: "Event Planners", icon: <Calendar className="w-6 h-6" />, count: "200+" }
-  ];
-
-  const steps = [
-    {
-      title: "Post a Gig",
-      description: "Describe your needs and reach thousands of talented creatives.",
-      icon: <PlusCircle className="w-8 h-8" />,
-      bg: "bg-brand-purple/10",
-      iconColor: "text-brand-purple"
-    },
-    {
-      title: "Receive Applications",
-      description: "Review portfolios and chat with applicants in real-time.",
-      icon: <MessageSquare className="w-8 h-8" />,
-      bg: "bg-brand-purple/20",
-      iconColor: "text-brand-purple-dark"
-    },
-    {
-      title: "Hire Talent",
-      description: "Securely hire the best fit and start collaborating.",
-      icon: <CheckCircle className="w-8 h-8" />,
-      bg: "bg-brand-purple/30",
-      iconColor: "text-brand-purple-dark"
-    }
-  ];
+  };
 
   const testimonials = [
     {
-      quote: "GigsConnect transformed how I find session work. The quality of opportunities here is unmatched for a professional bassist.",
-      name: "Joshua Ayomide",
-      role: "Bassist",
-      avatar: "https://images.unsplash.com/photo-1564186763535-ebb21ef5277f?auto=format&fit=crop&q=80&w=300",
+      quote: "I landed my first international client through GigsConnect. The platform feels built specifically for creators.",
+      name: "Tomiwa O.",
+      role: "Digital Illustrator",
+      location: "Lagos, NG",
+      category: "Illustrator",
+      avatar: "/src/assets/images/avatar_designer_1784146810645.jpg",
       rating: 5
     },
     {
-      quote: "As a session drummer, finding reliable producers was hard until I joined this community. It's truly a game-changer.",
+      quote: "Within weeks I connected with brands and collaborators I never would have met elsewhere.",
+      name: "Sarah K.",
+      role: "Videographer",
+      location: "Nairobi, KE",
+      category: "Videographer",
+      avatar: "/src/assets/images/avatar_videographer_1784146819278.jpg",
+      rating: 5
+    },
+    {
+      quote: "The quality of opportunities here is unlike anything I've experienced before. It's truly premium.",
+      name: "Joshua Ayomide",
+      role: "DJ & Producer",
+      location: "Abuja, NG",
+      category: "DJ",
+      avatar: "/src/assets/images/avatar_dj_1784146786388.jpg",
+      rating: 5
+    },
+    {
+      quote: "My creative network has grown faster than I imagined. I highly recommend it to any serious creator.",
       name: "bright. Bchops",
-      role: "Session drummer",
-      avatar: "https://images.unsplash.com/photo-1524230659092-07f99a75c013?auto=format&fit=crop&q=80&w=300",
+      role: "Photographer",
+      location: "Accra, GH",
+      category: "Photographer",
+      avatar: "/src/assets/images/avatar_photographer_1784146799515.jpg",
+      rating: 5
+    },
+    {
+      quote: "Finally, a platform that understands the African creator economy and respects our craft.",
+      name: "Amanda C.",
+      role: "Music Producer",
+      location: "Cape Town, ZA",
+      category: "Musician",
+      avatar: "/src/assets/images/creator_avatar_singer_1784146326649.jpg",
+      rating: 5
+    },
+    {
+      quote: "The best place to find top-tier projects and developers who understand the creative vision.",
+      name: "David N.",
+      role: "Software Engineer",
+      location: "Kigali, RW",
+      category: "Developer",
+      avatar: "/src/assets/images/creator_avatar_developer_1784146336101.jpg",
       rating: 5
     }
   ];
 
   const BackgroundDecor = () => (
-    <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
-      {/* Animated Blobs */}
-      <div className="absolute top-[-20%] left-[-10%] w-[70%] h-[70%] bg-brand-purple/10 rounded-full blur-[150px] animate-float-slower opacity-60"></div>
-      <div className="absolute bottom-[-15%] right-[-10%] w-[60%] h-[60%] bg-brand-purple/5 rounded-full blur-[120px] animate-float-slow opacity-40" style={{ animationDelay: '-7s' }}></div>
-      <div className="absolute top-[20%] right-[5%] w-[40%] h-[40%] bg-brand-purple/5 rounded-full blur-[100px] animate-pulse-glow opacity-30"></div>
-      <div className="absolute bottom-[20%] left-[10%] w-[30%] h-[30%] bg-brand-purple/5 rounded-full blur-[100px] animate-float-slow opacity-20" style={{ animationDelay: '-12s' }}></div>
-      
-      {/* Subtle Music Icons */}
-      <div className="absolute top-[15%] left-[5%] opacity-[0.02] animate-float-slower" style={{ animationDelay: '2s' }}>
-        <Music className="w-32 h-32" />
-      </div>
-      <div className="absolute top-[45%] right-[5%] opacity-[0.02] animate-float-slow" style={{ animationDelay: '4s' }}>
-        <Disc className="w-32 h-32" />
-      </div>
-      <div className="absolute bottom-[20%] left-[10%] opacity-[0.02] animate-float-slow" style={{ animationDelay: '6s' }}>
-        <Mic2 className="w-24 h-24" />
-      </div>
-      <div className="absolute top-[70%] left-[40%] opacity-[0.01] animate-pulse-glow">
-        <Zap className="w-40 h-40" />
-      </div>
+    <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10 bg-[#faf9fc] transition-colors duration-500">
+      <div className="absolute top-0 left-0 w-full h-full opacity-30 mix-blend-multiply" 
+           style={{ backgroundImage: 'radial-gradient(circle at 15% 50%, rgba(108, 59, 255, 0.05), transparent 40%), radial-gradient(circle at 85% 30%, rgba(108, 59, 255, 0.03), transparent 40%)' }}></div>
     </div>
   );
 
   return (
-    <div className="min-h-screen gradient-bg selection:bg-brand-purple/30 selection:text-brand-purple-dark">
+    <div className="min-h-screen bg-[#faf9fc] selection:bg-brand-purple/30 selection:text-brand-purple-dark font-sans text-brand-black">
       <BackgroundDecor />
       
-      {/* Hero Section */}
+      {/* 1. Hero Section */}
       <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
         <div className="max-w-7xl mx-auto px-5 relative z-10">
-          <div className="flex flex-col lg:grid lg:grid-cols-12 gap-16 lg:gap-20 items-center">
+          <div className="flex flex-col lg:grid lg:grid-cols-12 gap-16 lg:gap-10 items-center">
+            
+            {/* Left Side: Copy */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, ease: "easeOut" }}
-              className="lg:col-span-12 flex flex-col items-center text-center"
+              className="lg:col-span-6 flex flex-col items-start text-left"
             >
               <motion.div 
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-purple/5 border border-brand-purple/10 text-brand-purple text-sm font-bold tracking-tight mb-8 hover:bg-brand-purple/10 transition-colors cursor-default"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-brand-purple/10 text-brand-purple text-xs font-bold tracking-widest uppercase mb-8 shadow-sm"
               >
-                <span className="flex h-2 w-2 rounded-full bg-brand-purple animate-pulse"></span>
-                <span className="opacity-80">The #1 Music Community in Africa</span>
+                <Zap className="w-3.5 h-3.5 fill-current" />
+                Africa's Creator Platform
               </motion.div>
               
-              <h1 className="text-5xl sm:text-7xl lg:text-9xl font-black text-brand-black leading-[1.05] tracking-tight mb-8 w-full max-w-5xl">
-                Find Your Next <br />
-                <span className="text-brand-purple relative inline-block">
-                  Music Gig
-                  <svg className="absolute -bottom-2 left-0 w-full h-3 text-brand-purple/20" viewBox="0 0 100 10" preserveAspectRatio="none">
-                    <path d="M0 5 Q 25 0, 50 5 T 100 5" fill="none" stroke="currentColor" strokeWidth="8" />
-                  </svg>
-                </span>
-                <br />
-                Faster.
+              <h1 className="text-5xl lg:text-7xl font-black text-brand-black leading-[1.05] tracking-tight mb-6">
+                Build Your <br />
+                <span className="text-brand-purple">Creative Career.</span>
               </h1>
               
-              <p className="text-lg lg:text-2xl text-brand-gray-dark/80 leading-relaxed mb-12 w-full max-w-3xl font-medium">
-                GigsConnect is the premier platform for musicians, producers, and creatives to discover opportunities and build meaningful collaborations across the continent.
+              <p className="text-lg lg:text-xl text-brand-gray-dark leading-relaxed mb-10 w-full max-w-lg font-medium">
+                Connect, collaborate, and grow with Africa's leading creative ecosystem. Where top talent meets incredible opportunities.
               </p>
               
-              <div className="flex flex-col sm:flex-row gap-6 w-full justify-center items-center">
-                <Link 
-                  to="/signup" 
-                  className="group w-full sm:w-auto px-12 py-6 rounded-2xl bg-brand-purple text-white font-black text-2xl hover:bg-brand-purple-dark hover:scale-[1.05] active:scale-95 transition-all duration-300 flex items-center justify-center gap-3 shadow-glow"
-                >
-                  JOIN NOW
-                  <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
+              <div className="flex flex-col sm:flex-row flex-wrap gap-4 w-full justify-start items-center mb-10">
+                <Link to="/signup" className="w-full sm:w-auto px-8 py-4 rounded-xl bg-brand-purple text-white font-bold text-base hover:bg-brand-purple-dark active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2 shadow-sm">
+                  Join for Free
+                  <ArrowRight className="w-5 h-5" />
                 </Link>
-                <Link 
-                  to="/login" 
-                  className="w-full sm:w-auto px-10 py-5 rounded-2xl bg-transparent text-brand-purple font-bold text-xl border-2 border-brand-purple/30 hover:bg-brand-purple/5 hover:border-brand-purple/60 hover:scale-[1.02] active:scale-95 transition-all duration-300 flex items-center justify-center"
-                >
-                  Log In
+                <Link to="/login" className="w-full sm:w-auto px-8 py-4 rounded-xl bg-white text-brand-black font-bold text-base border border-gray-200 hover:border-brand-purple/30 active:scale-[0.98] transition-all duration-200 flex items-center justify-center shadow-sm">
+                  Hire Creators
                 </Link>
-              </div>
-
-              <div className="mt-16 flex flex-col sm:flex-row items-center justify-center gap-6 lg:gap-10 w-full">
-                <div className="flex -space-x-4">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <div key={i} className="w-12 h-12 rounded-full border-4 border-white dark:border-brand-black overflow-hidden shadow-sm hover:scale-110 transition-transform cursor-pointer">
-                      <img 
-                        src={`https://i.pravatar.cc/150?u=${i + 10}`}
-                        className="w-full h-full object-cover"
-                        alt="User"
-                        referrerPolicy="no-referrer"
-                      />
-                    </div>
-                  ))}
-                  <div className="w-12 h-12 rounded-full bg-brand-purple border-4 border-white dark:border-brand-black flex items-center justify-center text-white text-xs font-black shadow-sm">
-                    +2k
-                  </div>
-                </div>
-                <div className="flex flex-col">
-                  <div className="flex items-center gap-1 text-yellow-500 mb-1">
-                    {[1, 2, 3, 4, 5].map((i) => (
-                      <Star key={i} className="w-4 h-4 fill-current" />
-                    ))}
-                  </div>
-                  <p className="text-sm text-brand-gray-dark font-bold">
-                    Trusted by <span className="text-brand-black font-black">2,000+</span> creatives in Africa
-                  </p>
-                </div>
               </div>
             </motion.div>
 
+            {/* Right Side: Hero Illustration */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               transition={{ duration: 1, delay: 0.3 }}
-              className="lg:col-span-12 relative w-full mt-16 lg:mt-24 max-w-5xl mx-auto"
+              className="lg:col-span-6 relative w-full h-[500px] lg:h-[600px]"
             >
-              <div className="relative z-10 w-full">
-                <div className="relative group">
-                  {/* Main Image Container */}
-                  <div className="relative glass p-4 rounded-[3rem] shadow-2xl border border-white/40 overflow-hidden">
-                    <div className="relative rounded-[2.2rem] overflow-hidden aspect-[4/5] lg:aspect-square">
-                      <img 
-                        src="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?auto=format&fit=crop&q=80&w=1000" 
-                        alt="Music Production" 
-                        className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-1000"
-                        referrerPolicy="no-referrer"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-brand-black/60 via-transparent to-transparent"></div>
-                      
-                      {/* Play Button Overlay */}
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <motion.button
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                          className="w-20 h-20 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-white shadow-2xl group/play"
-                        >
-                          <div className="w-14 h-14 rounded-full bg-brand-purple flex items-center justify-center group-hover/play:bg-brand-purple-hover transition-colors">
-                            <Music className="w-6 h-6 fill-current" />
-                          </div>
-                        </motion.button>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Floating Cards */}
-                  <motion.div 
-                    animate={{ y: [0, -15, 0] }}
-                    transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute -top-10 -right-6 lg:-top-12 lg:-right-12 glass p-5 rounded-3xl shadow-premium border border-white/50 max-w-[220px] hidden sm:block z-20"
-                  >
-                    <div className="flex items-center gap-4 mb-3">
-                      <div className="w-12 h-12 rounded-2xl bg-green-500/10 flex items-center justify-center text-green-600">
-                        <CheckCircle className="w-7 h-7" />
-                      </div>
-                      <div>
-                        <p className="text-[10px] font-black text-brand-gray-dark uppercase tracking-widest">Status</p>
-                        <p className="text-base font-black text-brand-black">Hired!</p>
-                      </div>
-                    </div>
-                    <p className="text-xs text-brand-gray-dark font-medium leading-relaxed">Michael just hired a <span className="text-brand-purple font-bold">Vocalist</span> for his upcoming Afrobeats EP.</p>
-                  </motion.div>
-
-                  <motion.div 
-                    animate={{ y: [0, 15, 0] }}
-                    transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                    className="absolute -bottom-10 -left-6 lg:-bottom-12 lg:-left-12 glass p-5 rounded-3xl shadow-premium border border-white/50 hidden sm:block z-20"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 rounded-2xl bg-brand-purple flex items-center justify-center text-white shadow-glow">
-                        <Disc className="w-8 h-8 animate-spin-slow" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-black text-brand-black">New Gig Posted</p>
-                        <div className="flex items-center gap-1 text-brand-gray-dark text-[10px] font-bold mt-1">
-                          <MapPin className="w-3 h-3" />
-                          Lagos, Nigeria
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-
-                  {/* Decorative Elements */}
-                  <div className="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[140%]">
-                    <div className="absolute top-0 right-0 w-72 h-72 bg-brand-purple/20 rounded-full blur-[100px] animate-pulse"></div>
-                    <div className="absolute bottom-0 left-0 w-80 h-80 bg-brand-purple/10 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s' }}></div>
-                  </div>
+              <div className="relative w-full h-full flex items-center justify-center">
+                {/* Main Illustration */}
+                <div className="relative z-10 w-[90%] max-w-[600px] aspect-square rounded-[3rem] overflow-hidden bg-white shadow-[0_20px_60px_rgba(0,0,0,0.04)] border border-gray-100 flex items-center justify-center p-8 lg:p-12">
+                  <img src="/src/assets/images/hero_collab_1784146167112.jpg" alt="Creators Collaborating" className="w-full h-full object-contain relative z-10 mix-blend-multiply" />
                 </div>
+
+                {/* Floating Cards */}
+                <motion.div animate={{ y: [0, -10, 0] }} transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }} className="absolute top-[10%] left-[0%] lg:-left-[10%] z-20">
+                  <div className="bg-white p-3 lg:p-4 rounded-2xl shadow-[0_15px_30px_rgb(0,0,0,0.06)] border border-gray-100 flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-brand-purple/10 text-brand-purple flex items-center justify-center">
+                      <Briefcase className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">New Project</p>
+                      <p className="text-sm font-black text-brand-black">Hiring Now</p>
+                    </div>
+                  </div>
+                </motion.div>
+
+                <motion.div animate={{ y: [0, 15, 0] }} transition={{ repeat: Infinity, duration: 7, delay: 1, ease: "easeInOut" }} className="absolute bottom-[20%] right-[-5%] lg:right-[-10%] z-20">
+                  <div className="bg-white p-3 lg:p-4 rounded-2xl shadow-[0_15px_30px_rgb(0,0,0,0.06)] border border-gray-100 flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-green-50 text-green-600 flex items-center justify-center">
+                      <CheckCircle className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Status</p>
+                      <p className="text-sm font-black text-brand-black">Verified Creator</p>
+                    </div>
+                  </div>
+                </motion.div>
+                
+                <motion.div animate={{ y: [0, -8, 0] }} transition={{ repeat: Infinity, duration: 5.5, delay: 2, ease: "easeInOut" }} className="absolute top-[30%] right-[-5%] lg:right-[-10%] z-20">
+                  <div className="bg-white p-3 lg:p-4 rounded-2xl shadow-[0_15px_30px_rgb(0,0,0,0.06)] border border-gray-100 flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                      <MessageSquare className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Notification</p>
+                      <p className="text-sm font-black text-brand-black">Message Received</p>
+                    </div>
+                  </div>
+                </motion.div>
               </div>
             </motion.div>
           </div>
         </div>
       </section>
 
-      {/* Trusted By Section */}
-      <section className="py-12 border-y border-brand-purple/5 bg-white/30 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-5">
-          <p className="text-center text-sm font-bold text-brand-gray-dark uppercase tracking-[0.2em] mb-10">Trusted by leading music brands</p>
-          <div className="flex flex-wrap justify-center items-center gap-12 lg:gap-24 opacity-40 grayscale hover:grayscale-0 transition-all duration-500">
-            {['Sony Music', 'Universal Music', 'Mavin Records', 'Chocolate City', 'Warner Music'].map((brand) => (
-              <span key={brand} className="text-2xl lg:text-3xl font-black tracking-tighter text-brand-black whitespace-nowrap">{brand}</span>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Featured Gigs */}
-      <section className="py-16 lg:py-24 relative">
-        <div className="max-w-7xl mx-auto px-5">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 lg:mb-16">
-            <div className="text-left">
-              <h2 className="text-3xl lg:text-5xl font-black text-brand-black mb-4 tracking-tight">Featured Gigs</h2>
-              <p className="text-base lg:text-lg text-brand-gray-dark w-full lg:max-w-xl">Explore the latest opportunities from our verified community members.</p>
-            </div>
-            <Link to={isLoggedIn ? "/browse" : "/login"} className="group flex items-center gap-2 text-brand-purple font-bold hover:gap-3 transition-all">
-              View all gigs <ArrowRight className="w-5 h-5" />
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
-            <AnimatePresence mode="popLayout">
-              {sampleGigs.slice(0, visibleCount).map((gig, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ duration: 0.3, delay: (index % 8) * 0.05 }}
-                  whileHover={{ y: -10 }}
-                  className="group glass-card rounded-[2.5rem] p-6 border border-white/40 hover:border-brand-purple/20 hover:bg-white/60 hover:shadow-premium transition-all duration-500"
-                >
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center gap-3">
-                      <div className="relative">
-                        <img src={gig.avatar} className="w-12 h-12 rounded-2xl object-cover shadow-sm" alt={gig.postedBy} />
-                        {gig.verificationStatus === 'verified' && (
-                          <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-brand-purple rounded-full border-2 border-white flex items-center justify-center text-white">
-                            <CheckCircle className="w-2.5 h-2.5" />
-                          </div>
-                        )}
-                        {gig.verificationStatus === 'pending' && (
-                          <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-yellow-500 rounded-full border-2 border-white flex items-center justify-center text-white">
-                            <Clock className="w-2.5 h-2.5" />
-                          </div>
-                        )}
-                      </div>
-                      <div>
-                        <p className="text-[9px] font-bold text-brand-gray-dark uppercase tracking-widest">Posted by</p>
-                        <p className="text-xs font-black text-brand-black">{gig.postedBy}</p>
-                      </div>
-                    </div>
-                    <div className="px-3 py-1 rounded-full bg-white text-brand-purple text-[10px] font-bold uppercase tracking-wider shadow-sm">
-                      {gig.role}
-                    </div>
-                  </div>
-
-                  <h3 className="text-lg font-black text-brand-black mb-2 line-clamp-1 group-hover:text-brand-purple transition-colors">{gig.title}</h3>
-                  <div className="flex items-center gap-2 text-brand-gray-dark text-sm mb-6">
-                    <MapPin className="w-4 h-4" />
-                    {gig.location}
-                  </div>
-
-                  <div className="pt-6 border-t border-brand-purple/5 flex items-center justify-between">
-                    <div>
-                      <p className="text-[10px] font-bold text-brand-gray-dark uppercase tracking-widest">Budget</p>
-                      <p className="text-lg font-black text-brand-black">{gig.price}</p>
-                    </div>
-                    <Link 
-                      to={isLoggedIn ? "/browse" : "/login"}
-                      className="w-10 h-10 rounded-xl bg-white border border-brand-purple/10 flex items-center justify-center text-brand-purple hover:bg-brand-purple hover:text-white transition-all"
-                    >
-                      <ArrowRight className="w-5 h-5" />
-                    </Link>
-                  </div>
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </div>
-
-          {visibleCount < sampleGigs.length && (
-            <div className="mt-12 flex justify-center">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setVisibleCount(prev => prev + 8)}
-                className="px-10 py-4 rounded-2xl bg-white border-2 border-brand-purple/20 text-brand-purple font-black text-lg hover:border-brand-purple hover:bg-brand-purple/5 transition-all shadow-sm"
-              >
-                Load More Gigs
-              </motion.button>
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* Categories Section */}
-      <section className="py-16 lg:py-24 relative overflow-hidden">
+      {/* 2. How It Works */}
+      <section id="how-it-works" className="py-24 lg:py-32 bg-white relative overflow-hidden border-y border-gray-100 scroll-mt-20 lg:scroll-mt-24">
         <div className="max-w-7xl mx-auto px-5 relative z-10">
-          <div className="text-left lg:text-center mb-12 lg:mb-16">
-            <h2 className="text-3xl lg:text-5xl font-black text-brand-black mb-4 tracking-tight">Browse by Category</h2>
-            <p className="text-base lg:text-lg text-brand-gray-dark">Find the perfect talent for your next project.</p>
+          <div className="text-center max-w-3xl mx-auto mb-16 lg:mb-24">
+            <h2 className="text-3xl lg:text-5xl font-black text-brand-black mb-6 tracking-tight">How It Works</h2>
+            <p className="text-lg text-brand-gray-dark font-medium leading-relaxed">Everything you need to collaborate seamlessly, from discovering talent to secure payments.</p>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 lg:gap-6">
-            {categories.map((cat, index) => (
-              <Link
-                key={index}
-                to={isLoggedIn ? "/browse" : "/login"}
-                className="block"
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
+            {[
+              {
+                title: "Post a Project",
+                desc: "Describe your needs and attract top creative professionals.",
+                img: "/src/assets/images/how_it_works_1_1784146180385.jpg"
+              },
+              {
+                title: "Browse & Apply",
+                desc: "Creators find opportunities tailored to their skills and apply.",
+                img: "/src/assets/images/how_it_works_2_1784146191094.jpg"
+              },
+              {
+                title: "Collaborate",
+                desc: "Connect, communicate, and create amazing work together.",
+                img: "/src/assets/images/how_it_works_3_1784146200123.jpg"
+              },
+              {
+                title: "Complete & Review",
+                desc: "Secure payments and build your reputation with reviews.",
+                img: "/src/assets/images/how_it_works_4_1784146209959.jpg"
+              }
+            ].map((step, i) => (
+              <motion.div 
+                key={i}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: i * 0.1 }}
+                className="flex flex-col items-center text-center group"
               >
-                <motion.div
-                  whileHover={{ y: -5, scale: 1.02 }}
-                  className="glass-card p-8 rounded-[2.5rem] border border-white/40 shadow-soft hover:shadow-premium transition-all text-center group cursor-pointer"
-                >
-                  <div className="w-16 h-16 rounded-2xl bg-brand-purple-soft text-brand-purple flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
-                    {cat.icon}
-                  </div>
-                  <h3 className="font-black text-brand-black mb-1">{cat.name}</h3>
-                  <p className="text-xs text-brand-gray-dark font-bold uppercase tracking-widest">{cat.count} listings</p>
-                </motion.div>
-              </Link>
+                <div className="w-full aspect-square mb-8 rounded-3xl overflow-hidden bg-[#faf9fc] p-6 border border-gray-100 group-hover:border-brand-purple/20 transition-colors">
+                  <img src={step.img} alt={step.title} className="w-full h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-500" />
+                </div>
+                <div className="w-10 h-10 rounded-full bg-brand-purple text-white font-bold flex items-center justify-center mb-4">
+                  {i + 1}
+                </div>
+                <h3 className="text-xl font-bold text-brand-black mb-3">{step.title}</h3>
+                <p className="text-brand-gray-dark font-medium leading-relaxed text-sm">{step.desc}</p>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* How It Works */}
-      <section className="py-16 lg:py-24">
-        <div className="max-w-7xl mx-auto px-5">
-          <div className="flex flex-col lg:grid lg:grid-cols-2 gap-12 lg:gap-20 items-start lg:items-center">
-            <motion.div
+      {/* 3. Find Talent */}
+      <section className="py-24 lg:py-32 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-5 relative z-10">
+          <div className="flex flex-col lg:flex-row items-center gap-16 lg:gap-24">
+            <motion.div 
               initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              className="w-full"
+              transition={{ duration: 0.8 }}
+              className="lg:w-1/2 w-full"
             >
-              <h2 className="text-3xl lg:text-5xl font-black text-brand-black mb-8 lg:mb-12 tracking-tight text-left">How GigsConnect Works</h2>
-              <div className="space-y-8 lg:space-y-12">
-                {steps.map((step, index) => (
-                  <motion.div 
-                    key={index}
-                    initial={{ opacity: 0, y: 30, scale: 0.95 }}
-                    whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                    viewport={{ once: true, margin: "-50px" }}
-                    transition={{ 
-                      duration: 0.6, 
-                      delay: index * 0.15,
-                      ease: [0.21, 0.47, 0.32, 0.98] 
-                    }}
-                    className="flex gap-4 lg:gap-6 group"
-                  >
-                    <div className={`w-12 h-12 lg:w-16 lg:h-16 rounded-xl lg:rounded-2xl ${step.bg} ${step.iconColor} flex-shrink-0 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-500`}>
-                      {React.cloneElement(step.icon as React.ReactElement, { className: "w-6 h-6 lg:w-8 lg:h-8" })}
-                    </div>
-                    <div>
-                      <h3 className="text-lg lg:text-xl font-black text-brand-black mb-1 lg:mb-2 group-hover:text-brand-purple transition-colors">{step.title}</h3>
-                      <p className="text-sm lg:text-base text-brand-gray-dark leading-relaxed">{step.description}</p>
-                    </div>
-                  </motion.div>
-                ))}
+              <div className="w-full aspect-square rounded-[3rem] overflow-hidden bg-white shadow-[0_20px_60px_rgba(0,0,0,0.06)] border border-gray-100 p-8">
+                <img src="/src/assets/images/find_talent_1784146221218.jpg" alt="Find Talent" className="w-full h-full object-contain mix-blend-multiply" />
               </div>
             </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
+            
+            <motion.div 
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              className="relative w-full mt-12 lg:mt-0"
+              transition={{ duration: 0.8 }}
+              className="lg:w-1/2 w-full"
             >
-              <div className="relative z-10 rounded-[2rem] lg:rounded-[3rem] overflow-hidden shadow-premium border-4 lg:border-8 border-brand-gray">
-                <img 
-                  src="https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&q=80&w=800" 
-                  alt="Collaboration" 
-                  className="w-full h-[300px] lg:h-[600px] object-cover"
-                  referrerPolicy="no-referrer"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-brand-black/60 to-transparent flex items-end p-6 lg:p-12">
-                  <div className="glass p-6 lg:p-8 rounded-2xl lg:rounded-3xl w-full">
-                    <p className="text-white text-xl lg:text-2xl font-black mb-1 lg:mb-2">Ready to start?</p>
-                    <p className="text-white/80 text-sm lg:text-base mb-4 lg:mb-6">Join thousands of creatives already growing on GigsConnect.</p>
-                    <Link to="/signup" className="inline-flex items-center gap-2 text-brand-purple font-bold bg-white px-5 py-2.5 lg:px-6 lg:py-3 rounded-xl hover:bg-brand-purple hover:text-white transition-all text-sm lg:text-base">
-                      Get Started <ArrowRight className="w-4 h-4 lg:w-5 lg:h-5" />
-                    </Link>
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-brand-purple/10 text-brand-purple text-xs font-bold tracking-widest uppercase mb-8 shadow-sm">
+                <Search className="w-3.5 h-3.5" /> For Clients
+              </div>
+              <h2 className="text-3xl lg:text-5xl font-black text-brand-black mb-6 tracking-tight">Discover Top-Tier Creative Talent</h2>
+              <p className="text-lg text-brand-gray-dark font-medium leading-relaxed mb-8">
+                Review stunning portfolios, filter by specialized skills, and hire verified professionals who can bring your creative vision to life.
+              </p>
+              <ul className="space-y-4 mb-10">
+                {[
+                  "Advanced portfolio previews",
+                  "Verified creator badges",
+                  "Skill-based search filters",
+                  "Direct hiring workflows"
+                ].map((item, i) => (
+                  <li key={i} className="flex items-center gap-3 text-brand-black font-medium">
+                    <CheckCircle className="w-5 h-5 text-brand-purple flex-shrink-0" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <Link to="/login" className="inline-flex px-8 py-4 rounded-xl bg-brand-black text-white font-bold hover:bg-gray-900 transition-colors shadow-lg">
+                Start Hiring
+              </Link>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* 4. Find Gigs */}
+      <section className="py-24 lg:py-32 relative overflow-hidden bg-white border-y border-gray-100">
+        <div className="max-w-7xl mx-auto px-5 relative z-10">
+          <div className="flex flex-col-reverse lg:flex-row items-center gap-16 lg:gap-24">
+            <motion.div 
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+              className="lg:w-1/2 w-full"
+            >
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-brand-purple/10 text-brand-purple text-xs font-bold tracking-widest uppercase mb-8 shadow-sm">
+                <Briefcase className="w-3.5 h-3.5" /> For Creators
+              </div>
+              <h2 className="text-3xl lg:text-5xl font-black text-brand-black mb-6 tracking-tight">Find Opportunities That Match Your Skills</h2>
+              <p className="text-lg text-brand-gray-dark font-medium leading-relaxed mb-8">
+                Browse premium gigs, receive instant notifications for perfect matches, and apply seamlessly with your curated portfolio.
+              </p>
+              <ul className="space-y-4 mb-10">
+                {[
+                  "Tailored gig recommendations",
+                  "One-click applications",
+                  "Interview invitations",
+                  "Secure milestone payments"
+                ].map((item, i) => (
+                  <li key={i} className="flex items-center gap-3 text-brand-black font-medium">
+                    <CheckCircle className="w-5 h-5 text-brand-purple flex-shrink-0" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <Link to="/signup" className="inline-flex px-8 py-4 rounded-xl bg-brand-purple text-white font-bold hover:bg-brand-purple-dark transition-colors shadow-lg">
+                Explore Gigs
+              </Link>
+            </motion.div>
+
+            <motion.div 
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+              className="lg:w-1/2 w-full"
+            >
+              <div className="w-full aspect-square rounded-[3rem] overflow-hidden bg-[#faf9fc] shadow-[0_20px_60px_rgba(0,0,0,0.06)] border border-gray-100 p-8 relative">
+                <img src="/src/assets/images/find_gigs_1784146231885.jpg" alt="Find Gigs" className="w-full h-full object-contain mix-blend-multiply relative z-10" />
+                
+                {/* Floating Notification */}
+                <motion.div animate={{ y: [0, -10, 0] }} transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }} className="absolute top-[15%] right-[5%] z-20">
+                  <div className="bg-white p-3 rounded-2xl shadow-xl border border-gray-100 flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-brand-purple/10 text-brand-purple flex items-center justify-center">
+                      <Bell className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-black text-brand-black">Interview Invite</p>
+                    </div>
                   </div>
-                </div>
+                </motion.div>
               </div>
             </motion.div>
           </div>
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="py-16 lg:py-24 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-5">
-          <div className="text-left lg:text-center mb-12 lg:mb-16">
-            <h2 className="text-3xl lg:text-5xl font-black text-brand-black mb-4 tracking-tight">Community Love</h2>
-            <p className="text-base lg:text-lg text-brand-gray-dark">Hear from the people who make this community great.</p>
+      {/* 5. Features Section */}
+      <section className="py-24 lg:py-32 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-5 relative z-10">
+          <div className="text-center max-w-3xl mx-auto mb-16 lg:mb-24">
+            <h2 className="text-3xl lg:text-5xl font-black text-brand-black mb-6 tracking-tight">Everything You Need to Succeed</h2>
+            <p className="text-lg text-brand-gray-dark font-medium leading-relaxed">A complete suite of tools designed specifically for the modern creative workflow.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
-            {testimonials.map((t, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[
+              { title: "Messaging", img: "/src/assets/images/feature_messaging_1784146243124.jpg", desc: "Communicate securely with clients and collaborators in real-time." },
+              { title: "Portfolio", img: "/src/assets/images/feature_portfolio_1784146261512.jpg", desc: "Showcase your best work with stunning customizable layouts." },
+              { title: "Verification", img: "/src/assets/images/feature_verification_1784146271132.jpg", desc: "Build trust with verified badges and authenticated reviews." },
+              { title: "Analytics", img: "/src/assets/images/feature_analytics_1784146283413.jpg", desc: "Track your profile views, proposal success rate, and earnings." },
+              { title: "Payments", img: "/src/assets/images/feature_payments_1784146294382.jpg", desc: "Secure escrow payments ensure you get paid on time, every time." },
+              { title: "Booking", img: "/src/assets/images/feature_booking_1784146352508.jpg", desc: "Manage your availability and let clients book you directly." }
+            ].map((feat, i) => (
+              <motion.div 
+                key={i}
+                initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                className="glass-card p-10 rounded-[3rem] shadow-soft hover:shadow-premium transition-all border border-white/40"
+                transition={{ duration: 0.6, delay: i * 0.1 }}
+                className="bg-white rounded-[2rem] p-8 border border-gray-100 shadow-[0_10px_40px_rgba(0,0,0,0.03)] hover:shadow-[0_20px_60px_rgba(108,76,241,0.08)] transition-all group"
               >
-                <div className="flex gap-1 mb-6">
-                  {[...Array(t.rating)].map((_, i) => (
-                    <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                  ))}
+                <div className="w-full aspect-video mb-6 rounded-2xl bg-[#faf9fc] overflow-hidden p-4">
+                  <img src={feat.img} alt={feat.title} className="w-full h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-500" />
                 </div>
-                <p className="text-xl text-brand-black font-medium mb-10 leading-relaxed italic">"{t.quote}"</p>
-                <div className="flex items-center gap-4">
-                  <img src={t.avatar} className="w-14 h-14 rounded-2xl object-cover shadow-sm" alt={t.name} referrerPolicy="no-referrer" />
-                  <div>
-                    <h4 className="font-black text-brand-black">{t.name}</h4>
-                    <p className="text-sm text-brand-gray-dark font-bold uppercase tracking-widest">{t.role}</p>
-                  </div>
-                </div>
+                <h3 className="text-xl font-bold text-brand-black mb-2">{feat.title}</h3>
+                <p className="text-brand-gray-dark font-medium text-sm leading-relaxed">{feat.desc}</p>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Final CTA */}
-      <section className="py-16 lg:py-24 px-5">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="max-w-5xl mx-auto rounded-[2rem] lg:rounded-[3rem] gradient-premium p-8 lg:p-24 text-left lg:text-center text-white relative overflow-hidden shadow-premium"
-        >
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-          <div className="absolute bottom-0 left-0 w-64 h-64 bg-brand-black/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
-          
-          <div className="relative z-10">
-            <h2 className="text-3xl lg:text-6xl font-black mb-6 lg:mb-8 tracking-tight leading-tight">
-              Ready to take your music career to the next level?
-            </h2>
-            <p className="text-base lg:text-xl text-brand-purple-light mb-8 lg:mb-12 w-full lg:max-w-2xl lg:mx-auto">
-              Join GigsConnect today and start connecting with the best music talent in Africa.
+      {/* 6. Pricing / Growth Section */}
+      <section className="py-24 lg:py-32 bg-white relative overflow-hidden border-y border-gray-100">
+        <div className="max-w-7xl mx-auto px-5 relative z-10">
+          <div className="flex flex-col lg:flex-row items-center gap-16 lg:gap-24">
+            <motion.div 
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+              className="lg:w-1/2 w-full"
+            >
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-brand-purple/10 text-brand-purple text-xs font-bold tracking-widest uppercase mb-8 shadow-sm">
+                <TrendingUp className="w-3.5 h-3.5" /> Career Progression
+              </div>
+              <h2 className="text-3xl lg:text-5xl font-black text-brand-black mb-6 tracking-tight">Grow Your Creative Business</h2>
+              <p className="text-lg text-brand-gray-dark font-medium leading-relaxed mb-8">
+                GigsConnect is free to join. We only succeed when you succeed, taking a minimal platform fee only when you get paid for a completed gig.
+              </p>
+              <div className="bg-[#faf9fc] rounded-2xl p-6 border border-gray-100">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-12 h-12 rounded-full bg-brand-purple/10 flex items-center justify-center text-brand-purple">
+                    <Shield className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-brand-black">Free to Join & Apply</h4>
+                    <p className="text-sm text-brand-gray-dark">No monthly subscriptions</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-full bg-brand-purple/10 flex items-center justify-center text-brand-purple">
+                    <CreditCard className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-brand-black">Secure Escrow Payments</h4>
+                    <p className="text-sm text-brand-gray-dark">Guaranteed payment upon completion</p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            <motion.div 
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+              className="lg:w-1/2 w-full"
+            >
+              <div className="w-full aspect-square rounded-[3rem] overflow-hidden bg-white shadow-[0_20px_60px_rgba(0,0,0,0.06)] border border-gray-100 p-8">
+                <img src="/src/assets/images/pricing_growth_1784146304703.jpg" alt="Growth and Progression" className="w-full h-full object-contain mix-blend-multiply" />
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* 7. Community Section */}
+      <section className="py-24 lg:py-32 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-5">
+          <div className="max-w-3xl mx-auto text-center mb-16 lg:mb-20">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-brand-purple/10 text-brand-purple text-xs font-bold tracking-widest uppercase mb-8 shadow-sm"
+            >
+              <Heart className="w-3.5 h-3.5 fill-current" />
+              Community
+            </motion.div>
+            
+            <h2 className="text-3xl lg:text-5xl font-black text-brand-black mb-6 tracking-tight">Loved by Creators Across Africa</h2>
+            <p className="text-lg text-brand-gray-dark font-medium leading-relaxed">
+              Join thousands of musicians, designers, videographers, developers, and creators building successful careers.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-start lg:justify-center">
-              <Link to="/signup" className="w-full sm:w-auto px-8 py-4 lg:px-10 lg:py-5 rounded-2xl bg-white text-brand-purple font-black hover:bg-brand-gray hover:scale-105 active:scale-95 transition-all text-lg lg:text-xl shadow-xl text-left sm:text-center">
-                Join for Free
-              </Link>
-              <Link to={isLoggedIn ? "/browse" : "/login"} className="w-full sm:w-auto px-8 py-4 lg:px-10 lg:py-5 rounded-2xl bg-white/10 text-white font-black border border-white/20 hover:bg-white/20 active:scale-95 transition-all text-lg lg:text-xl backdrop-blur-sm text-left sm:text-center">
-                Explore Gigs
-              </Link>
+          </div>
+
+          <div className="relative mb-16">
+            <div className="flex justify-between items-center mb-8 px-2">
+              <h3 className="text-2xl font-black text-brand-black">Creator Stories</h3>
+              <div className="hidden md:flex items-center gap-3">
+                <button onClick={() => scrollCarousel('left')} className="w-12 h-12 rounded-full bg-white border border-gray-200 flex items-center justify-center hover:border-brand-purple hover:text-brand-purple transition-colors shadow-sm">
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <button onClick={() => scrollCarousel('right')} className="w-12 h-12 rounded-full bg-white border border-gray-200 flex items-center justify-center hover:border-brand-purple hover:text-brand-purple transition-colors shadow-sm">
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            <div ref={carouselRef} className="flex overflow-x-auto snap-x snap-mandatory gap-6 pb-10 px-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+              {testimonials.map((t, index) => (
+                <div key={index} className="min-w-[85vw] md:min-w-[400px] max-w-[450px] flex-shrink-0 snap-center md:snap-start">
+                  <div className="h-full bg-white p-8 lg:p-10 rounded-[2rem] border border-gray-100 shadow-[0_10px_40px_rgba(0,0,0,0.04)] hover:shadow-[0_20px_60px_rgba(108,76,241,0.12)] transition-all flex flex-col justify-between relative overflow-hidden">
+                    <Quote className="absolute top-6 right-6 w-20 h-20 text-brand-purple/[0.03] rotate-12 pointer-events-none" />
+                    <div>
+                      <div className="flex gap-1 mb-8">
+                        {[...Array(t.rating)].map((_, i) => (
+                          <Star key={i} className="w-4 h-4 fill-brand-purple text-brand-purple" />
+                        ))}
+                      </div>
+                      <p className="text-xl text-brand-black font-medium leading-relaxed mb-10 relative z-10">"{t.quote}"</p>
+                    </div>
+                    <div className="flex items-center gap-4 relative z-10 pt-6 border-t border-gray-50">
+                      <div className="relative w-16 h-16 rounded-2xl overflow-hidden bg-[#faf9fc] border border-gray-100 flex-shrink-0">
+                        <img src={t.avatar} className="w-full h-full object-cover mix-blend-multiply" alt={t.name} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-black text-brand-black text-lg truncate">{t.name}</h4>
+                        <div className="flex items-center gap-1.5 text-xs text-brand-gray-dark mt-1">
+                          <span className="font-bold">{t.role}</span>
+                          <span className="w-1 h-1 rounded-full bg-gray-300"></span>
+                          <span>{t.location}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
-        </motion.div>
+        </div>
+      </section>
+
+      {/* 8. Footer CTA with Illustration */}
+      <section className="py-24 bg-white border-t border-gray-100 px-5">
+        <div className="max-w-5xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="rounded-[3rem] bg-brand-black p-10 lg:p-16 text-center text-white relative overflow-hidden shadow-2xl flex flex-col items-center"
+          >
+            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-purple/20 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
+            <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-brand-purple/10 rounded-full blur-[80px] translate-y-1/3 -translate-x-1/3 pointer-events-none"></div>
+            
+            <div className="w-48 h-48 lg:w-64 lg:h-64 mb-8 relative z-10 bg-white rounded-full p-4 shadow-xl">
+              <img src="/src/assets/images/footer_community_1784146316093.jpg" alt="Community Networking" className="w-full h-full object-contain mix-blend-multiply" />
+            </div>
+
+            <div className="relative z-10 max-w-2xl mx-auto">
+              <h2 className="text-4xl lg:text-5xl font-black mb-6 tracking-tight">Join the Creative Movement</h2>
+              <p className="text-lg text-gray-300 mb-10 font-medium leading-relaxed">
+                Start connecting with opportunities, collaborators, and clients across Africa today.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link to="/signup" className="px-10 py-5 rounded-xl bg-white text-brand-black font-black hover:bg-gray-50 active:scale-[0.98] transition-all text-lg shadow-xl">
+                  Get Started Free
+                </Link>
+                <Link to="/login" className="px-10 py-5 rounded-xl bg-white/10 text-white font-black border border-white/20 hover:bg-white/20 active:scale-[0.98] transition-all text-lg backdrop-blur-md">
+                  Explore Creators
+                </Link>
+              </div>
+            </div>
+          </motion.div>
+        </div>
       </section>
     </div>
   );

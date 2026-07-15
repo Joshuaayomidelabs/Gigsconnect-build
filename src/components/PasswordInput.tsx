@@ -33,7 +33,7 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
   return (
     <div className="w-full">
       {label && (
-        <label className="block text-xs font-black uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2 ml-1">
+        <label className="block text-xs font-black uppercase tracking-widest text-gray-500 mb-2 ml-1">
           {label} {props.required && <span className="text-red-500">*</span>}
         </label>
       )}
@@ -41,16 +41,16 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
         <input
           {...props}
           type={showPassword ? 'text' : 'password'}
-          className={`block w-full h-[54px] rounded-xl border-0 pl-5 pr-12 text-base text-brand-black dark:text-brand-white shadow-sm ring-1 ring-inset ${
+          className={`block w-full h-[56px] rounded-[18px] border-0 pl-5 pr-12 text-base text-[#111827] shadow-sm ring-1 ring-inset ${
             error 
               ? 'ring-red-300 focus:ring-red-500' 
-              : 'ring-brand-purple/10 focus:ring-brand-purple'
-          } placeholder:text-gray-400 focus:ring-2 focus:ring-inset transition-all duration-200 bg-white dark:bg-brand-dark-card focus:bg-white dark:focus:bg-brand-dark-card ${className}`}
+              : 'ring-[#E5E7EB] focus:ring-[#7C3AED] group-hover:ring-gray-300'
+          } placeholder:text-gray-400 focus:ring-2 focus:ring-inset transition-all duration-200 bg-white focus:bg-white ${className.replace('ring-[#E5E7EB]', '').replace('bg-white', '').replace('text-[#111827]', '')}`}
         />
         <button
           type="button"
           onClick={toggleVisibility}
-          className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center text-gray-400 hover:text-brand-purple dark:hover:text-brand-purple transition-colors duration-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-purple"
+          className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center text-gray-400 hover:text-[#7C3AED] transition-colors duration-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7C3AED]"
           aria-label={showPassword ? 'Hide password' : 'Show password'}
         >
           {showPassword ? (
@@ -64,11 +64,11 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
       {showStrength && (
         <div className="mt-2 px-1">
           <div className="flex justify-between items-center mb-1">
-            <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">
+            <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
               Strength: <span className={getStrengthColor().replace('bg-', 'text-')}>{strengthLabel}</span>
             </span>
           </div>
-          <div className="h-1 w-full bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
+          <div className="h-1 w-full bg-gray-200 rounded-full overflow-hidden">
             <div 
               className={`h-full transition-all duration-500 ease-out ${getStrengthColor()}`}
               style={{ width: `${strengthValue}%` }}

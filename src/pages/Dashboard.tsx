@@ -86,32 +86,71 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        console.log('Dashboard: Fetching data for User ID:', session.user.id);
-        setUser(session.user);
-        
-        // Fetch applied gig IDs
-        const { data: applications } = await supabase
-          .from('applications')
-          .select('gig_id')
-          .eq('applicant_id', session.user.id);
-        
-        if (applications) {
-          setAppliedGigIds(new Set(applications.map(app => app.gig_id)));
-        }
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          console.log('Dashboard: Fetching data for User ID:', session.user.id);
+          setUser(session.user);
+          
+          // Fetch applied gig IDs
+          const { data: applications } = await supabase
+            .from('applications')
+            .select('gig_id')
+            .eq('applicant_id', session.user.id);
+          
+          if (applications) {
+            setAppliedGigIds(new Set(applications.map(app => app.gig_id)));
+          }
 
-        const [profileRes, gigsRes, creatorsRes] = await Promise.all([
-          profilesService.getProfile(session.user.id),
-          gigsService.getAllGigs(),
-          supabase.from('profiles').select('*').eq('verification_status', 'verified').limit(10)
-        ]);
-        
-        if (profileRes.data) setProfile(profileRes.data);
-        if (gigsRes.data) setGigs(gigsRes.data);
-        if (creatorsRes.data) setFeaturedCreators(creatorsRes.data);
+          const [profileRes, gigsRes, creatorsRes] = await Promise.all([
+            profilesService.getProfile(session.user.id),
+            gigsService.getAllGigs(),
+            supabase.from('profiles').select('*').eq('verification_status', 'verified').limit(10)
+          ]);
+          
+          if (profileRes.data) setProfile(profileRes.data);
+          if (gigsRes.data) setGigs(gigsRes.data);
+          if (creatorsRes.data) {
+            const filtered = creatorsRes.data.filter((u: any) => {
+              if (!u.full_name || !u.full_name.trim() || !u.username || !u.username.trim()) {
+                return false;
+              }
+
+              const fullNameLower = u.full_name.toLowerCase();
+              const userNameLower = u.username.toLowerCase();
+
+              // Exclude platform/system official automation accounts
+              if (fullNameLower.includes('gigsconnect') || userNameLower.includes('gigsconnect')) {
+                return false;
+              }
+
+              // Exclude test, demo, sample, placeholder, admin, or developer seed profiles
+              const isPlaceholder = [
+                'test', 'demo', 'sample', 'placeholder', 'example', 'admin', 
+                'new user', 'alex smith', 'john doe'
+              ].some(keyword => fullNameLower.includes(keyword) || userNameLower.includes(keyword));
+              
+              if (isPlaceholder) {
+                return false;
+              }
+
+              // Exclude empty shell profiles with zero skills and zero biography
+              const hasSkills = Array.isArray(u.skills) && u.skills.length > 0;
+              const hasBio = !!(u.bio && u.bio.trim());
+              if (!hasSkills && !hasBio) {
+                return false;
+              }
+
+              return true;
+            });
+            setFeaturedCreators(filtered);
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching data on dashboard mount:', err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
     fetchData();
   }, []);
@@ -193,11 +232,11 @@ const Dashboard: React.FC = () => {
             <OnboardingPrompt profile={profile} onRefresh={refreshProfileOnly} />
           )}
 
-          {/* Featured Creators (Horizontal Scroll) */}
+           {/* Featured Creators (Horizontal Scroll) */}
           <section className="space-y-3">
             <div className="flex justify-between items-center px-2">
               <h3 className="text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-[0.2em]">Featured Creators</h3>
-              <Link to="/browse?tab=creators" className="text-[10px] font-black text-brand-purple uppercase tracking-widest hover:underline">View All</Link>
+              <Link to="/featured-creators" className="text-[10px] font-black text-brand-purple uppercase tracking-widest hover:underline">View All</Link>
             </div>
             <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar px-2 snap-x">
               {featuredCreators.map((creator) => (

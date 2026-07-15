@@ -22,8 +22,11 @@ import { africanCountries, musicProfessions } from '../utils/locations';
 import imageCompression from 'browser-image-compression';
 import { toast } from 'sonner';
 
+import { useAuth } from '../context/AuthContext';
+
 const CreateProfile: React.FC = () => {
   const navigate = useNavigate();
+  const { refreshProfile } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const isSubmittingRef = useRef(false);
   const [isFetching, setIsFetching] = useState(true);
@@ -186,14 +189,16 @@ const CreateProfile: React.FC = () => {
         city: formData.city,
         country: formData.country,
         skills: formData.skills,
-        avatar_url: formData.avatar_url
+        avatar_url: formData.avatar_url,
+        onboarding_completed: true
       });
 
       if (error) throw error;
       
+      await refreshProfile();
       window.dispatchEvent(new CustomEvent('profile-updated'));
       toast.success('Your space is officially live!');
-      navigate('/overview');
+      navigate('/creator-categories');
     } catch (err: any) {
       console.error(err);
       toast.error(err.message || 'Failed to save profile settings.');
@@ -212,12 +217,13 @@ const CreateProfile: React.FC = () => {
   }
 
   return (
-    <div className="bg-brand-gray dark:bg-brand-black min-h-screen pt-[100px] pb-32 px-4 sm:px-6 lg:px-8 transition-colors duration-500 relative overflow-hidden">
+    <div className="bg-brand-gray dark:bg-brand-black min-h-screen pt-24 md:pt-32 pb-32 px-4 sm:px-6 lg:px-8 transition-colors duration-500 relative">
       {/* Decorative ambient elements */}
       <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/4 w-[600px] h-[600px] bg-brand-purple/5 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/4 w-[600px] h-[600px] bg-brand-purple/5 rounded-full blur-[120px] pointer-events-none" />
 
-      <div className="max-w-2xl mx-auto relative z-10">
+      <div className="max-w-[1200px] mx-auto relative z-10 flex flex-col items-center">
+        <div className="w-full max-w-2xl">
         <div className="text-center mb-10">
           <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-brand-purple/10 text-brand-purple text-xs font-black uppercase tracking-wider mb-3">
             <Sparkles className="w-3.5 h-3.5" />
@@ -407,26 +413,6 @@ const CreateProfile: React.FC = () => {
                   />
                 </div>
               </div>
-
-              <div>
-                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2">Tweak Skills & Professions</label>
-                <div className="flex flex-wrap gap-1.5 p-3 rounded-xl bg-brand-gray dark:bg-brand-black max-h-32 overflow-y-auto">
-                  {musicProfessions.map((prof: any) => (
-                    <button
-                      key={prof}
-                      type="button"
-                      onClick={() => toggleProfessionInSkills(prof)}
-                      className={`px-2 py-1 rounded text-[9px] font-black uppercase tracking-wider transition-all duration-150 flex items-center gap-1 ${
-                        formData.skills.includes(prof)
-                          ? 'bg-brand-purple text-white'
-                          : 'bg-white dark:bg-brand-dark-card text-gray-500 dark:text-gray-400 border border-brand-purple/10'
-                      }`}
-                    >
-                      {prof}
-                    </button>
-                  ))}
-                </div>
-              </div>
             </motion.div>
           )}
         </div>
@@ -451,12 +437,26 @@ const CreateProfile: React.FC = () => {
           </button>
 
           <button
-            onClick={() => navigate('/overview')}
+            onClick={async () => {
+              if (isLoading) return;
+              setIsLoading(true);
+              try {
+                await profilesService.updateProfile({ onboarding_completed: true });
+                await refreshProfile();
+                window.dispatchEvent(new CustomEvent('profile-updated'));
+                navigate('/creator-categories');
+              } catch (err) {
+                navigate('/creator-categories');
+              } finally {
+                setIsLoading(false);
+              }
+            }}
             disabled={isLoading}
             className="w-full py-4 text-gray-400 dark:text-gray-500 hover:text-brand-purple font-black text-xs uppercase tracking-[0.2em] transition-colors"
           >
             Skip for now &gt;
           </button>
+        </div>
         </div>
       </div>
     </div>

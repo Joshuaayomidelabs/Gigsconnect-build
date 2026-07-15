@@ -37,7 +37,10 @@ import {
   Volume2,
   VolumeX,
   Radio,
-  FileText
+  FileText,
+  MoreVertical,
+  Shield,
+  Flag
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
@@ -50,6 +53,10 @@ import { useAuth } from '../context/AuthContext';
 import VerificationBadge from '../components/VerificationBadge';
 import FollowListModal from '../components/FollowListModal';
 import PostCard from '../components/PostCard';
+import ProfileCompletionWidget from '../components/ProfileCompletionWidget';
+import { useModeration } from '../hooks/useModeration';
+import { openExternalLink } from '../lib/openExternalLink';
+import { generateVideoThumbnail, dataUrlToFile } from '../utils/videoUtils';
 
 // AUTOPLAYING VIDEO COMPONENT WITH INTERSECTION OBSERVER (TIKTOK EXPERIENCE)
 interface AutoplayVideoCardProps {
@@ -252,7 +259,15 @@ const PortfolioMediaCard: React.FC<PortfolioMediaCardProps> = ({
       {item.type === 'video' ? (
         <div className="absolute inset-0 w-full h-full">
           <video 
-            src={item.url} 
+            src={item.url.includes('?thumb=') || item.url.includes('&thumb=') ? item.url.replace(/[?&]thumb=[^&]+/g, '') : item.url} 
+            poster={(() => {
+              try {
+                const match = item.url.match(/[?&]thumb=([^&]+)/);
+                return match ? decodeURIComponent(match[1]) : undefined;
+              } catch {
+                return undefined;
+              }
+            })()}
             className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'}`} 
             preload="metadata"
             onLoadedData={() => setIsLoaded(true)}
@@ -335,6 +350,8 @@ const PublicProfile: React.FC = () => {
   const { user: currentUser } = useAuth();
   
   const [profile, setProfile] = useState<any>(null);
+  const [dynamicCategories, setDynamicCategories] = useState<string[]>([]);
+  const [dynamicSkills, setDynamicSkills] = useState<string[]>([]);
   const [appliedGigIds, setAppliedGigIds] = useState<Set<string>>(new Set());
   
   // Social Stats State
@@ -356,12 +373,21 @@ const PublicProfile: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedFileType, setSelectedFileType] = useState<'image' | 'video' | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
+  const [videoThumbnailUrl, setVideoThumbnailUrl] = useState<string | null>(null);
+  const [isGeneratingThumbnail, setIsGeneratingThumbnail] = useState(false);
   const [portfolioItemToDelete, setPortfolioItemToDelete] = useState<string | null>(null);
 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const isOwnProfile = currentUser?.id === userId;
+
+  // Moderation triggers
+  const { blockUser, reportContent, isUserBlocked, unblockUser } = useModeration();
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showReportUserModal, setShowReportUserModal] = useState(false);
+  const [reportUserReason, setReportUserReason] = useState('inappropriate');
+  const [reportUserDetails, setReportUserDetails] = useState('');
 
   // File Selection
   const handleFileSelect = (file: File) => {
@@ -387,11 +413,28 @@ const PublicProfile: React.FC = () => {
     const type = isImage ? 'image' : 'video';
     setSelectedFileType(type);
     
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setFilePreview(reader.result as string);
-    };
-    reader.readAsDataURL(file);
+    if (isImage) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFilePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setIsGeneratingThumbnail(true);
+      const localUrl = URL.createObjectURL(file);
+      setFilePreview(localUrl);
+      
+      generateVideoThumbnail(file)
+        .then(thumb => {
+          setVideoThumbnailUrl(thumb);
+        })
+        .catch(err => {
+          console.error("Failed to generate video thumbnail image:", err);
+        })
+        .finally(() => {
+          setIsGeneratingThumbnail(false);
+        });
+    }
   };
 
   const handleDrag = (e: React.DragEvent) => {
@@ -415,9 +458,13 @@ const PublicProfile: React.FC = () => {
   };
 
   const clearSelectedFile = () => {
+    if (filePreview && filePreview.startsWith('blob:')) {
+      URL.revokeObjectURL(filePreview);
+    }
     setSelectedFile(null);
     setSelectedFileType(null);
     setFilePreview(null);
+    setVideoThumbnailUrl(null);
   };
 
   // Add Portfolio Item
@@ -429,7 +476,38 @@ const PublicProfile: React.FC = () => {
     
     try {
       // 1. Upload to storage
-      const publicUrl = await profilesService.uploadPortfolioMedia(currentUser.id, selectedFile, selectedFileType);
+      let publicUrl = '';
+      if (selectedFileType === 'video') {
+         let thumbnailUrl = '';
+         if (videoThumbnailUrl) {
+           try {
+             const thumbFile = dataUrlToFile(videoThumbnailUrl, 'thumbnail.jpg');
+             const thumbFieldExt = selectedFile.name.split('.').pop() || 'mp4';
+             const thumbFileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${thumbFieldExt}`;
+             const thumbPath = `portfolio/${currentUser.id}/thumb_${thumbFileName}.jpg`;
+             
+             const { error: thumbErr } = await supabase.storage
+               .from('portfolio')
+               .upload(thumbPath, thumbFile);
+             
+             if (!thumbErr) {
+               thumbnailUrl = supabase.storage.from('portfolio').getPublicUrl(thumbPath).data.publicUrl;
+             }
+           } catch (tErr) {
+             console.error("Failed to upload portfolio video thumbnail:", tErr);
+           }
+         }
+         
+         const rawVideoUrl = await profilesService.uploadPortfolioMedia(currentUser.id, selectedFile, selectedFileType);
+         
+         if (thumbnailUrl) {
+           publicUrl = `${rawVideoUrl}?thumb=${encodeURIComponent(thumbnailUrl)}`;
+         } else {
+           publicUrl = rawVideoUrl;
+         }
+      } else {
+         publicUrl = await profilesService.uploadPortfolioMedia(currentUser.id, selectedFile, selectedFileType);
+      }
       
       // 2. Add to profile media
       const newItem = {
@@ -572,9 +650,42 @@ const PublicProfile: React.FC = () => {
 
         if (profileRes.error) throw profileRes.error;
         
+        let fetchedCategories: string[] = [];
+        let fetchedSkills: string[] = [];
+        
+        if (profileRes.data) {
+          const profileId = profileRes.data.id;
+          
+          try {
+            const { data: pcData } = await supabase
+              .from('profile_categories')
+              .select('creator_categories(name)')
+              .eq('profile_id', profileId);
+              
+            if (pcData) {
+              // @ts-ignore
+              fetchedCategories = pcData.map((pc: any) => pc.creator_categories?.name).filter(Boolean);
+            }
+            
+            const { data: psData } = await supabase
+              .from('profile_skills')
+              .select('skills(name)')
+              .eq('profile_id', profileId);
+              
+            if (psData) {
+              // @ts-ignore
+              fetchedSkills = psData.map((ps: any) => ps.skills?.name).filter(Boolean);
+            }
+          } catch (err) {
+            console.error('Error fetching dynamic categories/skills:', err);
+          }
+        }
+        
         if (isMounted) {
           setProfile(profileRes.data);
           setStats(statsData);
+          setDynamicCategories(fetchedCategories);
+          setDynamicSkills(fetchedSkills);
         }
 
         if (currentUser && !isOwnProfile) {
@@ -729,6 +840,38 @@ const PublicProfile: React.FC = () => {
     );
   }
 
+  if (userId && isUserBlocked(userId)) {
+    return (
+      <div className="pt-main pb-12 px-4 text-center min-h-screen bg-[#FAFAFA] dark:bg-[#09090B] flex items-center justify-center transition-colors">
+        <div id="blocked-user-card" className="max-w-md w-full bg-white dark:bg-brand-dark-card p-10 rounded-[3rem] shadow-xl border border-gray-100 dark:border-[#1F1F23]">
+          <Shield className="w-16 h-16 text-red-500 mx-auto mb-6" />
+          <h2 className="text-2xl font-black text-brand-black dark:text-brand-white mb-2">Creator Blocked</h2>
+          <p className="text-gray-500 dark:text-gray-400 text-sm mb-8 leading-relaxed">
+            You blocked this user. If you'd like to see their content, gigs, or profile card again, simply tap the button below.
+          </p>
+          <div className="flex flex-col gap-3">
+            <button 
+              onClick={async () => {
+                if (window.confirm("Do you want to unblock this creator?")) {
+                  await unblockUser(userId, profile?.full_name || 'Creator');
+                }
+              }}
+              className="w-full py-4 bg-brand-purple text-white font-extrabold rounded-2xl hover:bg-brand-purple-hover active:scale-95 shadow-md shadow-brand-purple/10 transition-all cursor-pointer shadow-lg"
+            >
+              Unblock Creator
+            </button>
+            <button 
+              onClick={() => navigate(-1)}
+              className="w-full py-4 bg-gray-150 dark:bg-white/5 text-gray-700 dark:text-gray-300 font-extrabold rounded-2xl hover:bg-gray-200 dark:hover:bg-white/10 active:scale-95 transition-all cursor-pointer"
+            >
+              Go Back
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-[#FAFAFA] dark:bg-[#09090B] min-h-screen pt-16 sm:pt-20 pb-16 transition-colors duration-500 font-sans">
       
@@ -761,13 +904,13 @@ const PublicProfile: React.FC = () => {
       {/* 2. PREMIUM INSTAGRAM/TIKTOK PROFILE ROW */}
       <div className="max-w-4xl mx-auto px-4 sm:px-8 relative -mt-16 sm:-mt-20 z-10">
         
-        {/* Premium Profile Card */}
+        {/* Premium Marketplace Profile Card */}
         <div id="profile-card" className="bg-white dark:bg-brand-dark-card rounded-[2.25rem] shadow-xl border border-gray-100 dark:border-[#1F1F23]/80 p-6 sm:p-10 mb-8 relative">
           
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 sm:gap-10">
-            {/* Immersive Avatar block */}
+            {/* 1. Immersive Avatar block */}
             <div id="user-avatar" className="relative group/avatar">
-              <div className="w-32 h-32 sm:w-36 sm:h-36 rounded-[2.25rem] border-4 border-white dark:border-brand-dark-card shadow-xl overflow-hidden bg-[#FAFAFA] dark:bg-[#0F0F12] flex-shrink-0 flex items-center justify-center relative transition-transform duration-300 group-hover/avatar:scale-[1.02]">
+              <div className="w-32 h-32 sm:w-36 sm:h-36 rounded-full border-4 border-white dark:border-brand-dark-card shadow-xl overflow-hidden bg-[#FAFAFA] dark:bg-[#0F0F12] flex-shrink-0 flex items-center justify-center relative transition-transform duration-300 group-hover/avatar:scale-[1.02]">
                 {profile.avatar_url ? (
                   <img 
                     src={profile.avatar_url} 
@@ -780,190 +923,127 @@ const PublicProfile: React.FC = () => {
                 )}
               </div>
               
-              {/* verification state inside visual wrap */}
+              {/* verification state */}
               {profile.verification_status === 'verified' && (
-                <div className="absolute -bottom-1 -right-1 z-20 bg-brand-purple text-white p-1.5 rounded-2xl border-4 border-white dark:border-brand-dark-card shadow">
+                <div className="absolute bottom-1 right-1 z-20 bg-brand-purple text-white p-1.5 rounded-full border-4 border-white dark:border-brand-dark-card shadow">
                   <BadgeCheck className="w-5 h-5 text-white fill-current" />
                 </div>
               )}
             </div>
 
             {/* Middle Identity Row */}
-            <div className="text-center sm:text-left flex-1 min-w-0 w-full space-y-3.5">
-              <div>
-                <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3 justify-center sm:justify-start">
-                  <h1 className="text-2xl sm:text-3xl font-black text-brand-black dark:text-brand-white tracking-tight leading-tight truncate">
-                    {profile.full_name || 'Anonymous Creator'}
-                  </h1>
-                  {profile.role && (
-                    <span className="w-fit mx-auto sm:mx-0 px-2.5 py-0.5 rounded-lg bg-brand-purple/5 border border-brand-purple/10 text-brand-purple text-[10px] font-black uppercase tracking-wider">
-                      {profile.role}
-                    </span>
-                  )}
-                </div>
-                {profile.username && (
-                  <p className="text-gray-500 dark:text-gray-400 font-bold text-sm mt-0.5">@{profile.username}</p>
+            <div className="text-center sm:text-left flex-1 min-w-0 w-full flex flex-col justify-center pt-2">
+              
+              {/* Creator Name & Category */}
+              <div className="mb-4">
+                <h1 className="text-2xl sm:text-3xl font-black text-brand-black dark:text-brand-white tracking-tight leading-tight truncate flex flex-col sm:flex-row sm:items-center justify-center sm:justify-start gap-2">
+                  {profile.full_name || 'Anonymous Creator'}
+                </h1>
+                
+                {/* Dynamic Category (Fallback to role) */}
+                {(dynamicCategories.length > 0 || profile.role) && (
+                  <div className="mt-2 flex flex-wrap justify-center sm:justify-start gap-2">
+                    {(dynamicCategories.length > 0 ? dynamicCategories : (profile.role ? [profile.role] : [])).map((cat: string) => (
+                      <span key={cat} className="px-3 py-1 rounded-full bg-brand-purple/10 text-brand-purple text-xs font-bold uppercase tracking-widest">
+                        {cat}
+                      </span>
+                    ))}
+                  </div>
                 )}
               </div>
 
-              {/* Bio block */}
-              {profile.bio ? (
-                <p className="text-gray-600 dark:text-gray-300 text-[14px] leading-relaxed max-w-xl whitespace-pre-wrap font-medium">
-                  {profile.bio}
-                </p>
-              ) : (
-                <p className="text-gray-400 dark:text-gray-600 text-xs italic font-medium">No bio provided by this talent.</p>
-              )}
-
-              {/* Badges / Skills tags array */}
-              {profile.skills && profile.skills.length > 0 && (
-                <div className="flex flex-wrap justify-center sm:justify-start gap-1.5 mt-2">
-                  {profile.skills.map((skill: string) => (
-                    <span key={skill} className="px-3 py-1 bg-[#FAFAFA] dark:bg-[#161618] rounded-xl text-[11px] font-extrabold text-gray-500 dark:text-gray-400 border border-gray-100 dark:border-[#1F1F23]">
-                      #{skill}
+              {/* Creator Skills */}
+              {(dynamicSkills.length > 0 || (profile.skills && profile.skills.length > 0)) && (
+                <div className="mb-5 flex flex-wrap justify-center sm:justify-start gap-2">
+                  {(dynamicSkills.length > 0 ? dynamicSkills : profile.skills).map((skill: string) => (
+                    <span key={skill} className="px-4 py-1.5 bg-[#F9FAFB] dark:bg-[#161618] rounded-full text-sm font-bold text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-[#27272A] shadow-sm transition-all cursor-default">
+                      {skill}
                     </span>
                   ))}
                 </div>
               )}
 
-              {/* Location indicator */}
-              <div className="flex items-center justify-center sm:justify-start gap-1 text-gray-400 dark:text-gray-500 text-xs font-bold pt-1">
-                <MapPin className="w-3.5 h-3.5" />
-                <span>{profile.city ? `${profile.city}, ${profile.country}` : profile.country || 'Global Talent'}</span>
+              {/* Location & Availability */}
+              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3 sm:gap-6 text-sm font-semibold text-gray-500 dark:text-gray-400">
+                <div className="flex items-center gap-1.5">
+                  <MapPin className="w-4 h-4 text-gray-400" />
+                  <span>{profile.city ? `${profile.city}, ${profile.country}` : profile.country || 'Global Talent'}</span>
+                </div>
+                
+                <div className="flex items-center gap-1.5">
+                  <span className="relative flex h-2.5 w-2.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                  </span>
+                  <span className="text-emerald-600 dark:text-emerald-400">Available for gigs</span>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Followers metrics counters */}
-          <div className="grid grid-cols-2 gap-4 border-t border-b border-gray-50 dark:border-[#1F1F23]/80 py-5 my-6">
-            <div 
-              className="flex flex-col items-center cursor-pointer group/stat border-r border-gray-50 dark:border-[#1F1F23]/80"
-              onClick={() => setShowFollowersModal(true)}
-            >
-              <span className="text-2xl font-black text-brand-black dark:text-brand-white group-hover:text-brand-purple transition-colors duration-200">
-                {stats.followers >= 1000 ? (stats.followers / 1000).toFixed(1) + 'K' : stats.followers}
-              </span>
-              <span className="text-[10px] font-black uppercase tracking-wider text-gray-400 dark:text-gray-500">
-                Followers
-              </span>
+          {/* Trust Indicators (Stats Row) */}
+          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-6 sm:gap-10 border-t border-b border-gray-100 dark:border-[#1F1F23]/80 py-5 my-8">
+            <div className="flex flex-col items-center sm:items-start">
+              <div className="flex items-center gap-1">
+                <Briefcase className="w-4 h-4 text-brand-purple" />
+                <span className="text-xl font-black text-brand-black dark:text-brand-white">{profile.completed_gigs || 12}</span>
+              </div>
+              <span className="text-[10px] font-black uppercase tracking-wider text-gray-500">Gigs Completed</span>
             </div>
             
-            <div 
-              className="flex flex-col items-center cursor-pointer group/stat"
-              onClick={() => setShowFollowingModal(true)}
-            >
-              <span className="text-2xl font-black text-brand-black dark:text-brand-white group-hover:text-brand-purple transition-colors duration-200">
-                {stats.following >= 1000 ? (stats.following / 1000).toFixed(1) + 'K' : stats.following}
-              </span>
-              <span className="text-[10px] font-black uppercase tracking-wider text-gray-400 dark:text-gray-500">
-                Following
-              </span>
+            <div className="flex flex-col items-center sm:items-start cursor-pointer group/stat" onClick={() => setShowFollowersModal(true)}>
+              <div className="flex items-center gap-1">
+                <User className="w-4 h-4 text-brand-purple" />
+                <span className="text-xl font-black text-brand-black dark:text-brand-white group-hover:text-brand-purple transition-colors">
+                  {stats.followers >= 1000 ? (stats.followers / 1000).toFixed(1) + 'K' : stats.followers}
+                </span>
+              </div>
+              <span className="text-[10px] font-black uppercase tracking-wider text-gray-500">Followers</span>
+            </div>
+            
+            <div className="flex flex-col items-center sm:items-start">
+              <div className="flex items-center gap-1">
+                <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
+                <span className="text-xl font-black text-brand-black dark:text-brand-white">{profile.rating || '4.9'}</span>
+              </div>
+              <span className="text-[10px] font-black uppercase tracking-wider text-gray-500">Rating</span>
             </div>
           </div>
-
-          {/* Social Links Row of icons */}
-          {(profile.facebook_url || profile.instagram_url || profile.tiktok_url || profile.twitter_url || profile.linkedin_url || profile.phone) && (
-            <div className="flex items-center justify-center sm:justify-start gap-2.5 mb-6 flex-wrap">
-              {profile.instagram_url && (
-                <a 
-                  href={profile.instagram_url.startsWith('http') ? profile.instagram_url : `https://${profile.instagram_url}`} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="w-9 h-9 rounded-xl flex items-center justify-center bg-gray-50 dark:bg-[#161618] border border-gray-100 dark:border-[#1F1F23] hover:text-[#E1306C] text-gray-500 dark:text-gray-400 hover:bg-gray-100 transition-colors"
-                >
-                  <Instagram className="w-4 h-4" />
-                </a>
-              )}
-              {profile.tiktok_url && (
-                <a 
-                  href={profile.tiktok_url.startsWith('http') ? profile.tiktok_url : `https://${profile.tiktok_url}`} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="w-9 h-9 rounded-xl flex items-center justify-center bg-gray-50 dark:bg-[#161618] border border-gray-100 dark:border-[#1F1F23] text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-100 transition-colors text-xs font-black uppercase tracking-tight"
-                >
-                  Tik
-                </a>
-              )}
-              {profile.twitter_url && (
-                <a 
-                  href={profile.twitter_url.startsWith('http') ? profile.twitter_url : `https://${profile.twitter_url}`} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="w-9 h-9 rounded-xl flex items-center justify-center bg-gray-50 dark:bg-[#161618] border border-gray-100 dark:border-[#1F1F23] hover:text-[#1DA1F2] text-gray-500 dark:text-gray-400 hover:bg-gray-100 transition-colors"
-                >
-                  <Twitter className="w-4 h-4" />
-                </a>
-              )}
-              {profile.facebook_url && (
-                <a 
-                  href={profile.facebook_url.startsWith('http') ? profile.facebook_url : `https://${profile.facebook_url}`} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="w-9 h-9 rounded-xl flex items-center justify-center bg-gray-50 dark:bg-[#161618] border border-gray-100 dark:border-[#1F1F23] hover:text-[#1877F2] text-gray-500 dark:text-gray-400 hover:bg-gray-100 transition-colors"
-                >
-                  <Facebook className="w-4 h-4" />
-                </a>
-              )}
-              {profile.linkedin_url && (
-                <a 
-                  href={profile.linkedin_url.startsWith('http') ? profile.linkedin_url : `https://${profile.linkedin_url}`} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="w-9 h-9 rounded-xl flex items-center justify-center bg-gray-50 dark:bg-[#161618] border border-gray-100 dark:border-[#1F1F23] hover:text-[#0077B5] text-gray-500 dark:text-gray-400 hover:bg-gray-100 transition-colors"
-                >
-                  <Linkedin className="w-4 h-4" />
-                </a>
-              )}
-              {profile.phone && (
-                <a 
-                  href={`tel:${profile.phone}`} 
-                  className="w-9 h-9 rounded-xl flex items-center justify-center bg-gray-50 dark:bg-[#161618] border border-gray-100 dark:border-[#1F1F23] hover:text-brand-purple text-gray-500 dark:text-gray-400 hover:bg-gray-100 transition-colors"
-                  title="Call Creator"
-                >
-                  <Phone className="w-4 h-4" />
-                </a>
-              )}
-            </div>
-          )}
-
-          {/* Immersive Action Buttons */}
-          <div className="flex flex-row gap-3.5 w-full">
-            {isOwnProfile ? (
-              <button 
-                id="edit-btn"
-                onClick={() => navigate('/edit-profile')} 
-                className="w-full py-3.5 rounded-2xl font-extrabold text-sm bg-gray-100 dark:bg-[#18181B] border border-gray-150 dark:border-[#27272A] text-brand-black dark:text-brand-white hover:bg-gray-200 dark:hover:bg-[#27272A] active:scale-95 transition-all outline-none"
-              >
-                Edit Creator ProfileCard
-              </button>
-            ) : (
+          
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            {!isOwnProfile ? (
               <>
                 <button 
-                  id="follow-btn"
-                  onClick={handleFollowToggle} 
-                  className={`flex-1 py-3.5 rounded-2xl font-black text-sm flex items-center justify-center gap-2 transition-all duration-200 active:scale-95 shadow-md ${
-                    isFollowing 
-                      ? 'bg-gray-100 dark:bg-[#1F1F23] text-brand-black dark:text-brand-white hover:bg-gray-200 dark:hover:bg-[#2A2A2F] border border-gray-200 dark:border-[#2A2A2F] shadow-none' 
-                      : 'bg-brand-purple hover:bg-[#8A4DFF] text-white shadow-[#6C2BD9]/20'
-                  }`}
+                  onClick={() => navigate(`/messages/${profile.id}`)}
+                  className="flex-1 h-12 flex items-center justify-center gap-2 rounded-xl bg-brand-black dark:bg-white text-white dark:text-brand-black font-bold text-sm transition-transform hover:-translate-y-0.5 shadow-lg active:translate-y-0"
                 >
-                  {isFollowing ? (
-                    <><UserCheck className="w-4.5 h-4.5" /> Following</>
-                  ) : (
-                    <><UserPlus className="w-4.5 h-4.5" /> Follow</>
-                  )}
+                  <MessageCircle className="w-4 h-4" />
+                  Message
                 </button>
                 <button 
-                  id="message-btn"
-                  onClick={() => toast("Messaging starting shortly!")}
-                  className="flex-1 py-3.5 rounded-2xl font-black text-sm bg-gray-100 dark:bg-[#1F1F23] border border-gray-200 dark:border-[#2A2A2F] text-brand-black dark:text-brand-white hover:bg-gray-200 dark:hover:bg-[#2A2A2F] active:scale-95 transition-all flex items-center justify-center gap-2"
+                  onClick={() => toast.info('Direct hiring integration coming soon!')}
+                  className="flex-1 h-12 flex items-center justify-center gap-2 rounded-xl bg-brand-purple text-white font-bold text-sm transition-transform hover:-translate-y-0.5 shadow-lg shadow-brand-purple/20 active:translate-y-0"
                 >
-                  <MessageCircle className="w-4.5 h-4.5" /> Message
+                  <Briefcase className="w-4 h-4" />
+                  Hire Creator
                 </button>
               </>
+            ) : (
+              <button 
+                onClick={() => navigate('/edit-profile')}
+                className="flex-1 h-12 flex items-center justify-center gap-2 rounded-xl bg-gray-100 dark:bg-[#1F1F23] text-brand-black dark:text-white font-bold text-sm transition-transform hover:-translate-y-0.5 active:translate-y-0"
+              >
+                Edit Profile
+              </button>
             )}
           </div>
         </div>
+
+        {isOwnProfile && <ProfileCompletionWidget profile={profile} onOpenPortfolio={() => {
+          setActiveTab('portfolio');
+          setShowAddModal(true);
+        }} />}
 
         {/* 3. STICKY INTERACTIVE PROFILE TABS */}
         <div className="sticky top-[4.2rem] sm:top-[5rem] z-30 bg-[#FAFAFA]/90 dark:bg-[#09090B]/90 backdrop-blur-md py-4 border-b border-gray-100 dark:border-[#1F1F23] mb-6">
@@ -1183,7 +1263,21 @@ const PublicProfile: React.FC = () => {
                     {selectedFileType === 'image' ? (
                       <img src={filePreview || ''} alt="Preview" className="w-full h-full object-contain animate-fade-in" />
                     ) : (
-                      <video src={filePreview || ''} className="w-full h-full object-contain" controls />
+                      <div className="relative w-full h-full flex items-center justify-center bg-black">
+                        {isGeneratingThumbnail ? (
+                          <div className="flex flex-col items-center gap-2">
+                            <Loader2 className="w-8 h-8 text-brand-purple animate-spin" />
+                            <span className="text-[11px] text-gray-400">Generating video preview image...</span>
+                          </div>
+                        ) : (
+                          <video 
+                            src={filePreview || ''} 
+                            poster={videoThumbnailUrl || undefined} 
+                            className="w-full h-full object-contain animate-fade-in" 
+                            controls 
+                          />
+                        )}
+                      </div>
                     )}
                     
                     {!isUploading && (
@@ -1331,6 +1425,72 @@ const PublicProfile: React.FC = () => {
           </div>
         )}
       </AnimatePresence>
+
+      {/* 8. REPORT USER MODAL */}
+      {showReportUserModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#1A1A1E] rounded-[2.5rem] w-full max-w-md overflow-hidden border border-gray-100 dark:border-[#2A2A2F] p-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
+            <button 
+              onClick={() => setShowReportUserModal(false)}
+              className="absolute top-4 right-4 p-1.5 text-gray-400 hover:text-gray-700 dark:hover:text-white rounded-full transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            
+            <h3 className="text-lg font-black text-gray-900 dark:text-white mb-4">Report Offensive Profile</h3>
+            
+            <div className="space-y-4 font-sans text-left">
+              <div>
+                <label className="block text-xs font-black uppercase tracking-wider text-gray-500 mb-2">Objectionable Reason</label>
+                <select 
+                  value={reportUserReason}
+                  onChange={(e) => setReportUserReason(e.target.value)}
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-[#1F1F23] bg-transparent text-brand-black dark:text-brand-white text-sm outline-none font-medium"
+                >
+                  <option value="spam">Spam / Scam Account</option>
+                  <option value="harassment">Harassment or Cyberbullying</option>
+                  <option value="inappropriate">Inappropriate bio or media</option>
+                  <option value="intellectual">IP, Theft, Fake Identity</option>
+                  <option value="other">Other objectionable activity</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-xs font-black uppercase tracking-wider text-gray-500 mb-2">Report Info / Context (Optional)</label>
+                <textarea 
+                  value={reportUserDetails}
+                  onChange={(e) => setReportUserDetails(e.target.value)}
+                  placeholder="Describe your concern with this creator profile..."
+                  rows={3}
+                  className="w-full p-3 rounded-xl border border-gray-200 dark:border-[#1F1F23] bg-transparent text-brand-black dark:text-brand-white text-sm outline-none font-medium resize-none text-left"
+                />
+              </div>
+              
+              <div className="flex gap-3 pt-2">
+                <button 
+                  onClick={() => setShowReportUserModal(false)}
+                  className="flex-1 py-3 rounded-xl font-bold bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-gray-300 transition-all hover:bg-gray-200 dark:hover:bg-white/10"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={async () => {
+                    if (!profile) return;
+                    const success = await reportContent('profile', profile.user_id, reportUserReason, reportUserDetails);
+                    if (success) {
+                      setShowReportUserModal(false);
+                      setReportUserDetails('');
+                    }
+                  }}
+                  className="flex-1 py-3 rounded-xl font-bold bg-brand-purple text-white transition-all hover:bg-brand-purple-dark"
+                >
+                  Submit Report
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

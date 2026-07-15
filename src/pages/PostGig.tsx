@@ -488,15 +488,32 @@ const PostGig: React.FC = () => {
               className={`mb-4 group bg-black/5 dark:bg-white/5 ${uploadStage !== 'idle' ? "upload-wrapper" : "relative rounded-xl overflow-hidden border border-gray-100 dark:border-[#1F1F23]"}`}
             >
               <div className={uploadStage !== 'idle' ? "preview" : "relative"}>
-                <video
-                  src={videoPreview}
-                  controls={uploadStage === 'idle' || uploadStage === "error"}
-                  className={
-                    uploadStage === 'idle'
-                      ? "w-full max-h-[400px] object-contain transition-all duration-300"
-                      : ""
-                  }
-                />
+                {videoPreview.startsWith('data:image/') ? (
+                  <div className="relative w-full flex items-center justify-center bg-black">
+                    <img
+                      src={videoPreview}
+                      alt="Video Preview"
+                      className="w-full max-h-[400px] object-contain transition-all duration-300"
+                    />
+                    {(uploadStage === 'idle' || uploadStage === "error") && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/10">
+                        <div className="w-14 h-14 bg-brand-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/20 shadow-lg">
+                          <Play className="w-6 h-6 fill-current text-white translate-x-[2px]" />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <video
+                    src={videoPreview}
+                    controls={uploadStage === 'idle' || uploadStage === "error"}
+                    className={
+                      uploadStage === 'idle'
+                        ? "w-full max-h-[400px] object-contain transition-all duration-300"
+                        : ""
+                    }
+                  />
+                )}
 
                 {/* Upload Status Overlay */}
                 {uploadStage !== 'idle' && (

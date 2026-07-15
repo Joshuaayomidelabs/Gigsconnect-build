@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
 import { formatCurrency, formatDate } from '../utils/helpers';
 import VerificationBadge from './VerificationBadge';
+import { useModeration } from '../hooks/useModeration';
 
 interface GigCardProps {
   gig: any;
@@ -18,10 +19,18 @@ interface GigCardProps {
 
 const GigCard: React.FC<GigCardProps> = ({ gig, onApply, onViewDetails, onViewApplicants, onDelete, isDeleting, showApply = true, initialIsApplied = false }) => {
   const navigate = useNavigate();
+  const { isUserBlocked } = useModeration();
   const [isAppliedLocally, setIsAppliedLocally] = useState(initialIsApplied);
   
   // The poster info is now nested under 'poster_id' per the new query
   const creator = gig.poster_id;
+  
+  const profileId = creator?.id || creator?.user_id;
+
+  // Hide gigs from blocked users automatically
+  if (profileId && isUserBlocked(profileId)) {
+    return null;
+  }
   
   // Determine if the user has applied (either passed from parent or set locally after click)
   const isApplied = gig.hasApplied || isAppliedLocally;

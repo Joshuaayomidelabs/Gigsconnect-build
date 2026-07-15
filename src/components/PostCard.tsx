@@ -1,11 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Heart, MessageCircle, Send, MoreHorizontal, Trash2, X, Loader2, Bookmark, BadgeCheck, Play, Copy } from 'lucide-react';
+import { Heart, MessageCircle, Send, MoreHorizontal, Trash2, X, Loader2, Bookmark, BadgeCheck, Play, Copy, Shield, Flag } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { communityService } from '../services/communityService';
 import { toast } from 'sonner';
 import { formatDistanceToNow, parseISO } from 'date-fns';
 import { renderTextWithMentions } from '../utils/textUtils';
+import { useModeration } from '../hooks/useModeration';
+import { openExternalLink } from '../lib/openExternalLink';
+import { copyToClipboard } from '../lib/copyToClipboard';
 
 function timeAgo(dateInput: string | Date) {
   try {
@@ -64,7 +67,18 @@ interface PostCardProps {
 export default function PostCard({ post, onDelete }: PostCardProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
+  
+  const { blockUser, reportContent, isUserBlocked } = useModeration();
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportReason, setReportReason] = useState('inappropriate');
+  const [reportDetails, setReportDetails] = useState('');
+
   const [isLiked, setIsLiked] = useState(post.is_liked);
+
+  // Return null if post creator is blocked to filter them out instantly
+  if (isUserBlocked(post.user_id)) {
+    return null;
+  }
   const [likesCount, setLikesCount] = useState(post.likes_count || 0);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showOptions, setShowOptions] = useState(false);
@@ -298,7 +312,7 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
             </span>
           </div>
           
-          {isOwner && (
+          {(isOwner || user) && (
             <div className="relative">
               <button 
                 onClick={() => {
@@ -312,14 +326,42 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
               
               {showOptions && (
                 <div className="absolute right-0 mt-1 w-48 bg-white dark:bg-[#1A1A1E] rounded-xl shadow-lg border border-gray-100 dark:border-[#2A2A2F] overflow-hidden z-20 py-1">
-                  <button 
-                    onClick={handleDelete}
-                    disabled={isDeleting}
-                    className={`w-full flex items-center gap-3 px-4 py-3 text-[14px] font-bold transition-colors ${isDeleting ? 'text-gray-400 cursor-not-allowed' : 'text-red-500 hover:bg-gray-50 dark:hover:bg-white/5'}`}
-                  >
-                    <Trash2 className={`w-4 h-4 ${isDeleting ? 'animate-pulse' : ''}`} />
-                    {isDeleting ? "Deleting..." : confirmDelete ? "Tap to confirm" : "Delete"}
-                  </button>
+                  {isOwner ? (
+                    <button 
+                      onClick={handleDelete}
+                      disabled={isDeleting}
+                      className={`w-full flex items-center gap-3 px-4 py-3 text-[14px] font-bold transition-colors ${isDeleting ? 'text-gray-400 cursor-not-allowed' : 'text-red-500 hover:bg-gray-50 dark:hover:bg-white/5'}`}
+                    >
+                      <Trash2 className={`w-4 h-4 ${isDeleting ? 'animate-pulse' : ''}`} />
+                      {isDeleting ? "Deleting..." : confirmDelete ? "Tap to confirm" : "Delete"}
+                    </button>
+                  ) : (
+                    <>
+                      <button 
+                        onClick={() => {
+                          setShowOptions(false);
+                          setShowReportModal(true);
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-3 text-[14px] font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                      >
+                        <Flag className="w-4 h-4 text-gray-500" />
+                        Report Post
+                      </button>
+                      
+                      <button 
+                        onClick={async () => {
+                          setShowOptions(false);
+                          if (window.confirm(`Are you sure you want to block ${post.user?.full_name || 'this user'}? Their content will no longer appear.`)) {
+                            await blockUser(post.user_id, post.user?.full_name || 'User');
+                          }
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-3 text-[14px] font-bold text-red-500 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                      >
+                        <Shield className="w-4 h-4 text-red-400" />
+                        Block Creator
+                      </button>
+                    </>
+                  )}
                 </div>
               )}
             </div>
@@ -492,9 +534,8 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
             
             <div className="p-5 flex flex-col gap-3">
               <button 
-                onClick={() => {
-                  navigator.clipboard.writeText(`${window.location.origin}/post/${post.id}`);
-                  toast.success("Link copied to clipboard!");
+                onClick={async () => {
+                  await copyToClipboard(`${window.location.origin}/post/${post.id}`, "Link copied to clipboard!");
                   setShowShareModal(false);
                 }}
                 className="flex items-center gap-3 p-3 hover:bg-gray-100 dark:hover:bg-[#1F1F23] rounded-xl transition-colors text-left"
@@ -506,8 +547,8 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
               </button>
 
               <button 
-                onClick={() => {
-                  window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(`${window.location.origin}/post/${post.id}`)}&text=${encodeURIComponent('Check out this post on GigsConnect!')}`, '_blank');
+                onClick={async () => {
+                  await openExternalLink(`https://twitter.com/intent/tweet?url=${encodeURIComponent(`${window.location.origin}/post/${post.id}`)}&text=${encodeURIComponent('Check out this post on GigsConnect!')}`);
                   setShowShareModal(false);
                 }}
                 className="flex items-center gap-3 p-3 hover:bg-gray-100 dark:hover:bg-[#1F1F23] rounded-xl transition-colors text-left"
@@ -519,8 +560,8 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
               </button>
 
               <button 
-                onClick={() => {
-                  window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(`${window.location.origin}/post/${post.id}`)}`, '_blank');
+                onClick={async () => {
+                  await openExternalLink(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(`${window.location.origin}/post/${post.id}`)}`);
                   setShowShareModal(false);
                 }}
                 className="flex items-center gap-3 p-3 hover:bg-gray-100 dark:hover:bg-[#1F1F23] rounded-xl transition-colors text-left"
@@ -532,8 +573,8 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
               </button>
 
               <button 
-                onClick={() => {
-                  window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(`Check out this post! ${window.location.origin}/post/${post.id}`)}`, '_blank');
+                onClick={async () => {
+                  await openExternalLink(`https://api.whatsapp.com/send?text=${encodeURIComponent(`Check out this post! ${window.location.origin}/post/${post.id}`)}`);
                   setShowShareModal(false);
                 }}
                 className="flex items-center gap-3 p-3 hover:bg-gray-100 dark:hover:bg-[#1F1F23] rounded-xl transition-colors text-left"
@@ -547,6 +588,72 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
           </div>
         </div>
       )}
+
+      {/* OBJECTIONABLE CONTENT REPORT MODAL */}
+      {showReportModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#1A1A1E] rounded-3xl w-full max-w-md overflow-hidden border border-gray-100 dark:border-[#2A2A2F] p-6 shadow-2xl relative">
+            <button 
+              onClick={() => setShowReportModal(false)}
+              className="absolute top-4 right-4 p-1.5 text-gray-400 hover:text-gray-700 dark:hover:text-white rounded-full transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            
+            <h3 className="text-lg font-black text-gray-900 dark:text-white mb-4">Report Offensive Content</h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-black uppercase tracking-wider text-gray-500 mb-2">Reason for flags</label>
+                <select 
+                  value={reportReason}
+                  onChange={(e) => setReportReason(e.target.value)}
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-[#1F1F23] bg-transparent text-brand-black dark:text-brand-white text-sm outline-none font-medium"
+                >
+                  <option value="spam">Spam or Scams</option>
+                  <option value="harassment">Harassment or Hate speech</option>
+                  <option value="inappropriate">Inappropriate/Nudity/Violence</option>
+                  <option value="intellectual">IP or Copyright Infringement</option>
+                  <option value="other">Other objectionable material</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-xs font-black uppercase tracking-wider text-gray-500 mb-2">Report Details (Optional)</label>
+                <textarea 
+                  value={reportDetails}
+                  onChange={(e) => setReportDetails(e.target.value)}
+                  placeholder="Tell our review team why you are reporting this..."
+                  rows={3}
+                  className="w-full p-3 rounded-xl border border-gray-200 dark:border-[#1F1F23] bg-transparent text-brand-black dark:text-brand-white text-sm outline-none font-medium resize-none"
+                />
+              </div>
+              
+              <div className="flex gap-3 pt-2">
+                <button 
+                  onClick={() => setShowReportModal(false)}
+                  className="flex-1 py-3 rounded-xl font-bold bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-gray-300 transition-all hover:bg-gray-200 dark:hover:bg-white/10"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={async () => {
+                    const success = await reportContent('post', post.id, reportReason, reportDetails);
+                    if (success) {
+                      setShowReportModal(false);
+                      setReportDetails('');
+                    }
+                  }}
+                  className="flex-1 py-3 rounded-xl font-bold bg-brand-purple text-white transition-all hover:bg-brand-purple-dark"
+                >
+                  Submit Report
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
