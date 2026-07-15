@@ -43,7 +43,7 @@ const TopNav: React.FC = () => {
         <div className="hidden md:flex items-center gap-8">
           <Link to={isLoggedIn ? "/browse" : "/login"} className="text-sm font-bold text-brand-gray-dark dark:text-gray-300 hover:text-brand-purple transition-colors">Find Gigs</Link>
           <Link to={isLoggedIn ? "/browse" : "/login"} className="text-sm font-bold text-brand-gray-dark dark:text-gray-300 hover:text-brand-purple transition-colors">Find Talent</Link>
-          <a href="#how-it-works" className="text-sm font-bold text-brand-gray-dark dark:text-gray-300 hover:text-brand-purple transition-colors">How it works</a>
+          <a href="/#how-it-works" className="text-sm font-bold text-brand-gray-dark dark:text-gray-300 hover:text-brand-purple transition-colors">How it works</a>
         </div>
       )}
 
@@ -169,7 +169,7 @@ const TopNav: React.FC = () => {
                   </li>
                   <li>
                     <a 
-                      href="#how-it-works" 
+                      href="/#how-it-works" 
                       className="block px-4 py-2 text-brand-black dark:text-gray-200 hover:text-brand-purple hover:bg-brand-purple/5 dark:hover:bg-brand-purple/10 rounded-lg transition-colors"
                       onClick={() => setMobileOpen(false)}
                     >

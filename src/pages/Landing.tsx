@@ -30,7 +30,7 @@ const Landing: React.FC = () => {
       role: "Digital Illustrator",
       location: "Lagos, NG",
       category: "Illustrator",
-      avatar: "/src/assets/images/avatar_designer_1784146810645.jpg",
+      avatar: "/images/avatar_designer_1784146810645.jpg",
       rating: 5
     },
     {
@@ -39,7 +39,7 @@ const Landing: React.FC = () => {
       role: "Videographer",
       location: "Nairobi, KE",
       category: "Videographer",
-      avatar: "/src/assets/images/avatar_videographer_1784146819278.jpg",
+      avatar: "/images/avatar_videographer_1784146819278.jpg",
       rating: 5
     },
     {
@@ -48,7 +48,7 @@ const Landing: React.FC = () => {
       role: "DJ & Producer",
       location: "Abuja, NG",
       category: "DJ",
-      avatar: "/src/assets/images/avatar_dj_1784146786388.jpg",
+      avatar: "/images/avatar_dj_1784146786388.jpg",
       rating: 5
     },
     {
@@ -57,7 +57,7 @@ const Landing: React.FC = () => {
       role: "Photographer",
       location: "Accra, GH",
       category: "Photographer",
-      avatar: "/src/assets/images/avatar_photographer_1784146799515.jpg",
+      avatar: "/images/avatar_photographer_1784146799515.jpg",
       rating: 5
     },
     {
@@ -66,7 +66,7 @@ const Landing: React.FC = () => {
       role: "Music Producer",
       location: "Cape Town, ZA",
       category: "Musician",
-      avatar: "/src/assets/images/creator_avatar_singer_1784146326649.jpg",
+      avatar: "/images/creator_avatar_singer_1784146326649.jpg",
       rating: 5
     },
     {
@@ -75,7 +75,7 @@ const Landing: React.FC = () => {
       role: "Software Engineer",
       location: "Kigali, RW",
       category: "Developer",
-      avatar: "/src/assets/images/creator_avatar_developer_1784146336101.jpg",
+      avatar: "/images/creator_avatar_developer_1784146336101.jpg",
       rating: 5
     }
   ];
@@ -143,7 +143,7 @@ const Landing: React.FC = () => {
               <div className="relative w-full h-full flex items-center justify-center">
                 {/* Main Illustration */}
                 <div className="relative z-10 w-[90%] max-w-[600px] aspect-square rounded-[3rem] overflow-hidden bg-white shadow-[0_20px_60px_rgba(0,0,0,0.04)] border border-gray-100 flex items-center justify-center p-8 lg:p-12">
-                  <img src="/src/assets/images/hero_collab_1784146167112.jpg" alt="Creators Collaborating" className="w-full h-full object-contain relative z-10 mix-blend-multiply" />
+                  <img src="/images/hero_collab_1784146167112.jpg" alt="Creators Collaborating" className="w-full h-full object-contain relative z-10 mix-blend-multiply" />
                 </div>
 
                 {/* Floating Cards */}
@@ -201,22 +201,22 @@ const Landing: React.FC = () => {
               {
                 title: "Post a Project",
                 desc: "Describe your needs and attract top creative professionals.",
-                img: "/src/assets/images/how_it_works_1_1784146180385.jpg"
+                img: "/images/how_it_works_1_1784146180385.jpg"
               },
               {
                 title: "Browse & Apply",
                 desc: "Creators find opportunities tailored to their skills and apply.",
-                img: "/src/assets/images/how_it_works_2_1784146191094.jpg"
+                img: "/images/how_it_works_2_1784146191094.jpg"
               },
               {
                 title: "Collaborate",
                 desc: "Connect, communicate, and create amazing work together.",
-                img: "/src/assets/images/how_it_works_3_1784146200123.jpg"
+                img: "/images/how_it_works_3_1784146200123.jpg"
               },
               {
                 title: "Complete & Review",
                 desc: "Secure payments and build your reputation with reviews.",
-                img: "/src/assets/images/how_it_works_4_1784146209959.jpg"
+                img: "/images/how_it_works_4_1784146209959.jpg"
               }
             ].map((step, i) => (
               <motion.div 
@@ -253,7 +253,7 @@ const Landing: React.FC = () => {
               className="lg:w-1/2 w-full"
             >
               <div className="w-full aspect-square rounded-[3rem] overflow-hidden bg-white shadow-[0_20px_60px_rgba(0,0,0,0.06)] border border-gray-100 p-8">
-                <img src="/src/assets/images/find_talent_1784146221218.jpg" alt="Find Talent" className="w-full h-full object-contain mix-blend-multiply" />
+                <img src="/images/find_talent_1784146221218.jpg" alt="Find Talent" className="w-full h-full object-contain mix-blend-multiply" />
               </div>
             </motion.div>
             
@@ -336,7 +336,7 @@ const Landing: React.FC = () => {
               className="lg:w-1/2 w-full"
             >
               <div className="w-full aspect-square rounded-[3rem] overflow-hidden bg-[#faf9fc] shadow-[0_20px_60px_rgba(0,0,0,0.06)] border border-gray-100 p-8 relative">
-                <img src="/src/assets/images/find_gigs_1784146231885.jpg" alt="Find Gigs" className="w-full h-full object-contain mix-blend-multiply relative z-10" />
+                <img src="/images/find_gigs_1784146231885.jpg" alt="Find Gigs" className="w-full h-full object-contain mix-blend-multiply relative z-10" />
                 
                 {/* Floating Notification */}
                 <motion.div animate={{ y: [0, -10, 0] }} transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }} className="absolute top-[15%] right-[5%] z-20">
@@ -365,12 +365,12 @@ const Landing: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
-              { title: "Messaging", img: "/src/assets/images/feature_messaging_1784146243124.jpg", desc: "Communicate securely with clients and collaborators in real-time." },
-              { title: "Portfolio", img: "/src/assets/images/feature_portfolio_1784146261512.jpg", desc: "Showcase your best work with stunning customizable layouts." },
-              { title: "Verification", img: "/src/assets/images/feature_verification_1784146271132.jpg", desc: "Build trust with verified badges and authenticated reviews." },
-              { title: "Analytics", img: "/src/assets/images/feature_analytics_1784146283413.jpg", desc: "Track your profile views, proposal success rate, and earnings." },
-              { title: "Payments", img: "/src/assets/images/feature_payments_1784146294382.jpg", desc: "Secure escrow payments ensure you get paid on time, every time." },
-              { title: "Booking", img: "/src/assets/images/feature_booking_1784146352508.jpg", desc: "Manage your availability and let clients book you directly." }
+              { title: "Messaging", img: "/images/feature_messaging_1784146243124.jpg", desc: "Communicate securely with clients and collaborators in real-time." },
+              { title: "Portfolio", img: "/images/feature_portfolio_1784146261512.jpg", desc: "Showcase your best work with stunning customizable layouts." },
+              { title: "Verification", img: "/images/feature_verification_1784146271132.jpg", desc: "Build trust with verified badges and authenticated reviews." },
+              { title: "Analytics", img: "/images/feature_analytics_1784146283413.jpg", desc: "Track your profile views, proposal success rate, and earnings." },
+              { title: "Payments", img: "/images/feature_payments_1784146294382.jpg", desc: "Secure escrow payments ensure you get paid on time, every time." },
+              { title: "Booking", img: "/images/feature_booking_1784146352508.jpg", desc: "Manage your availability and let clients book you directly." }
             ].map((feat, i) => (
               <motion.div 
                 key={i}
@@ -439,7 +439,7 @@ const Landing: React.FC = () => {
               className="lg:w-1/2 w-full"
             >
               <div className="w-full aspect-square rounded-[3rem] overflow-hidden bg-white shadow-[0_20px_60px_rgba(0,0,0,0.06)] border border-gray-100 p-8">
-                <img src="/src/assets/images/pricing_growth_1784146304703.jpg" alt="Growth and Progression" className="w-full h-full object-contain mix-blend-multiply" />
+                <img src="/images/pricing_growth_1784146304703.jpg" alt="Growth and Progression" className="w-full h-full object-contain mix-blend-multiply" />
               </div>
             </motion.div>
           </div>
@@ -526,7 +526,7 @@ const Landing: React.FC = () => {
             <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-brand-purple/10 rounded-full blur-[80px] translate-y-1/3 -translate-x-1/3 pointer-events-none"></div>
             
             <div className="w-48 h-48 lg:w-64 lg:h-64 mb-8 relative z-10 bg-white rounded-full p-4 shadow-xl">
-              <img src="/src/assets/images/footer_community_1784146316093.jpg" alt="Community Networking" className="w-full h-full object-contain mix-blend-multiply" />
+              <img src="/images/footer_community_1784146316093.jpg" alt="Community Networking" className="w-full h-full object-contain mix-blend-multiply" />
             </div>
 
             <div className="relative z-10 max-w-2xl mx-auto">
