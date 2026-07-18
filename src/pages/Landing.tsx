@@ -30,7 +30,7 @@ const Landing: React.FC = () => {
       role: "Digital Illustrator",
       location: "Lagos, NG",
       category: "Illustrator",
-      avatar: "/images/avatar_designer.jpg",
+      avatar: "/images/makeup.svg",
       rating: 5
     },
     {
@@ -39,7 +39,7 @@ const Landing: React.FC = () => {
       role: "Videographer",
       location: "Nairobi, KE",
       category: "Videographer",
-      avatar: "/images/avatar_videographer.jpg",
+      avatar: "/images/media.svg",
       rating: 5
     },
     {
@@ -48,7 +48,7 @@ const Landing: React.FC = () => {
       role: "DJ & Producer",
       location: "Abuja, NG",
       category: "DJ",
-      avatar: "/images/avatar_dj.jpg",
+      avatar: "/images/dj-rafiki.svg",
       rating: 5
     },
     {
@@ -57,25 +57,25 @@ const Landing: React.FC = () => {
       role: "Photographer",
       location: "Accra, GH",
       category: "Photographer",
-      avatar: "/images/avatar_photographer.jpg",
+      avatar: "/images/photographer.svg",
       rating: 5
     },
     {
-      quote: "Finally, a platform that understands the African creator economy and respects our craft.",
+      quote: "Finally, a platform that understands the creator economy and respects our craft.",
       name: "Amanda C.",
       role: "Music Producer",
       location: "Cape Town, ZA",
       category: "Musician",
-      avatar: "/images/creator_avatar_singer.jpg",
+      avatar: "/images/content-creator.svg",
       rating: 5
     },
     {
-      quote: "The best place to find top-tier projects and developers who understand the creative vision.",
+      quote: "The best place to find top-tier projects and dancers who understand the creative vision.",
       name: "David N.",
       role: "Software Engineer",
       location: "Kigali, RW",
       category: "Developer",
-      avatar: "/images/creator_avatar_developer.jpg",
+      avatar: "/images/web-creator.svg",
       rating: 5
     }
   ];
@@ -103,23 +103,14 @@ const Landing: React.FC = () => {
               transition={{ duration: 0.8, ease: "easeOut" }}
               className="lg:col-span-6 flex flex-col items-start text-left"
             >
-              <motion.div 
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-brand-purple/10 text-brand-purple text-xs font-bold tracking-widest uppercase mb-8 shadow-sm"
-              >
-                <Zap className="w-3.5 h-3.5 fill-current" />
-                Africa's Creator Platform
-              </motion.div>
-              
+
               <h1 className="text-5xl lg:text-7xl font-black text-brand-black leading-[1.05] tracking-tight mb-6">
                 Build Your <br />
                 <span className="text-brand-purple">Creative Career.</span>
               </h1>
               
               <p className="text-lg lg:text-xl text-brand-gray-dark leading-relaxed mb-10 w-full max-w-lg font-medium">
-                Connect, collaborate, and grow with Africa's leading creative ecosystem. Where top talent meets incredible opportunities.
+                Connect, collaborate, and grow with a leading creative ecosystem. Where top talent meets incredible opportunities.
               </p>
               
               <div className="flex flex-col sm:flex-row flex-wrap gap-4 w-full justify-start items-center mb-10">
@@ -138,12 +129,12 @@ const Landing: React.FC = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 1, delay: 0.3 }}
-              className="lg:col-span-6 relative w-full h-[500px] lg:h-[600px]"
+              className="lg:col-span-6 relative w-full min-h-[400px] lg:min-h-[600px] flex items-center justify-center py-10 lg:py-0"
             >
               <div className="relative w-full h-full flex items-center justify-center">
                 {/* Main Illustration */}
-                <div className="relative z-10 w-[90%] max-w-[600px] aspect-square rounded-[3rem] overflow-hidden bg-white shadow-[0_20px_60px_rgba(0,0,0,0.04)] border border-gray-100 flex items-center justify-center p-8 lg:p-12">
-                  <img src="/images/hero_collab.jpg" alt="Creators Collaborating" className="w-full h-full object-contain relative z-10 mix-blend-multiply" />
+                <div className="relative z-10 w-[90%] max-w-[400px] lg:max-w-[500px] xl:max-w-[550px] aspect-square rounded-[3rem] overflow-hidden bg-white shadow-[0_20px_60px_rgba(0,0,0,0.04)] border border-gray-100 flex items-center justify-center p-8 lg:p-12">
+                  <img src="/images/teamwork.svg" alt="Creators Collaborating" className="w-full h-full object-contain relative z-10 mix-blend-multiply" />
                 </div>
 
                 {/* Floating Cards */}
@@ -201,22 +192,22 @@ const Landing: React.FC = () => {
               {
                 title: "Post a Project",
                 desc: "Describe your needs and attract top creative professionals.",
-                img: "/images/how_it_works_1.jpg"
+                img: "/images/freelancer.svg"
               },
               {
                 title: "Browse & Apply",
                 desc: "Creators find opportunities tailored to their skills and apply.",
-                img: "/images/how_it_works_2.jpg"
+                img: "/images/content-creator.svg"
               },
               {
                 title: "Collaborate",
                 desc: "Connect, communicate, and create amazing work together.",
-                img: "/images/how_it_works_3.jpg"
+                img: "/images/chat.svg"
               },
               {
                 title: "Complete & Review",
                 desc: "Secure payments and build your reputation with reviews.",
-                img: "/images/how_it_works_4.jpg"
+                img: "/images/celebration.svg"
               }
             ].map((step, i) => (
               <motion.div 
@@ -227,8 +218,8 @@ const Landing: React.FC = () => {
                 transition={{ duration: 0.6, delay: i * 0.1 }}
                 className="flex flex-col items-center text-center group"
               >
-                <div className="w-full aspect-square mb-8 rounded-3xl overflow-hidden bg-[#faf9fc] p-6 border border-gray-100 group-hover:border-brand-purple/20 transition-colors">
-                  <img src={step.img} alt={step.title} className="w-full h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-500" />
+                <div className="w-[80%] max-w-[240px] md:w-full md:max-w-none mx-auto aspect-square mb-8 rounded-3xl overflow-hidden bg-[#faf9fc] p-6 border border-gray-100 group-hover:border-brand-purple/20 transition-colors">
+                  <img src={step.img} alt={step.title} loading="lazy" className="w-full h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-500" />
                 </div>
                 <div className="w-10 h-10 rounded-full bg-brand-purple text-white font-bold flex items-center justify-center mb-4">
                   {i + 1}
@@ -252,8 +243,8 @@ const Landing: React.FC = () => {
               transition={{ duration: 0.8 }}
               className="lg:w-1/2 w-full"
             >
-              <div className="w-full aspect-square rounded-[3rem] overflow-hidden bg-white shadow-[0_20px_60px_rgba(0,0,0,0.06)] border border-gray-100 p-8">
-                <img src="/images/find_talent.jpg" alt="Find Talent" className="w-full h-full object-contain mix-blend-multiply" />
+              <div className="w-full max-w-[400px] lg:max-w-none mx-auto aspect-square rounded-[3rem] overflow-hidden bg-white shadow-[0_20px_60px_rgba(0,0,0,0.06)] border border-gray-100 p-8">
+                <img src="/images/photographer.svg" alt="Find Talent" loading="lazy" className="w-full h-full object-contain mix-blend-multiply" />
               </div>
             </motion.div>
             
@@ -335,8 +326,8 @@ const Landing: React.FC = () => {
               transition={{ duration: 0.8 }}
               className="lg:w-1/2 w-full"
             >
-              <div className="w-full aspect-square rounded-[3rem] overflow-hidden bg-[#faf9fc] shadow-[0_20px_60px_rgba(0,0,0,0.06)] border border-gray-100 p-8 relative">
-                <img src="/images/find_gigs.jpg" alt="Find Gigs" className="w-full h-full object-contain mix-blend-multiply relative z-10" />
+              <div className="w-full max-w-[400px] lg:max-w-none mx-auto aspect-square rounded-[3rem] overflow-hidden bg-[#faf9fc] shadow-[0_20px_60px_rgba(0,0,0,0.06)] border border-gray-100 p-8 relative">
+                <img src="/images/dj-bro.svg" alt="Find Gigs" loading="lazy" className="w-full h-full object-contain mix-blend-multiply relative z-10" />
                 
                 {/* Floating Notification */}
                 <motion.div animate={{ y: [0, -10, 0] }} transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }} className="absolute top-[15%] right-[5%] z-20">
@@ -365,12 +356,12 @@ const Landing: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
-              { title: "Messaging", img: "/images/feature_messaging.jpg", desc: "Communicate securely with clients and collaborators in real-time." },
-              { title: "Portfolio", img: "/images/feature_portfolio.jpg", desc: "Showcase your best work with stunning customizable layouts." },
-              { title: "Verification", img: "/images/feature_verification.jpg", desc: "Build trust with verified badges and authenticated reviews." },
-              { title: "Analytics", img: "/images/feature_analytics.jpg", desc: "Track your profile views, proposal success rate, and earnings." },
-              { title: "Payments", img: "/images/feature_payments.jpg", desc: "Secure escrow payments ensure you get paid on time, every time." },
-              { title: "Booking", img: "/images/feature_booking.jpg", desc: "Manage your availability and let clients book you directly." }
+              { title: "Messaging", img: "/images/chat-pana.svg", desc: "Communicate securely with clients and collaborators in real-time." },
+              { title: "Portfolio", img: "/images/profile.svg", desc: "Showcase your best work with stunning customizable layouts." },
+              { title: "Verification", img: "/images/leader.svg", desc: "Build trust with verified badges and authenticated reviews." },
+              { title: "Analytics", img: "/images/analytics.svg", desc: "Track your profile views, proposal success rate, and earnings." },
+              { title: "Payments", img: "/images/media.svg", desc: "Secure escrow payments ensure you get paid on time, every time." },
+              { title: "Booking", img: "/images/calendar.svg", desc: "Manage your availability and let clients book you directly." }
             ].map((feat, i) => (
               <motion.div 
                 key={i}
@@ -381,7 +372,7 @@ const Landing: React.FC = () => {
                 className="bg-white rounded-[2rem] p-8 border border-gray-100 shadow-[0_10px_40px_rgba(0,0,0,0.03)] hover:shadow-[0_20px_60px_rgba(108,76,241,0.08)] transition-all group"
               >
                 <div className="w-full aspect-video mb-6 rounded-2xl bg-[#faf9fc] overflow-hidden p-4">
-                  <img src={feat.img} alt={feat.title} className="w-full h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-500" />
+                  <img src={feat.img} alt={feat.title} loading="lazy" className="w-full h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-500" />
                 </div>
                 <h3 className="text-xl font-bold text-brand-black mb-2">{feat.title}</h3>
                 <p className="text-brand-gray-dark font-medium text-sm leading-relaxed">{feat.desc}</p>
@@ -438,8 +429,8 @@ const Landing: React.FC = () => {
               transition={{ duration: 0.8 }}
               className="lg:w-1/2 w-full"
             >
-              <div className="w-full aspect-square rounded-[3rem] overflow-hidden bg-white shadow-[0_20px_60px_rgba(0,0,0,0.06)] border border-gray-100 p-8">
-                <img src="/images/pricing_growth.jpg" alt="Growth and Progression" className="w-full h-full object-contain mix-blend-multiply" />
+              <div className="w-full max-w-[400px] lg:max-w-none mx-auto aspect-square rounded-[3rem] overflow-hidden bg-white shadow-[0_20px_60px_rgba(0,0,0,0.06)] border border-gray-100 p-8">
+                <img src="/images/design.svg" alt="Growth and Progression" loading="lazy" className="w-full h-full object-contain mix-blend-multiply" />
               </div>
             </motion.div>
           </div>
@@ -460,9 +451,9 @@ const Landing: React.FC = () => {
               Community
             </motion.div>
             
-            <h2 className="text-3xl lg:text-5xl font-black text-brand-black mb-6 tracking-tight">Loved by Creators Across Africa</h2>
+            <h2 className="text-3xl lg:text-5xl font-black text-brand-black mb-6 tracking-tight">Loved by Creators Everywhere</h2>
             <p className="text-lg text-brand-gray-dark font-medium leading-relaxed">
-              Join thousands of musicians, designers, videographers, developers, and creators building successful careers.
+              Join thousands of musicians, designers, videographers, dancers, and creators building successful careers.
             </p>
           </div>
 
@@ -494,7 +485,7 @@ const Landing: React.FC = () => {
                     </div>
                     <div className="flex items-center gap-4 relative z-10 pt-6 border-t border-gray-50">
                       <div className="relative w-16 h-16 rounded-2xl overflow-hidden bg-[#faf9fc] border border-gray-100 flex-shrink-0">
-                        <img src={t.avatar} className="w-full h-full object-cover mix-blend-multiply" alt={t.name} />
+                        <img src={t.avatar} loading="lazy" className="w-full h-full object-contain p-2 mix-blend-multiply" alt={t.name} />
                       </div>
                       <div className="flex-1 min-w-0">
                         <h4 className="font-black text-brand-black text-lg truncate">{t.name}</h4>
@@ -526,13 +517,13 @@ const Landing: React.FC = () => {
             <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-brand-purple/10 rounded-full blur-[80px] translate-y-1/3 -translate-x-1/3 pointer-events-none"></div>
             
             <div className="w-48 h-48 lg:w-64 lg:h-64 mb-8 relative z-10 bg-white rounded-full p-4 shadow-xl">
-              <img src="/images/footer_community.jpg" alt="Community Networking" className="w-full h-full object-contain mix-blend-multiply" />
+              <img src="/images/networking.svg" alt="Community Networking" loading="lazy" className="w-full h-full object-contain mix-blend-multiply" />
             </div>
 
             <div className="relative z-10 max-w-2xl mx-auto">
               <h2 className="text-4xl lg:text-5xl font-black mb-6 tracking-tight">Join the Creative Movement</h2>
               <p className="text-lg text-gray-300 mb-10 font-medium leading-relaxed">
-                Start connecting with opportunities, collaborators, and clients across Africa today.
+                Start connecting with opportunities, collaborators, and clients globally today.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link to="/signup" className="px-10 py-5 rounded-xl bg-white text-brand-black font-black hover:bg-gray-50 active:scale-[0.98] transition-all text-lg shadow-xl">
