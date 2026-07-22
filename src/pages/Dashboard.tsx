@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Compass, PlusSquare, FileText, User, ArrowRight, Loader2, Zap, MapPin, CheckCircle2, TrendingUp, Award, MessageSquare } from 'lucide-react';
+import { LayoutDashboard, Compass, BarChart3, PlusSquare, FileText, User, ArrowRight, Loader2, Zap, MapPin, CheckCircle2, TrendingUp, Award, MessageSquare } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { supabase } from '../services/supabaseClient';
 import { gigsService } from '../services/gigsService';
@@ -213,6 +213,7 @@ const Dashboard: React.FC = () => {
             <DashLink to="/applications" icon={<FileText />} label="My Applications" />
             <DashLink to="/posted-gigs" icon={<PlusSquare />} label="My Posted Gigs" />
             <DashLink to="/edit-profile" icon={<User />} label="Edit Profile" />
+            <DashLink to="/analytics" icon={<BarChart3 />} label="Analytics" />
           </div>
         </div>
 

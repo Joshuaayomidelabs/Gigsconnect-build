@@ -56,6 +56,7 @@ interface PostCardProps {
       city?: string;
       country?: string;
       verification_status?: string;
+      subscription_plan?: string;
     };
     likes_count: number;
     comments_count?: number;
@@ -305,6 +306,9 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
               </span>
               {post.user?.verification_status?.toLowerCase() === 'verified' && (
                 <BadgeCheck className="w-3.5 h-3.5 text-brand-purple" />
+              )}
+              {post.user?.subscription_plan && post.user?.subscription_plan !== 'starter' && (
+                <PremiumBadge planName={post.user.subscription_plan} className="scale-75 origin-left" />
               )}
             </div>
             <span className="text-[12px] text-gray-500 font-medium">

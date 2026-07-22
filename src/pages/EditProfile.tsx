@@ -1,3 +1,4 @@
+import { SubscriptionCard } from '../components/SubscriptionCard';
 import React, { useState, useEffect } from 'react';
 import { Camera, Loader2, Save, MapPin, User, Briefcase, Globe, Edit3, Phone, CheckCircle2, Facebook, Instagram, Twitter, Linkedin, Music2, Video, Image as ImageIcon, Trash2, Plus, ExternalLink, Play, ShieldCheck, Upload, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -411,6 +412,10 @@ const EditProfile: React.FC = () => {
               </motion.div>
             )}
 
+            <section className="mb-8">
+              <h2 className="text-xl font-bold text-brand-black dark:text-brand-white mb-4">Subscription</h2>
+              <SubscriptionCard />
+            </section>
             <div className="bg-brand-white dark:bg-brand-dark-card rounded-[2.5rem] shadow-xl border border-brand-gray dark:border-brand-black overflow-hidden transition-colors">
               {/* Header/Cover Placeholder */}
               <div className="h-32 bg-gradient-to-r from-brand-purple to-brand-purple-dark opacity-10" />
@@ -432,8 +437,13 @@ const EditProfile: React.FC = () => {
                     </div>
                   </div>
                   <div className="flex-grow pb-2">
-                    <h2 className="text-3xl font-black text-brand-black dark:text-brand-white tracking-tight">
+                    <h2 className="text-3xl font-black text-brand-black dark:text-brand-white tracking-tight flex items-center gap-3">
                       {formData.full_name || 'Anonymous User'}
+                      {formData.verification_status === 'verified' && (
+                        <span title="Verified Creator" className="inline-flex items-center justify-center bg-blue-500 text-white rounded-full p-1 shadow-sm">
+                          <CheckCircle2 className="w-5 h-5" />
+                        </span>
+                      )}
                     </h2>
                     <p className="text-brand-purple font-bold">@{formData.username || 'username'}</p>
                   </div>

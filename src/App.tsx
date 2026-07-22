@@ -29,11 +29,15 @@ import PublicProfile from './pages/PublicProfile';
 import ApplicationDetails from './pages/ApplicationDetails';
 import PostDetails from './pages/PostDetails';
 import { FeaturedCreators } from './pages/FeaturedCreators';
+import Pricing from './pages/Pricing';
+import Settings from './pages/Settings';
+import Analytics from './pages/Analytics';
 
 import ProtectedRoute from './components/ProtectedRoute';
 import { useAuth } from './context/AuthContext';
 import { DarkModeProvider } from './context/DarkModeContext';
 import { NotificationProvider } from './context/NotificationContext';
+import { SubscriptionProvider } from './context/SubscriptionContext';
 import { pushNotificationService } from './services/pushNotificationService';
 
 import { Toaster, toast } from 'sonner';
@@ -214,7 +218,8 @@ const App: React.FC = () => {
 
   return (
     <DarkModeProvider>
-      <NotificationProvider>
+      <SubscriptionProvider>
+        <NotificationProvider>
         <div className="flex flex-col min-h-screen bg-brand-gray dark:bg-brand-black transition-colors">
           <Toaster position="top-right" richColors />
           <TopNav />
@@ -247,12 +252,20 @@ const App: React.FC = () => {
               <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
               
               <Route path="*" element={<Navigate to="/" />} />
-            </Routes>
+              <Route path="/pricing" element={<Pricing />} />
+            <Route path="/settings" element={
+              <ProtectedRoute>
+                <Settings />
+              </ProtectedRoute>
+            } />
+            <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
+          </Routes>
           </main>
           {showBottomNav && <BottomNav />}
           {!showBottomNav && <Footer />}
         </div>
       </NotificationProvider>
+      </SubscriptionProvider>
     </DarkModeProvider>
   );
 };

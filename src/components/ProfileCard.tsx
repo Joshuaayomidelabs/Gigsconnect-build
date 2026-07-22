@@ -210,8 +210,11 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile: initialProfile, user
       </div>
       
       <div className="mb-4 w-full min-w-0">
-        <h3 className="text-xl font-black text-brand-black dark:text-brand-white leading-tight mb-1 truncate px-2">
-          {localProfile.full_name || 'Anonymous User'}
+        <h3 className="text-xl font-black text-brand-black dark:text-brand-white leading-tight mb-1 truncate px-2 flex items-center justify-center gap-1">
+          <span className="truncate">{localProfile.full_name || 'Anonymous User'}</span>
+          {(localProfile.subscription_plan && localProfile.subscription_plan !== 'starter') && (
+            <PremiumBadge planName={localProfile.subscription_plan} className="scale-75 origin-left" />
+          )}
         </h3>
         {localProfile.username && (
           <p className="text-xs text-gray-500 dark:text-gray-400 font-bold mb-1 truncate px-2">@{localProfile.username}</p>

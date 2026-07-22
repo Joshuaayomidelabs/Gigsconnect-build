@@ -1,10 +1,50 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { Loader2, ArrowRight, X, Plus } from 'lucide-react';
 import { supabase } from '../services/supabaseClient';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
+
+const POPULAR_SKILLS = [
+  "Singer",
+  "Songwriter",
+  "Music Producer",
+  "Instrumentalist",
+  "DJ",
+  "Sound Engineer",
+  "Photographer",
+  "Videographer",
+  "Video Editor",
+  "Graphic Designer",
+  "UI/UX Designer",
+  "Motion Designer",
+  "Web Developer",
+  "Mobile App Developer",
+  "Content Creator",
+  "Influencer",
+  "Copywriter",
+  "Writer",
+  "Social Media Manager",
+  "Digital Marketer",
+  "Makeup Artist",
+  "Fashion Designer",
+  "Event Planner",
+  "MC",
+  "Voice Over Artist",
+  "Animator",
+  "Podcaster",
+  "Actor",
+  "Model"
+];
+
+const normalizeSkill = (skill: string) => {
+  const trimmed = skill.trim().replace(/\s+/g, ' ');
+  if (!trimmed) return '';
+  const match = POPULAR_SKILLS.find(s => s.toLowerCase() === trimmed.toLowerCase());
+  if (match) return match;
+  return trimmed.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+};
 
 const CreatorSkills: React.FC = () => {
   const { user, refreshProfile } = useAuth();
@@ -15,6 +55,11 @@ const CreatorSkills: React.FC = () => {
   
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+
+  const [focusedIndex, setFocusedIndex] = useState(-1);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchExistingSkills = async () => {
@@ -42,23 +87,82 @@ const CreatorSkills: React.FC = () => {
     fetchExistingSkills();
   }, [user]);
 
-  const addSkill = () => {
-    const trimmed = inputValue.trim();
-    if (!trimmed) return;
-    
-    if (skills.some(s => s.toLowerCase() === trimmed.toLowerCase())) {
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (suggestionsRef.current && !suggestionsRef.current.contains(event.target as Node) &&
+          inputRef.current && !inputRef.current.contains(event.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const suggestions = useMemo(() => {
+    if (!inputValue.trim()) return [];
+    const query = inputValue.trim().toLowerCase();
+    return POPULAR_SKILLS.filter(s => 
+      s.toLowerCase().includes(query) && 
+      !skills.some(existing => existing.toLowerCase() === s.toLowerCase())
+    );
+  }, [inputValue, skills]);
+
+  const addSkill = (skillToAdd: string) => {
+    if (skills.length >= 10) {
+      toast.error('Maximum of 10 skills allowed.');
       setInputValue('');
       return;
     }
     
-    setSkills(prev => [...prev, trimmed]);
+    const normalized = normalizeSkill(skillToAdd);
+    if (!normalized) return;
+
+    if (skills.some(s => s.toLowerCase() === normalized.toLowerCase())) {
+      setInputValue('');
+      return;
+    }
+    
+    setSkills(prev => [...prev, normalized]);
     setInputValue('');
+    setShowSuggestions(false);
+    setFocusedIndex(-1);
+    inputRef.current?.focus();
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(e.target.value);
+    setShowSuggestions(true);
+    setFocusedIndex(-1);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' || e.key === ',') {
       e.preventDefault();
-      addSkill();
+      if (showSuggestions && focusedIndex >= 0 && focusedIndex < suggestions.length) {
+        addSkill(suggestions[focusedIndex]);
+      } else {
+        addSkill(inputValue);
+      }
+    } else if (e.key === 'Tab' && inputValue.trim()) {
+      e.preventDefault();
+      if (showSuggestions && focusedIndex >= 0 && focusedIndex < suggestions.length) {
+        addSkill(suggestions[focusedIndex]);
+      } else {
+        addSkill(inputValue);
+      }
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (showSuggestions && suggestions.length > 0) {
+        setFocusedIndex(prev => (prev < suggestions.length - 1 ? prev + 1 : prev));
+      }
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (showSuggestions && suggestions.length > 0) {
+        setFocusedIndex(prev => (prev > 0 ? prev - 1 : 0));
+      }
+    } else if (e.key === 'Escape') {
+      setShowSuggestions(false);
+      setFocusedIndex(-1);
     }
   };
 
@@ -73,10 +177,22 @@ const CreatorSkills: React.FC = () => {
     let finalSkills = [...skills];
     const trimmed = inputValue.trim();
     if (!isSkipping && trimmed && !finalSkills.some(s => s.toLowerCase() === trimmed.toLowerCase())) {
-      finalSkills.push(trimmed);
-      setSkills(finalSkills);
-      setInputValue("");
+      if (finalSkills.length < 10) {
+        finalSkills.push(normalizeSkill(trimmed));
+        setInputValue("");
+      }
     }
+    
+    // Normalize and remove duplicates
+    const uniqueSkills: string[] = [];
+    finalSkills.forEach(skill => {
+      const norm = normalizeSkill(skill);
+      if (norm && !uniqueSkills.some(s => s.toLowerCase() === norm.toLowerCase())) {
+        uniqueSkills.push(norm);
+      }
+    });
+    finalSkills = uniqueSkills;
+
     try {
       const { error } = await supabase
         .from('profiles')
@@ -126,25 +242,61 @@ const CreatorSkills: React.FC = () => {
             transition={{ delay: 0.1 }}
             className="bg-white dark:bg-brand-dark-card rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100 dark:border-gray-800 mb-10"
           >
-            <div className="relative mb-6">
+            <div className="relative mb-6" ref={suggestionsRef}>
               <input
+                ref={inputRef}
                 type="text"
                 value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
+                onChange={handleInputChange}
                 onKeyDown={handleKeyDown}
-                placeholder="e.g. Video Editing, Live Mixing, Graphic Design..."
+                onFocus={() => setShowSuggestions(true)}
+                placeholder="Type a skill and press Enter..."
                 className="w-full p-4 pr-16 rounded-2xl border border-gray-200 dark:border-gray-700 bg-brand-gray dark:bg-brand-black/50 text-brand-black dark:text-brand-white focus:ring-2 focus:ring-brand-purple focus:border-transparent outline-none transition-all"
+                aria-label="Add a skill"
               />
               <button 
-                onClick={addSkill}
+                onClick={() => addSkill(inputValue)}
                 disabled={!inputValue.trim()}
                 className="absolute right-2 top-2 bottom-2 aspect-square rounded-xl bg-brand-purple text-white flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed hover:bg-brand-purple-hover transition-colors"
+                aria-label="Add skill"
               >
                 <Plus className="w-5 h-5" />
               </button>
+              
+              <AnimatePresence>
+                {showSuggestions && suggestions.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="absolute z-50 top-full left-0 right-0 mt-2 bg-white dark:bg-[#1A1A1E] border border-gray-100 dark:border-gray-800 rounded-xl shadow-xl overflow-hidden max-h-60 overflow-y-auto"
+                  >
+                    {suggestions.map((suggestion, index) => (
+                      <div
+                        key={suggestion}
+                        onClick={() => addSkill(suggestion)}
+                        onMouseEnter={() => setFocusedIndex(index)}
+                        className={`px-4 py-3 cursor-pointer transition-colors ${
+                          index === focusedIndex 
+                            ? 'bg-brand-purple/10 text-brand-purple dark:bg-brand-purple/20' 
+                            : 'text-brand-black dark:text-brand-white hover:bg-gray-50 dark:hover:bg-brand-black'
+                        }`}
+                        role="option"
+                        aria-selected={index === focusedIndex}
+                      >
+                        {suggestion}
+                      </div>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
             
-            <div className="min-h-[100px] p-4 rounded-2xl bg-gray-50 dark:bg-black/20 border border-gray-100 dark:border-gray-800/50">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 font-medium">
+              Add up to 10 skills to help others discover you. ({skills.length}/10)
+            </p>
+            
+            <div className="min-h-[100px] p-4 rounded-2xl bg-gray-50 dark:bg-black/20 border border-gray-100 dark:border-gray-800/50 mb-8">
               {skills.length === 0 ? (
                 <div className="h-full flex items-center justify-center text-gray-400 dark:text-gray-500 italic text-sm py-6">
                   No skills added yet. Type above to add some!
@@ -165,6 +317,7 @@ const CreatorSkills: React.FC = () => {
                           onClick={() => removeSkill(index)}
                           className="p-0.5 rounded-full hover:bg-brand-purple/20 transition-colors"
                           title="Remove skill"
+                          aria-label={`Remove ${skill}`}
                         >
                           <X className="w-4 h-4" />
                         </button>
@@ -173,6 +326,25 @@ const CreatorSkills: React.FC = () => {
                   </AnimatePresence>
                 </div>
               )}
+            </div>
+
+            <div>
+              <h3 className="text-sm font-bold text-brand-black dark:text-brand-white mb-4">Popular Skills</h3>
+              <div className="flex flex-wrap gap-2">
+                {POPULAR_SKILLS.map((skill) => {
+                  const isSelected = skills.some(s => s.toLowerCase() === skill.toLowerCase());
+                  if (isSelected) return null;
+                  return (
+                    <button
+                      key={skill}
+                      onClick={() => addSkill(skill)}
+                      className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 text-sm font-medium text-gray-600 dark:text-gray-300 hover:border-brand-purple hover:text-brand-purple dark:hover:border-brand-purple dark:hover:text-brand-purple transition-colors bg-white dark:bg-brand-black shadow-sm"
+                    >
+                      + {skill}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </motion.div>
 

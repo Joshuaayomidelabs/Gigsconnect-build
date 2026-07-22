@@ -1,3 +1,4 @@
+import { CreditCard } from 'lucide-react';
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
@@ -50,7 +51,9 @@ import { communityService } from '../services/communityService';
 import { applicationsService } from '../services/applicationsService';
 import { supabase } from '../services/supabaseClient';
 import { useAuth } from '../context/AuthContext';
+import { useSubscription } from '../context/SubscriptionContext';
 import VerificationBadge from '../components/VerificationBadge';
+import { PremiumBadge } from '../components/PremiumBadge';
 import FollowListModal from '../components/FollowListModal';
 import PostCard from '../components/PostCard';
 import ProfileCompletionWidget from '../components/ProfileCompletionWidget';
@@ -643,7 +646,8 @@ const PublicProfile: React.FC = () => {
           }
         }
 
-        const [profileRes, statsData] = await Promise.all([
+        const [subscriptionRes, profileRes, statsData] = await Promise.all([
+          supabase.from('subscriptions').select('*, plan:subscription_plans(*)').eq('user_id', userId).eq('status', 'active').order('created_at', { ascending: false }).limit(1).maybeSingle(),
           profilesService.getProfile(userId),
           followsService.getFollowStats(userId)
         ]);
@@ -938,6 +942,16 @@ const PublicProfile: React.FC = () => {
               <div className="mb-4">
                 <h1 className="text-2xl sm:text-3xl font-black text-brand-black dark:text-brand-white tracking-tight leading-tight truncate flex flex-col sm:flex-row sm:items-center justify-center sm:justify-start gap-2">
                   {profile.full_name || 'Anonymous Creator'}
+                  {profile.verification_status === 'verified' && (
+                    <span title="Verified Creator" className="inline-flex items-center justify-center bg-blue-500 text-white rounded-full p-1 shadow-sm">
+                      <CheckCircle2 className="w-5 h-5" />
+                    </span>
+                  )}
+                  {profile.active_subscription ? (
+                    <PremiumBadge planName={profile.active_subscription.plan?.name || profile.active_subscription.plan_name} />
+                  ) : (
+                    <PremiumBadge planName={profile.subscription_plan || 'Starter'} />
+                  )}
                 </h1>
                 
                 {/* Dynamic Category (Fallback to role) */}
