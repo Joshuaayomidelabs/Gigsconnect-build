@@ -1,3 +1,4 @@
+import { PremiumBadge } from './PremiumBadge';
 import React, { useState, useRef, useEffect } from 'react';
 import { Heart, MessageCircle, Send, MoreHorizontal, Trash2, X, Loader2, Bookmark, BadgeCheck, Play, Copy, Shield, Flag } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';

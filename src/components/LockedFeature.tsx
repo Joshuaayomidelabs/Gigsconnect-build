@@ -25,7 +25,7 @@ export const LockedFeature: React.FC<LockedFeatureProps> = ({
         {description} This feature is available on <span className="font-bold text-brand-purple">{requiredPlan}</span> and above.
       </p>
       <button
-        onClick={() => navigate('/pricing')}
+        onClick={() => navigate('/#pricing-section')}
         className="px-8 py-3 bg-brand-black dark:bg-white text-white dark:text-brand-black font-black rounded-full hover:scale-105 active:scale-95 transition-all shadow-md"
       >
         Upgrade to {requiredPlan}

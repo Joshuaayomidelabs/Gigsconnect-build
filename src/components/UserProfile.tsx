@@ -20,7 +20,7 @@ export default function UserProfile({ userId }: UserProfileProps) {
   const [showFollowingModal, setShowFollowingModal] = useState(false);
 
   useEffect(() => {
-    // 1️⃣ Initial fetch
+    // 1. Initial fetch
     const fetchUser = async () => {
       const { data, error } = await supabase
         .from("profiles")
@@ -54,7 +54,7 @@ export default function UserProfile({ userId }: UserProfileProps) {
 
     fetchStatsAndFollowStatus();
 
-    // 2️⃣ Realtime subscription (Supabase v2 syntax)
+    // 2. Realtime subscription (Supabase v2 syntax)
     const channel = supabase
       .channel(`profile-${userId}`)
       .on(
@@ -71,7 +71,7 @@ export default function UserProfile({ userId }: UserProfileProps) {
       )
       .subscribe();
 
-    // 3️⃣ Cleanup on unmount
+    // 3. Cleanup on unmount
     return () => {
       supabase.removeChannel(channel);
     };

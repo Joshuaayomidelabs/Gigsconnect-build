@@ -86,7 +86,7 @@ export const subscriptionService = {
         .eq('user_id', userId)
         .eq('status', 'active');
 
-      if (existErr) throw existErr;
+      if (existErr) console.warn('existErr:', existErr);
 
       if (existingSubs && existingSubs.length > 0) {
         return await this.getCurrentSubscription(userId);
@@ -121,7 +121,7 @@ export const subscriptionService = {
           // Update the profile for backward compatibility even if subscription insert fails
           await supabase
             .from('profiles')
-            .update({ subscription_plan: starterPlan.name.toLowerCase() })
+            .update({ subscription_plan: starterPlan.name.toLowerCase() === 'starter' ? 'free' : starterPlan.name.toLowerCase() })
             .eq('id', userId);
             
           return {
@@ -145,12 +145,12 @@ export const subscriptionService = {
       // Update the profile for backward compatibility
       await supabase
         .from('profiles')
-        .update({ subscription_plan: starterPlan.name.toLowerCase() })
+        .update({ subscription_plan: starterPlan.name.toLowerCase() === 'starter' ? 'free' : starterPlan.name.toLowerCase() })
         .eq('id', userId);
 
       return newSub;
     } catch (error) {
-      console.error('Error ensuring starter subscription:', error);
+      console.warn('Could not ensure starter subscription:', error instanceof Error ? error.message : JSON.stringify(error));
       return null;
     }
   }

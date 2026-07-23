@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence, useInView } from 'motion/react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { PricingSection } from '../components/PricingSection';
 import { useAuth } from '../context/AuthContext';
 import { 
   CheckCircle, Zap, PlusCircle, Music, Mic2, Disc, Settings, Calendar,
@@ -12,6 +13,16 @@ import {
 
 const Landing: React.FC = () => {
   const { user } = useAuth();
+  const location = useLocation();
+
+  React.useEffect(() => {
+    if (location.hash === '#pricing-section') {
+      setTimeout(() => {
+        const el = document.getElementById('pricing-section');
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    }
+  }, [location]);
   const isLoggedIn = !!user;
   
   const carouselRef = useRef<HTMLDivElement>(null);
@@ -382,60 +393,8 @@ const Landing: React.FC = () => {
         </div>
       </section>
 
-      {/* 6. Pricing / Growth Section */}
-      <section className="py-24 lg:py-32 bg-white relative overflow-hidden border-y border-gray-100">
-        <div className="max-w-7xl mx-auto px-5 relative z-10">
-          <div className="flex flex-col lg:flex-row items-center gap-16 lg:gap-24">
-            <motion.div 
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
-              className="lg:w-1/2 w-full"
-            >
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-brand-purple/10 text-brand-purple text-xs font-bold tracking-widest uppercase mb-8 shadow-sm">
-                <TrendingUp className="w-3.5 h-3.5" /> Career Progression
-              </div>
-              <h2 className="text-3xl lg:text-5xl font-black text-brand-black mb-6 tracking-tight">Grow Your Creative Business</h2>
-              <p className="text-lg text-brand-gray-dark font-medium leading-relaxed mb-8">
-                GigsConnect is free to join. We only succeed when you succeed, taking a minimal platform fee only when you get paid for a completed gig.
-              </p>
-              <div className="bg-[#faf9fc] rounded-2xl p-6 border border-gray-100">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="w-12 h-12 rounded-full bg-brand-purple/10 flex items-center justify-center text-brand-purple">
-                    <Shield className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-brand-black">Free to Join & Apply</h4>
-                    <p className="text-sm text-brand-gray-dark">No monthly subscriptions</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-brand-purple/10 flex items-center justify-center text-brand-purple">
-                    <CreditCard className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-brand-black">Secure Escrow Payments</h4>
-                    <p className="text-sm text-brand-gray-dark">Guaranteed payment upon completion</p>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-
-            <motion.div 
-              initial={{ opacity: 0, x: 30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
-              className="lg:w-1/2 w-full"
-            >
-              <div className="w-full max-w-[400px] lg:max-w-none mx-auto aspect-square rounded-[3rem] overflow-hidden bg-white shadow-[0_20px_60px_rgba(0,0,0,0.06)] border border-gray-100 p-8">
-                <img src="/images/design.svg" alt="Growth and Progression" loading="lazy" className="w-full h-full object-contain mix-blend-multiply" />
-              </div>
-            </motion.div>
-          </div>
-        </div>
-      </section>
+            {/* 6. Subscription / Pricing Section */}
+      <PricingSection />
 
       {/* 7. Community Section */}
       <section className="py-24 lg:py-32 relative overflow-hidden">

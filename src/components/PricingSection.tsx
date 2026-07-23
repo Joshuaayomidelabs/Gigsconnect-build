@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle2, ShieldAlert, Zap, Lock, CreditCard, ChevronRight, Check } from 'lucide-react';
+import { CheckCircle2, ShieldAlert, Zap, Lock, CreditCard, ChevronRight, Check, Star, Crown } from 'lucide-react';
 import { useSubscription } from '../context/SubscriptionContext';
 import { toast } from 'sonner';
 
-export const Pricing: React.FC = () => {
+export const PricingSection: React.FC = () => {
   const { plans, subscription, isLoading } = useSubscription();
   const navigate = useNavigate();
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
@@ -18,17 +18,17 @@ export const Pricing: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-[#FAFAFA] dark:bg-[#09090B] transition-colors">
+      <div className="flex flex-col items-center justify-center min-h-screen bg-transparent transition-colors">
         <div className="w-12 h-12 border-4 border-brand-purple border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
         <p className="text-gray-500 dark:text-gray-400 font-medium">Loading Plans...</p>
       </div>
     );
   }
 
-  const activePlanId = subscription?.plan_id || 4; // fallback to Starter
+  const activePlanId = subscription?.plan_id || plans.find(p => p.name.toLowerCase() === 'starter')?.id; // fallback to Starter
   
   return (
-    <div className="pt-main pb-32 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto min-h-screen bg-[#FAFAFA] dark:bg-[#09090B] transition-colors duration-500">
+    <section id="pricing-section" className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto bg-white dark:bg-transparent transition-colors duration-500">
       
       {/* Header section */}
       <div className="text-center max-w-3xl mx-auto mb-16 pt-8">
@@ -37,7 +37,7 @@ export const Pricing: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           className="text-4xl sm:text-5xl font-black text-brand-black dark:text-brand-white tracking-tight mb-6"
         >
-          Supercharge your <span className="text-brand-purple">Creator Journey</span>
+          Upgrade Your <span className="text-brand-purple">Experience</span>
         </motion.h1>
         <motion.p 
           initial={{ opacity: 0, y: 20 }}
@@ -68,10 +68,17 @@ export const Pricing: React.FC = () => {
                   : 'border border-gray-200 dark:border-[#1F1F23]/80 shadow-lg'
               }`}
             >
-              {isPro && (
+              {isPro && !isCurrentPlan && (
                 <div className="absolute -top-4 left-0 right-0 flex justify-center">
                   <span className="bg-brand-purple text-white text-xs font-black uppercase tracking-widest px-4 py-1.5 rounded-full shadow-md">
                     Most Popular
+                  </span>
+                </div>
+              )}
+              {isCurrentPlan && (
+                <div className="absolute -top-4 left-0 right-0 flex justify-center z-20">
+                  <span className="bg-green-500 text-white text-xs font-black uppercase tracking-widest px-4 py-1.5 rounded-full shadow-md flex items-center gap-1">
+                    <CheckCircle2 className="w-3.5 h-3.5" /> Current Plan
                   </span>
                 </div>
               )}
@@ -79,8 +86,8 @@ export const Pricing: React.FC = () => {
               <div className="mb-6">
                 <h3 className="text-2xl font-black text-brand-black dark:text-white mb-2 flex items-center gap-2">
                   {plan.name}
-                  {isPro && <span className="text-yellow-400 text-lg">⭐</span>}
-                  {isPremium && <span className="text-yellow-400 text-lg">👑</span>}
+                  {isPro && <Star className="text-yellow-400 w-5 h-5 fill-yellow-400" />}
+                  {isPremium && <Crown className="text-yellow-400 w-5 h-5 fill-yellow-400" />}
                 </h3>
                 <p className="text-gray-500 dark:text-gray-400 text-sm min-h-[40px]">{plan.description}</p>
               </div>
@@ -227,9 +234,7 @@ export const Pricing: React.FC = () => {
                       <div className="flex flex-col gap-3">
                         <button 
                           onClick={() => {
-                            toast.info('Payment integration coming soon.', {
-                              icon: '🚀'
-                            });
+                            toast.info('Payment integration coming soon.');
                           }}
                           className="w-full py-4 bg-brand-purple text-white font-black rounded-2xl hover:bg-brand-purple-hover active:scale-95 transition-all shadow-lg shadow-brand-purple/20"
                         >
@@ -250,7 +255,7 @@ export const Pricing: React.FC = () => {
           </div>
         )}
       </AnimatePresence>
-    </div>
+    </section>
   );
 };
-export default Pricing;
+

@@ -122,7 +122,7 @@ export default function CommunityFeed() {
               }));
             }
           } else if (payload.eventType === 'INSERT') {
-            // 🔥 ALWAYS put new post at top (INSTANT UI UPDATE)
+            // ALWAYS put new post at top (INSTANT UI UPDATE)
              supabase
               .from('posts')
               .select(`*, profiles(*)`)

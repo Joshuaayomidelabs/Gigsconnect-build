@@ -29,7 +29,6 @@ import PublicProfile from './pages/PublicProfile';
 import ApplicationDetails from './pages/ApplicationDetails';
 import PostDetails from './pages/PostDetails';
 import { FeaturedCreators } from './pages/FeaturedCreators';
-import Pricing from './pages/Pricing';
 import Settings from './pages/Settings';
 import Analytics from './pages/Analytics';
 
@@ -252,7 +251,6 @@ const App: React.FC = () => {
               <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
               
               <Route path="*" element={<Navigate to="/" />} />
-              <Route path="/pricing" element={<Pricing />} />
             <Route path="/settings" element={
               <ProtectedRoute>
                 <Settings />

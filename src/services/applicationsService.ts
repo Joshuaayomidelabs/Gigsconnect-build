@@ -103,14 +103,14 @@ export const applicationsService = {
       return { error };
     }
 
-    // 🔥 NOTIFY APPLICANT
+    // NOTIFY APPLICANT
     const { error: notifError } = await supabase.from("notifications").insert([
       {
         user_id: data.applicant_id,
         title: "Application Update",
         message:
           normalizedStatus === "accepted"
-            ? `🎉 Your application for "${(data.gigs as any).title}" was accepted!`
+            ? `Your application for "${(data.gigs as any).title}" was accepted!`
             : `Your application for "${(data.gigs as any).title}" was not accepted.`,
         type: "application_update",
         reference_id: data.id,

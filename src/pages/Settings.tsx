@@ -20,12 +20,12 @@ export const Settings: React.FC = () => {
     );
   }
 
-  const activePlanId = subscription?.plan_id || 4; // fallback to starter
+  const activePlanId = subscription?.plan_id || plans.find(p => p.name.toLowerCase() === 'starter')?.id; // fallback to starter
   const activePlan = plans.find(p => p.id === activePlanId) || plans.find(p => p.name.toLowerCase() === 'starter');
   const isPremium = activePlan?.name.toLowerCase() === 'premium' || activePlan?.name.toLowerCase() === 'pro';
 
   const handleRestore = () => {
-    toast.info('Restore subscription coming soon.', { icon: '🔄' });
+    toast.info('Restore subscription coming soon.');
   };
 
   return (
@@ -80,14 +80,14 @@ export const Settings: React.FC = () => {
                 <div className="flex flex-col sm:items-end gap-3 w-full sm:w-auto">
                   {!isPremium ? (
                     <button 
-                      onClick={() => navigate('/pricing')}
+                      onClick={() => navigate('/#pricing-section')}
                       className="px-6 py-3 bg-brand-purple text-white font-black rounded-xl hover:bg-brand-purple-hover active:scale-95 transition-all shadow-md shadow-brand-purple/20 flex items-center justify-center gap-2 w-full sm:w-auto"
                     >
                       Upgrade Plan <ChevronRight className="w-4 h-4" />
                     </button>
                   ) : (
                     <button 
-                      onClick={() => navigate('/pricing')}
+                      onClick={() => navigate('/#pricing-section')}
                       className="px-6 py-3 bg-brand-black dark:bg-white text-white dark:text-brand-black font-black rounded-xl hover:scale-105 active:scale-95 transition-all shadow-md flex items-center justify-center gap-2 w-full sm:w-auto"
                     >
                       Manage Plan

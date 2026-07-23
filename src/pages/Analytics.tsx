@@ -1,11 +1,11 @@
 import React from 'react';
 import { useSubscription } from '../context/SubscriptionContext';
 import { LockedFeature } from '../components/LockedFeature';
-import { BarChart3 } from 'lucide-react';
+import { BarChart } from 'lucide-react';
 
 export const Analytics: React.FC = () => {
   const { subscription, plans } = useSubscription();
-  const activePlanId = subscription?.plan_id || 4; // starter
+  const activePlanId = subscription?.plan_id || plans.find(p => p.name.toLowerCase() === 'starter')?.id; // starter
   const activePlan = plans.find(p => p.id === activePlanId);
   const isPremium = activePlan?.name.toLowerCase() === 'premium' || activePlan?.name.toLowerCase() === 'pro';
 
@@ -13,7 +13,7 @@ export const Analytics: React.FC = () => {
     <div className="pt-main pb-24 px-4 sm:px-6 max-w-6xl mx-auto min-h-screen">
       <div className="mb-10">
         <h1 className="text-3xl sm:text-4xl font-black text-brand-black dark:text-white tracking-tight flex items-center gap-3">
-          <BarChart3 className="w-8 h-8 text-brand-purple" />
+          <BarChart className="w-8 h-8 text-brand-purple" />
           Profile Analytics
         </h1>
         <p className="text-gray-500 dark:text-gray-400 mt-2 font-medium">Track your performance and audience engagement.</p>

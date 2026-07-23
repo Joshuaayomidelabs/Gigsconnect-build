@@ -431,7 +431,7 @@ const CreateProfile: React.FC = () => {
               </>
             ) : (
               <>
-                Lock It In & Launch Space 🚀
+                Lock It In & Launch Space
               </>
             )}
           </button>

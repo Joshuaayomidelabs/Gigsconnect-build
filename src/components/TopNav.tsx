@@ -155,7 +155,7 @@ const TopNav: React.FC = () => {
               </li>
               <li>
                 <Link 
-                  to="/pricing" 
+                  to="/#pricing-section" 
                   className="block px-4 py-2 text-brand-black dark:text-gray-200 hover:text-brand-purple hover:bg-brand-purple/5 dark:hover:bg-brand-purple/10 rounded-lg transition-colors"
                   onClick={() => setMobileOpen(false)}
                 >

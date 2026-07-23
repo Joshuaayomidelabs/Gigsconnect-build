@@ -1,3 +1,4 @@
+import { PremiumBadge } from './PremiumBadge';
 import React, { useState, useEffect } from 'react';
 import { CheckCircle, Shield, Users, UserPlus, UserCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
