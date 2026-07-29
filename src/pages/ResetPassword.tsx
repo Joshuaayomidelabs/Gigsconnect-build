@@ -189,15 +189,17 @@ const ResetPassword: React.FC = () => {
         </Link>
       </div>
 
-      <main className="flex-grow flex flex-col px-4 py-8 sm:px-6 lg:px-8">
+      <main className="flex-grow flex flex-col justify-center items-center px-4 py-8 sm:px-6 lg:px-8 bg-gray-50/50">
+        <div className="w-full max-w-[440px] bg-white p-6 sm:p-10 rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100/80">
+          
         <div className="w-full max-w-md mx-auto" id="reset-password-container">
           {!isSuccess ? (
             <>
               <div className="mb-8">
-                <h2 className="text-3xl font-black tracking-tight text-brand-black dark:text-brand-white">
+                <h2 className="text-2xl font-bold text-[#111827] tracking-tight leading-tight">
                   New Password
                 </h2>
-                <p className="mt-2 text-sm font-bold text-gray-500 dark:text-gray-400">
+                <p className="mt-2 text-sm text-gray-500">
                   Please pick a strong, secure password that you don't use elsewhere.
                 </p>
               </div>
@@ -255,7 +257,7 @@ const ResetPassword: React.FC = () => {
                       type="submit"
                       disabled={isLoading}
                       id="btn-submit-reset"
-                      className="flex w-full h-[54px] justify-center items-center rounded-xl bg-brand-purple text-white text-sm font-black uppercase tracking-widest shadow-glow hover:bg-brand-purple-dark transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
+                      className="flex w-full h-[56px] justify-center items-center rounded-xl bg-[#7C3AED] text-white text-base font-semibold hover:bg-[#6D28D9] hover:-translate-y-0.5 hover:shadow-lg hover:shadow-[#7C3AED]/25 active:scale-[0.98] active:translate-y-0 transition-all duration-300 disabled:opacity-75 disabled:cursor-not-allowed gap-2"
                     >
                       {isLoading ? (
                         <>
@@ -285,12 +287,14 @@ const ResetPassword: React.FC = () => {
               <Link
                 to="/login"
                 id="btn-goto-login-success"
-                className="w-full max-w-xs mx-auto h-[54px] flex justify-center items-center rounded-xl bg-brand-purple text-white text-sm font-black uppercase tracking-widest shadow-glow hover:bg-brand-purple-dark transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                className="w-full max-w-xs mx-auto h-[56px] flex justify-center items-center rounded-xl bg-[#7C3AED] text-white text-base font-semibold hover:bg-[#6D28D9] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:scale-[0.98] active:translate-y-0"
               >
                 Sign In
               </Link>
             </div>
           )}
+        </div>
+      
         </div>
       </main>
     </div>

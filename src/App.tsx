@@ -30,9 +30,26 @@ import ApplicationDetails from './pages/ApplicationDetails';
 import PostDetails from './pages/PostDetails';
 import { FeaturedCreators } from './pages/FeaturedCreators';
 import Settings from './pages/Settings';
+import Blog from './pages/Blog';
+import BlogPost from './pages/BlogPost';
 import Analytics from './pages/Analytics';
 
 import ProtectedRoute from './components/ProtectedRoute';
+import TermsAndConditions from './pages/TermsAndConditions';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import CommunityGuidelines from './pages/CommunityGuidelines';
+import CookiePolicy from './pages/CookiePolicy';
+import CopyrightPolicy from './pages/CopyrightPolicy';
+import AcceptableUsePolicy from './pages/AcceptableUsePolicy';
+import ReportAbuse from './pages/ReportAbuse';
+import HelpCenter from './pages/HelpCenter';
+import SafetyCenter from './pages/SafetyCenter';
+import FAQs from './pages/FAQs';
+import Pricing from './pages/Pricing';
+import AboutUs from './pages/AboutUs';
+import SuccessStories from './pages/SuccessStories';
+import CreatorsHub from './pages/CreatorsHub';
+
 import { useAuth } from './context/AuthContext';
 import { DarkModeProvider } from './context/DarkModeContext';
 import { NotificationProvider } from './context/NotificationContext';
@@ -230,6 +247,20 @@ const App: React.FC = () => {
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
               
+              <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+              <Route path="/community-guidelines" element={<CommunityGuidelines />} />
+              <Route path="/cookie-policy" element={<CookiePolicy />} />
+        <Route path="/copyright-policy" element={<CopyrightPolicy />} />
+        <Route path="/acceptable-use-policy" element={<AcceptableUsePolicy />} />
+        <Route path="/report-abuse" element={<ReportAbuse />} />
+              <Route path="/help-center" element={<HelpCenter />} />
+              <Route path="/safety-center" element={<SafetyCenter />} />
+              <Route path="/faqs" element={<FAQs />} />
+              <Route path="/pricing" element={<Pricing />} />
+              <Route path="/about-us" element={<AboutUs />} />
+              <Route path="/success-stories" element={<SuccessStories />} />
+              <Route path="/creators-hub" element={<CreatorsHub />} />
               {/* Protected Routes */}
               <Route path="/overview" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/featured-creators" element={<ProtectedRoute><FeaturedCreators /></ProtectedRoute>} />

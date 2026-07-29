@@ -41,7 +41,7 @@ const Landing: React.FC = () => {
       role: "Digital Illustrator",
       location: "Lagos, NG",
       category: "Illustrator",
-      avatar: "/images/makeup.svg",
+      avatar: "/assets/illustrations/creators/makeup.svg",
       rating: 5
     },
     {
@@ -50,7 +50,7 @@ const Landing: React.FC = () => {
       role: "Videographer",
       location: "Nairobi, KE",
       category: "Videographer",
-      avatar: "/images/media.svg",
+      avatar: "/assets/illustrations/creators/media.svg",
       rating: 5
     },
     {
@@ -59,7 +59,7 @@ const Landing: React.FC = () => {
       role: "DJ & Producer",
       location: "Abuja, NG",
       category: "DJ",
-      avatar: "/images/dj-rafiki.svg",
+      avatar: "/assets/illustrations/creators/dj-rafiki.svg",
       rating: 5
     },
     {
@@ -68,7 +68,7 @@ const Landing: React.FC = () => {
       role: "Photographer",
       location: "Accra, GH",
       category: "Photographer",
-      avatar: "/images/photographer.svg",
+      avatar: "/assets/illustrations/creators/photographer.svg",
       rating: 5
     },
     {
@@ -77,7 +77,7 @@ const Landing: React.FC = () => {
       role: "Music Producer",
       location: "Cape Town, ZA",
       category: "Musician",
-      avatar: "/images/content-creator.svg",
+      avatar: "/assets/illustrations/creators/content-creator.svg",
       rating: 5
     },
     {
@@ -86,7 +86,7 @@ const Landing: React.FC = () => {
       role: "Software Engineer",
       location: "Kigali, RW",
       category: "Developer",
-      avatar: "/images/web-creator.svg",
+      avatar: "/assets/illustrations/creators/web-creator.svg",
       rating: 5
     }
   ];
@@ -145,7 +145,7 @@ const Landing: React.FC = () => {
               <div className="relative w-full h-full flex items-center justify-center">
                 {/* Main Illustration */}
                 <div className="relative z-10 w-[90%] max-w-[400px] lg:max-w-[500px] xl:max-w-[550px] aspect-square rounded-[3rem] overflow-hidden bg-white shadow-[0_20px_60px_rgba(0,0,0,0.04)] border border-gray-100 flex items-center justify-center p-8 lg:p-12">
-                  <img src="/images/teamwork.svg" alt="Creators Collaborating" className="w-full h-full object-contain relative z-10 mix-blend-multiply" />
+                  <img src="/assets/illustrations/landing/teamwork.svg" alt="Creators Collaborating" className="w-full h-full object-contain relative z-10 mix-blend-multiply" />
                 </div>
 
                 {/* Floating Cards */}
@@ -203,22 +203,22 @@ const Landing: React.FC = () => {
               {
                 title: "Post a Project",
                 desc: "Describe your needs and attract top creative professionals.",
-                img: "/images/freelancer.svg"
+                img: "/assets/illustrations/creators/freelancer.svg"
               },
               {
                 title: "Browse & Apply",
                 desc: "Creators find opportunities tailored to their skills and apply.",
-                img: "/images/content-creator.svg"
+                img: "/assets/illustrations/creators/content-creator.svg"
               },
               {
                 title: "Collaborate",
                 desc: "Connect, communicate, and create amazing work together.",
-                img: "/images/chat.svg"
+                img: "/assets/illustrations/landing/chat.svg"
               },
               {
                 title: "Complete & Review",
                 desc: "Secure payments and build your reputation with reviews.",
-                img: "/images/celebration.svg"
+                img: "/assets/illustrations/onboarding/celebration.svg"
               }
             ].map((step, i) => (
               <motion.div 
@@ -255,7 +255,7 @@ const Landing: React.FC = () => {
               className="lg:w-1/2 w-full"
             >
               <div className="w-full max-w-[400px] lg:max-w-none mx-auto aspect-square rounded-[3rem] overflow-hidden bg-white shadow-[0_20px_60px_rgba(0,0,0,0.06)] border border-gray-100 p-8">
-                <img src="/images/photographer.svg" alt="Find Talent" loading="lazy" className="w-full h-full object-contain mix-blend-multiply" />
+                <img src="/assets/illustrations/creators/photographer.svg" alt="Find Talent" loading="lazy" className="w-full h-full object-contain mix-blend-multiply" />
               </div>
             </motion.div>
             
@@ -338,7 +338,7 @@ const Landing: React.FC = () => {
               className="lg:w-1/2 w-full"
             >
               <div className="w-full max-w-[400px] lg:max-w-none mx-auto aspect-square rounded-[3rem] overflow-hidden bg-[#faf9fc] shadow-[0_20px_60px_rgba(0,0,0,0.06)] border border-gray-100 p-8 relative">
-                <img src="/images/dj-bro.svg" alt="Find Gigs" loading="lazy" className="w-full h-full object-contain mix-blend-multiply relative z-10" />
+                <img src="/assets/illustrations/creators/dj-bro.svg" alt="Find Gigs" loading="lazy" className="w-full h-full object-contain mix-blend-multiply relative z-10" />
                 
                 {/* Floating Notification */}
                 <motion.div animate={{ y: [0, -10, 0] }} transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }} className="absolute top-[15%] right-[5%] z-20">
@@ -367,12 +367,12 @@ const Landing: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
-              { title: "Messaging", img: "/images/chat-pana.svg", desc: "Communicate securely with clients and collaborators in real-time." },
-              { title: "Portfolio", img: "/images/profile.svg", desc: "Showcase your best work with stunning customizable layouts." },
-              { title: "Verification", img: "/images/leader.svg", desc: "Build trust with verified badges and authenticated reviews." },
-              { title: "Analytics", img: "/images/analytics.svg", desc: "Track your profile views, proposal success rate, and earnings." },
-              { title: "Payments", img: "/images/media.svg", desc: "Secure escrow payments ensure you get paid on time, every time." },
-              { title: "Booking", img: "/images/calendar.svg", desc: "Manage your availability and let clients book you directly." }
+              { title: "Messaging", img: "/assets/illustrations/landing/chat-pana.svg", desc: "Communicate securely with clients and collaborators in real-time." },
+              { title: "Portfolio", img: "/assets/illustrations/landing/profile.svg", desc: "Showcase your best work with stunning customizable layouts." },
+              { title: "Verification", img: "/assets/illustrations/landing/leader.svg", desc: "Build trust with verified badges and authenticated reviews." },
+              { title: "Analytics", img: "/assets/illustrations/landing/analytics.svg", desc: "Track your profile views, proposal success rate, and earnings." },
+              { title: "Payments", img: "/assets/illustrations/creators/media.svg", desc: "Secure escrow payments ensure you get paid on time, every time." },
+              { title: "Booking", img: "/assets/illustrations/landing/calendar.svg", desc: "Manage your availability and let clients book you directly." }
             ].map((feat, i) => (
               <motion.div 
                 key={i}
@@ -476,7 +476,7 @@ const Landing: React.FC = () => {
             <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-brand-purple/10 rounded-full blur-[80px] translate-y-1/3 -translate-x-1/3 pointer-events-none"></div>
             
             <div className="w-48 h-48 lg:w-64 lg:h-64 mb-8 relative z-10 bg-white rounded-full p-4 shadow-xl">
-              <img src="/images/networking.svg" alt="Community Networking" loading="lazy" className="w-full h-full object-contain mix-blend-multiply" />
+              <img src="/assets/illustrations/landing/networking.svg" alt="Community Networking" loading="lazy" className="w-full h-full object-contain mix-blend-multiply" />
             </div>
 
             <div className="relative z-10 max-w-2xl mx-auto">

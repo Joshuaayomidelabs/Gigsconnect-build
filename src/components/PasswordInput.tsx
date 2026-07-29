@@ -33,7 +33,7 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
   return (
     <div className="w-full">
       {label && (
-        <label className="block text-xs font-black uppercase tracking-widest text-gray-500 mb-2 ml-1">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
           {label} {props.required && <span className="text-red-500">*</span>}
         </label>
       )}
@@ -41,16 +41,16 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
         <input
           {...props}
           type={showPassword ? 'text' : 'password'}
-          className={`block w-full h-[56px] rounded-[18px] border-0 pl-5 pr-12 text-base text-[#111827] shadow-sm ring-1 ring-inset ${
+          className={`block w-full h-[56px] rounded-xl border-0 pl-4 pr-12 text-base text-[#111827] shadow-sm ring-1 ring-inset ${
             error 
               ? 'ring-red-300 focus:ring-red-500' 
-              : 'ring-[#E5E7EB] focus:ring-[#7C3AED] group-hover:ring-gray-300'
+              : 'ring-gray-200 focus:ring-[#7C3AED] group-hover:ring-gray-300'
           } placeholder:text-gray-400 focus:ring-2 focus:ring-inset transition-all duration-200 bg-white focus:bg-white ${className.replace('ring-[#E5E7EB]', '').replace('bg-white', '').replace('text-[#111827]', '')}`}
         />
         <button
           type="button"
           onClick={toggleVisibility}
-          className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center text-gray-400 hover:text-[#7C3AED] transition-colors duration-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7C3AED]"
+          className="absolute right-3 top-1/2 -translate-y-1/2 p-2 flex items-center justify-center text-gray-400 hover:text-[#7C3AED] transition-colors duration-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7C3AED]"
           aria-label={showPassword ? 'Hide password' : 'Show password'}
         >
           {showPassword ? (
@@ -78,7 +78,7 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
       )}
 
       {error && (
-        <p className="mt-2 text-xs font-bold text-red-600 ml-1 flex items-center gap-1">
+        <p className="mt-1.5 text-sm font-medium text-red-600 flex items-center gap-1.5 flex items-center gap-1">
           <X className="w-3 h-3" />
           {error}
         </p>

@@ -1,4 +1,4 @@
-export const LOGO_URL = '/logo.svg';
+export const LOGO_URL = '/assets/branding/logo.svg';
 
 export const APP_NAME = 'GigsConnect';
 

@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+const fs = require('fs');
+
+const code = `import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ShieldAlert } from 'lucide-react';
 import { Facebook, Twitter, Instagram, Linkedin, ArrowRight, CheckCircle2 } from 'lucide-react';
 import Logo from './Logo';
 
@@ -58,9 +59,6 @@ const Footer: React.FC = () => {
           <div>
             <h4 className="text-white font-bold mb-6">Platform</h4>
             <ul className="space-y-4">
-              <li><Link to="/about-us" className="text-gray-400 hover:text-[#4B0082] text-sm font-medium transition-colors">About Us</Link></li>
-              <li><Link to="/blog" className="text-gray-400 hover:text-[#4B0082] text-sm font-medium transition-colors">Blog</Link></li>
-              <li><Link to="/success-stories" className="text-gray-400 hover:text-[#4B0082] text-sm font-medium transition-colors">Success Stories</Link></li>
               <li><Link to="/browse" className="text-gray-400 hover:text-[#4B0082] text-sm font-medium transition-colors">Browse Gigs</Link></li>
               <li><Link to="/post" className="text-gray-400 hover:text-[#4B0082] text-sm font-medium transition-colors">Post a Gig</Link></li>
               <li><Link to="/signup" className="text-gray-400 hover:text-[#4B0082] text-sm font-medium transition-colors">Join Free</Link></li>
@@ -73,7 +71,6 @@ const Footer: React.FC = () => {
             <h4 className="text-white font-bold mb-6">Support</h4>
             <ul className="space-y-4">
               <li><Link to="/help-center" className="text-gray-400 hover:text-[#4B0082] text-sm font-medium transition-colors">Help Center</Link></li>
-              <li><Link to="/creators-hub" className="text-gray-400 hover:text-[#4B0082] text-sm font-medium transition-colors">Creators Hub</Link></li>
               <li><Link to="/safety-center" className="text-gray-400 hover:text-[#4B0082] text-sm font-medium transition-colors">Safety Center</Link></li>
               <li><Link to="/faqs" className="text-gray-400 hover:text-[#4B0082] text-sm font-medium transition-colors">FAQs</Link></li>
               <li><a href="mailto:support@gigsconnect.africa" className="text-gray-400 hover:text-[#4B0082] text-sm font-medium transition-colors">Contact Support</a></li>
@@ -88,8 +85,6 @@ const Footer: React.FC = () => {
               <li><Link to="/privacy-policy" className="text-gray-400 hover:text-[#4B0082] text-sm font-medium transition-colors">Privacy Policy</Link></li>
               <li><Link to="/community-guidelines" className="text-gray-400 hover:text-[#4B0082] text-sm font-medium transition-colors">Community Guidelines</Link></li>
               <li><Link to="/cookie-policy" className="text-gray-400 hover:text-[#4B0082] text-sm font-medium transition-colors">Cookie Policy</Link></li>
-              <li><Link to="/copyright-policy" className="text-gray-400 hover:text-[#4B0082] text-sm font-medium transition-colors">Copyright Policy</Link></li>
-              <li><Link to="/acceptable-use-policy" className="text-gray-400 hover:text-[#4B0082] text-sm font-medium transition-colors">Acceptable Use Policy</Link></li>
             </ul>
           </div>
 
@@ -153,3 +148,7 @@ const Footer: React.FC = () => {
 };
 
 export default Footer;
+`;
+
+fs.writeFileSync('src/components/Footer.tsx', code);
+console.log('Footer updated');

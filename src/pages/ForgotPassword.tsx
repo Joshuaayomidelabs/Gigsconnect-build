@@ -63,7 +63,9 @@ const ForgotPassword: React.FC = () => {
         </Link>
       </div>
 
-      <main className="flex-grow flex flex-col px-4 py-8 sm:px-6 lg:px-8">
+      <main className="flex-grow flex flex-col justify-center items-center px-4 py-8 sm:px-6 lg:px-8 bg-gray-50/50">
+        <div className="w-full max-w-[440px] bg-white p-6 sm:p-10 rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100/80">
+          
         <div className="w-full max-w-md mx-auto">
           {!isSuccess ? (
             <>
@@ -76,17 +78,17 @@ const ForgotPassword: React.FC = () => {
                   <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                   Back to sign in
                 </Link>
-                <h2 className="text-3xl font-black tracking-tight text-brand-black dark:text-brand-white">
+                <h2 className="text-2xl font-bold text-[#111827] tracking-tight leading-tight">
                   Reset password
                 </h2>
-                <p className="mt-2 text-sm font-bold text-gray-500 dark:text-gray-400">
+                <p className="mt-2 text-sm text-gray-500">
                   Enter your email address to receive a secure link to reset your account credentials.
                 </p>
               </div>
 
               <form className="space-y-4" onSubmit={handleSubmit} id="forgot-password-form">
                 <div>
-                  <label className="block text-xs font-black uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2 ml-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
                     Email address <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
@@ -117,7 +119,7 @@ const ForgotPassword: React.FC = () => {
                     type="submit"
                     disabled={isLoading}
                     id="btn-send-reset-link"
-                    className="flex w-full h-[54px] justify-center items-center rounded-xl bg-brand-purple text-white text-sm font-black uppercase tracking-widest shadow-glow hover:bg-brand-purple-dark transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
+                    className="flex w-full h-[56px] justify-center items-center rounded-xl bg-[#7C3AED] text-white text-base font-semibold hover:bg-[#6D28D9] hover:-translate-y-0.5 hover:shadow-lg hover:shadow-[#7C3AED]/25 active:scale-[0.98] active:translate-y-0 transition-all duration-300 disabled:opacity-75 disabled:cursor-not-allowed gap-2"
                   >
                     {isLoading ? (
                       <>
@@ -147,19 +149,21 @@ const ForgotPassword: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsSuccess(false)}
-                  className="w-full h-12 inline-flex justify-center items-center rounded-xl border border-brand-purple/20 text-brand-purple font-bold text-sm bg-brand-purple/5 hover:bg-brand-purple/10 transition-all duration-200"
+                  className="w-full h-[56px] inline-flex justify-center items-center rounded-xl border border-[#7C3AED]/20 text-[#7C3AED] font-semibold text-base hover:bg-[#7C3AED]/5 transition-all duration-200"
                 >
                   Resend recovery email
                 </button>
                 <Link
                   to="/login"
-                  className="w-full h-12 inline-flex justify-center items-center rounded-xl bg-brand-purple text-white text-sm font-black uppercase tracking-widest shadow-glow hover:bg-brand-purple-dark transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                  className="w-full h-[56px] inline-flex justify-center items-center rounded-xl bg-[#7C3AED] text-white text-base font-semibold hover:bg-[#6D28D9] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:scale-[0.98] active:translate-y-0"
                 >
                   Return to login
                 </Link>
               </div>
             </div>
           )}
+        </div>
+      
         </div>
       </main>
     </div>
