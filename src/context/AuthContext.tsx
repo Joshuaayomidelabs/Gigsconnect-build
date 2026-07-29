@@ -96,11 +96,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { data } = await profilesService.getProfile(user.id);
       
       if (data) {
-        const { data: catData } = await supabase.from('profile_categories').select('category_id').eq('profile_id', user.id);
-        data.categories_count = catData ? catData.length : 0;
-        
-        const { data: skillsData } = await supabase.from('profile_skills').select('skill_id').eq('profile_id', user.id);
-        data.skills_count = skillsData ? skillsData.length : 0;
+        try {
+          const { data: catData } = await supabase.from('profile_categories').select('category_id').eq('profile_id', user.id);
+          data.categories_count = (catData && catData.length > 0) ? catData.length : (Array.isArray(data.categories) ? data.categories.length : 0);
+        } catch {
+          data.categories_count = Array.isArray(data.categories) ? data.categories.length : 0;
+        }
+
+        try {
+          const { data: skillsData } = await supabase.from('profile_skills').select('skill_id').eq('profile_id', user.id);
+          data.skills_count = (skillsData && skillsData.length > 0) ? skillsData.length : (Array.isArray(data.skills) ? data.skills.length : 0);
+        } catch {
+          data.skills_count = Array.isArray(data.skills) ? data.skills.length : 0;
+        }
       }
       
       setProfile(data);

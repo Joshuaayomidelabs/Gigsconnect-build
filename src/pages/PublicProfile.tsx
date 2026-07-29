@@ -1,10 +1,8 @@
-import { CreditCard } from 'lucide-react';
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   User, 
   MapPin, 
-  Music, 
   Globe, 
   Loader2, 
   Briefcase,
@@ -16,13 +14,11 @@ import {
   Twitter,
   Linkedin,
   CheckCircle2,
-  Music2,
   Clock,
   UserPlus,
   UserCheck,
   MessageCircle,
   LayoutGrid,
-  Bookmark,
   Trash2,
   Plus,
   Upload,
@@ -41,17 +37,20 @@ import {
   FileText,
   MoreVertical,
   Shield,
-  Flag
+  Flag,
+  Share2,
+  Edit3,
+  Award,
+  Sparkles,
+  Check
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
 import { profilesService } from '../services/profilesService';
 import { followsService } from '../services/followsService';
 import { communityService } from '../services/communityService';
-import { applicationsService } from '../services/applicationsService';
 import { supabase } from '../services/supabaseClient';
 import { useAuth } from '../context/AuthContext';
-import { useSubscription } from '../context/SubscriptionContext';
 import VerificationBadge from '../components/VerificationBadge';
 import { PremiumBadge } from '../components/PremiumBadge';
 import FollowListModal from '../components/FollowListModal';
@@ -61,173 +60,14 @@ import { useModeration } from '../hooks/useModeration';
 import { openExternalLink } from '../lib/openExternalLink';
 import { generateVideoThumbnail, dataUrlToFile } from '../utils/videoUtils';
 
-// AUTOPLAYING VIDEO COMPONENT WITH INTERSECTION OBSERVER (TIKTOK EXPERIENCE)
-interface AutoplayVideoCardProps {
-  url: string;
-  thumbnailUrl?: string;
-  title: string;
-  likesCount?: number;
-  commentsCount?: number;
-  isOwn?: boolean;
-  onDelete?: () => void;
-  onClick: () => void;
-}
+// TikTok Icon SVG
+const TikTokIcon: React.FC<{ className?: string }> = ({ className = "w-4 h-4" }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 1 1-5.2-1.74 2.89 2.89 0 0 1 2.31-2.85V7.58a6.34 6.34 0 0 0-3.55 1.01 6.37 6.37 0 1 0 9.89 5.37V9.4a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.83z"/>
+  </svg>
+);
 
-const AutoplayVideoCard: React.FC<AutoplayVideoCardProps> = ({
-  url,
-  thumbnailUrl,
-  title,
-  likesCount = 0,
-  commentsCount = 0,
-  isOwn = false,
-  onDelete,
-  onClick
-}) => {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(true);
-  const [isLoading, setIsLoading] = useState(true);
-  const videoRef = useRef<HTMLVideoElement>(null);
-
-  useEffect(() => {
-    const videoElement = videoRef.current;
-    if (!videoElement) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            videoElement.play()
-              .then(() => setIsPlaying(true))
-              .catch((err) => {
-                console.log("Autoplay blocked by client context:", err);
-                setIsPlaying(false);
-              });
-          } else {
-            videoElement.pause();
-            setIsPlaying(false);
-          }
-        });
-      },
-      { threshold: 0.5 }
-    );
-
-    observer.observe(videoElement);
-
-    const handleWaiting = () => setIsLoading(true);
-    const handlePlaying = () => {
-      setIsLoading(false);
-      setIsPlaying(true);
-    };
-    const handlePause = () => setIsPlaying(false);
-
-    videoElement.addEventListener('waiting', handleWaiting);
-    videoElement.addEventListener('playing', handlePlaying);
-    videoElement.addEventListener('pause', handlePause);
-
-    return () => {
-      observer.disconnect();
-      if (videoElement) {
-        videoElement.removeEventListener('waiting', handleWaiting);
-        videoElement.removeEventListener('playing', handlePlaying);
-        videoElement.removeEventListener('pause', handlePause);
-      }
-    };
-  }, [url]);
-
-  const toggleMute = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (videoRef.current) {
-      videoRef.current.muted = !videoRef.current.muted;
-      setIsMuted(videoRef.current.muted);
-    }
-  };
-
-  return (
-    <div 
-      className="relative aspect-[9/16] rounded-3xl overflow-hidden bg-black group shadow-lg border border-gray-100 dark:border-[#1F1F23]/80 cursor-pointer snap-start transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
-      onClick={onClick}
-    >
-      {/* Video element */}
-      <video
-        ref={videoRef}
-        src={url}
-        muted={isMuted}
-        loop
-        playsInline
-        preload="metadata"
-        poster={thumbnailUrl}
-        className="w-full h-full object-cover"
-      />
-
-      {/* Loading indicator */}
-      {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm z-10">
-          <Loader2 className="w-8 h-8 animate-spin text-brand-purple" />
-        </div>
-      )}
-
-      {/* Play indicator fallback */}
-      {!isPlaying && !isLoading && (
-        <div className="absolute inset-0 bg-black/10 flex items-center justify-center pointer-events-none z-10">
-          <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white border border-white/20">
-            <Play className="w-6 h-6 fill-current text-white translate-x-[1px]" />
-          </div>
-        </div>
-      )}
-
-      {/* Muted/Unmuted Floating Indicator */}
-      <button
-        onClick={toggleMute}
-        className="absolute top-3.5 right-3.5 z-25 p-2 rounded-xl bg-black/40 backdrop-blur-md text-white border border-white/10 hover:bg-black/60 active:scale-90 transition-all"
-        title={isMuted ? "Unmute" : "Mute"}
-      >
-        {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-      </button>
-
-      {/* Custom delete buttons on video overlay if owned */}
-      {isOwn && onDelete && (
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete();
-          }}
-          className="absolute top-3.5 left-3.5 z-25 p-2 rounded-xl bg-red-600/90 text-white border border-white/10 hover:bg-red-700 active:scale-95 transition-all shadow-md group-hover:scale-105"
-          title="Delete video"
-        >
-          <Trash2 className="w-4 h-4" />
-        </button>
-      )}
-
-      {/* Full ambient visual gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/10 to-transparent pointer-events-none z-10" />
-
-      {/* Metadata content */}
-      <div className="absolute bottom-4 left-4 right-4 z-20 text-white pointer-events-none space-y-1.5">
-        <p className="text-xs font-black tracking-wide text-brand-purple uppercase flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-brand-purple animate-pulse"></span>
-          Live Session
-        </p>
-        <p className="text-sm font-bold leading-snug line-clamp-2 drop-shadow">
-          {title || "Original Audio Session"}
-        </p>
-
-        {/* Dynamic Engagement indicators */}
-        <div className="flex items-center gap-3.5 text-xs text-white/95 pt-1">
-          <span className="flex items-center gap-1">
-            <Heart className="w-4 h-4 text-rose-500 fill-rose-500" />
-            <span className="font-extrabold">{likesCount}</span>
-          </span>
-          <span className="flex items-center gap-1">
-            <MessageCircle className="w-4 h-4 text-sky-400 fill-[#38BDF8]/10" />
-            <span className="font-extrabold">{commentsCount}</span>
-          </span>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// PORTFOLIO MEDIA CARD WITH LOAD STATE OPTIMIZATION (PREVENT CLS & LAYOUT SHIFTS)
+// PORTFOLIO MEDIA CARD
 interface PortfolioMediaCardProps {
   item: any;
   index: number;
@@ -254,7 +94,6 @@ const PortfolioMediaCard: React.FC<PortfolioMediaCardProps> = ({
       }`}
       onClick={() => onSelect({ type: item.type, url: item.url })}
     >
-      {/* Absolute background placeholder to maintain visual footprint without laying out layout shifts */}
       {!isLoaded && (
         <div className="absolute inset-0 bg-gray-200/50 dark:bg-[#18181B] animate-pulse z-0" />
       )}
@@ -305,7 +144,7 @@ const PortfolioMediaCard: React.FC<PortfolioMediaCardProps> = ({
         </div>
       )}
 
-      {/* Owner editing controls on hover */}
+      {/* Owner controls on hover */}
       {isOwnProfile && (
         <div className="absolute top-2 left-2 right-2 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20">
           <button
@@ -328,8 +167,8 @@ const PortfolioMediaCard: React.FC<PortfolioMediaCardProps> = ({
               e.stopPropagation();
               onDelete(e, item.id);
             }}
-            className="p-1.5 rounded-lg bg-red-650 text-white hover:bg-red-700 backdrop-blur-md shadow-md border border-white/10 active:scale-95 transition-all"
-            title="Delete past work"
+            className="p-1.5 rounded-lg bg-red-600 text-white hover:bg-red-700 backdrop-blur-md shadow-md border border-white/10 active:scale-95 transition-all"
+            title="Delete work"
           >
             <Trash2 className="w-3 h-3" />
           </button>
@@ -355,17 +194,20 @@ const PublicProfile: React.FC = () => {
   const [profile, setProfile] = useState<any>(null);
   const [dynamicCategories, setDynamicCategories] = useState<string[]>([]);
   const [dynamicSkills, setDynamicSkills] = useState<string[]>([]);
-  const [appliedGigIds, setAppliedGigIds] = useState<Set<string>>(new Set());
+  const [completedGigsCount, setCompletedGigsCount] = useState<number>(0);
   
   // Social Stats State
   const [stats, setStats] = useState({ followers: 0, following: 0 });
   const [isFollowing, setIsFollowing] = useState(false);
-  const [activeTab, setActiveTab] = useState<'portfolio' | 'posts'>('portfolio');
+  const [isTogglingFollow, setIsTogglingFollow] = useState(false);
+  
+  // Content Tab State
+  const [activeTab, setActiveTab] = useState<'portfolio' | 'about' | 'posts'>('portfolio');
   const [showFollowersModal, setShowFollowersModal] = useState(false);
   const [showFollowingModal, setShowFollowingModal] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState<{type: string, url: string} | null>(null);
 
-  // Expanded social tabs states
+  // Social feed posts state
   const [posts, setPosts] = useState<any[]>([]);
   const [isLoadingPosts, setIsLoadingPosts] = useState(false);
 
@@ -392,7 +234,7 @@ const PublicProfile: React.FC = () => {
   const [reportUserReason, setReportUserReason] = useState('inappropriate');
   const [reportUserDetails, setReportUserDetails] = useState('');
 
-  // File Selection
+  // File Selection for Portfolio
   const handleFileSelect = (file: File) => {
     if (file.size > 50 * 1024 * 1024) {
       toast.error("File size must be under 50MB");
@@ -478,7 +320,6 @@ const PublicProfile: React.FC = () => {
     const toastId = toast.loading(`Uploading ${selectedFileType} to portfolio...`);
     
     try {
-      // 1. Upload to storage
       let publicUrl = '';
       if (selectedFileType === 'video') {
          let thumbnailUrl = '';
@@ -512,7 +353,6 @@ const PublicProfile: React.FC = () => {
          publicUrl = await profilesService.uploadPortfolioMedia(currentUser.id, selectedFile, selectedFileType);
       }
       
-      // 2. Add to profile media
       const newItem = {
         id: Math.random().toString(36).substring(2),
         url: publicUrl,
@@ -533,7 +373,6 @@ const PublicProfile: React.FC = () => {
       setProfile((prev: any) => ({ ...prev, portfolio_media: updatedMedia }));
       toast.success(`${selectedFileType.charAt(0).toUpperCase() + selectedFileType.slice(1)} added to portfolio!`, { id: toastId });
       
-      // Reset form / modal
       setShowAddModal(false);
       clearSelectedFile();
     } catch (err: any) {
@@ -556,7 +395,7 @@ const PublicProfile: React.FC = () => {
     if (!portfolioItemToDelete || !profile || !currentUser) return;
     
     const itemId = portfolioItemToDelete;
-    setPortfolioItemToDelete(null); // Close modal
+    setPortfolioItemToDelete(null);
     
     const toastId = toast.loading("Deleting item...");
     try {
@@ -633,18 +472,6 @@ const PublicProfile: React.FC = () => {
       
       try {
         setIsLoading(true);
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (session) {
-          const { data: applications } = await supabase
-            .from('applications')
-            .select('gig_id')
-            .eq('applicant_id', session.user.id);
-          
-          if (applications && isMounted) {
-            setAppliedGigIds(new Set(applications.map(app => app.gig_id)));
-          }
-        }
 
         const [subscriptionRes, profileRes, statsData] = await Promise.all([
           supabase.from('subscriptions').select('*, plan:subscription_plans(*)').eq('user_id', userId).eq('status', 'active').order('created_at', { ascending: false }).limit(1).maybeSingle(),
@@ -685,11 +512,36 @@ const PublicProfile: React.FC = () => {
           }
         }
         
+        let realCompletedGigsCount = 0;
+        try {
+          const [appCountRes, gigCountRes] = await Promise.all([
+            supabase
+              .from('applications')
+              .select('*', { count: 'exact', head: true })
+              .eq('applicant_id', userId)
+              .in('status', ['accepted', 'completed', 'Accepted', 'Completed']),
+            supabase
+              .from('gigs')
+              .select('*', { count: 'exact', head: true })
+              .eq('poster_id', userId)
+              .in('status', ['completed', 'Completed'])
+          ]);
+
+          realCompletedGigsCount = (appCountRes.count || 0) + (gigCountRes.count || 0);
+        } catch (e) {
+          console.error("Error fetching completed gigs count:", e);
+        }
+
+        if (typeof profileRes.data?.completed_gigs === 'number' && profileRes.data.completed_gigs > 0) {
+          realCompletedGigsCount = Math.max(realCompletedGigsCount, profileRes.data.completed_gigs);
+        }
+        
         if (isMounted) {
           setProfile(profileRes.data);
           setStats(statsData);
           setDynamicCategories(fetchedCategories);
           setDynamicSkills(fetchedSkills);
+          setCompletedGigsCount(realCompletedGigsCount);
         }
 
         if (currentUser && !isOwnProfile) {
@@ -749,79 +601,105 @@ const PublicProfile: React.FC = () => {
     }
   }, [activeTab, userId, currentUser]);
 
+  // Real-time Follow / Unfollow Handler
   const handleFollowToggle = async () => {
     if (!currentUser) {
-      toast.error("Please sign in to follow users.");
+      toast.error("Please sign in to follow creators.");
       return;
     }
-    if (!userId) return;
+    if (!userId || isTogglingFollow) return;
+
+    setIsTogglingFollow(true);
+    const currentlyFollowing = isFollowing;
+    const newFollowingState = !currentlyFollowing;
 
     // Optimistic UI Update
-    const newFollowingState = !isFollowing;
     setIsFollowing(newFollowingState);
     setStats(prev => ({
       ...prev,
       followers: newFollowingState ? prev.followers + 1 : Math.max(0, prev.followers - 1)
     }));
 
-    const { error } = await followsService.toggleFollow(currentUser.id, userId, !newFollowingState);
-    
-    if (error) {
-      setIsFollowing(!newFollowingState);
+    try {
+      const { error } = await followsService.toggleFollow(currentUser.id, userId, currentlyFollowing);
+      
+      if (error) {
+        // Revert on error
+        setIsFollowing(currentlyFollowing);
+        setStats(prev => ({
+          ...prev,
+          followers: currentlyFollowing ? prev.followers + 1 : Math.max(0, prev.followers - 1)
+        }));
+        toast.error("Failed to update follow status. Please try again.");
+      } else {
+        if (newFollowingState) {
+          toast.success(`You are now following ${profile?.full_name || 'this creator'}!`);
+        } else {
+          toast.info(`Unfollowed ${profile?.full_name || 'creator'}.`);
+        }
+      }
+    } catch (err: any) {
+      console.error('Error toggling follow:', err);
+      setIsFollowing(currentlyFollowing);
       setStats(prev => ({
         ...prev,
-        followers: !newFollowingState ? prev.followers + 1 : Math.max(0, prev.followers - 1)
+        followers: currentlyFollowing ? prev.followers + 1 : Math.max(0, prev.followers - 1)
       }));
-      toast.error("Failed to update follow status.");
+      toast.error("An error occurred. Please try again.");
+    } finally {
+      setIsTogglingFollow(false);
     }
   };
 
-  // Gather video files from portfolio + posts for the centralized TikTok visual stream
-  const portfolioVideos = (profile?.portfolio_media || [])
-    .filter((m: any) => m.type === 'video')
-    .map((item: any) => ({
-      id: item.id,
-      url: item.url,
-      type: 'video',
-      title: 'Portfolio Reel Spotlight',
-      isFromPost: false,
-      likes_count: 12, // subtle default overlay values
-      comments_count: 2
-    }));
+  // Render Social Links Bar
+  const renderSocialLinks = () => {
+    if (!profile) return null;
 
-  const postVideos = posts
-    .filter((p: any) => p.video_url)
-    .map((post: any) => {
-      let videoUrl = post.video_url;
-      let thumbUrl = post.thumbnail_url;
-      if (videoUrl && videoUrl.includes('thumb=')) {
-        try {
-          const match = videoUrl.match(/[?&]thumb=([^&]+)/);
-          if (match) {
-            thumbUrl = decodeURIComponent(match[1]);
-            videoUrl = videoUrl.replace(match[0], '');
+    const links = [
+      { name: 'Instagram', url: profile.instagram_url, icon: Instagram, color: 'hover:text-pink-500 hover:bg-pink-500/10 dark:hover:bg-pink-500/20' },
+      { name: 'Twitter', url: profile.twitter_url, icon: Twitter, color: 'hover:text-sky-400 hover:bg-sky-400/10 dark:hover:bg-sky-400/20' },
+      { name: 'LinkedIn', url: profile.linkedin_url, icon: Linkedin, color: 'hover:text-blue-600 hover:bg-blue-600/10 dark:hover:bg-blue-600/20' },
+      { name: 'TikTok', url: profile.tiktok_url, icon: TikTokIcon, color: 'hover:text-rose-400 hover:bg-rose-400/10 dark:hover:bg-rose-400/20' },
+      { name: 'Facebook', url: profile.facebook_url, icon: Facebook, color: 'hover:text-blue-500 hover:bg-blue-500/10 dark:hover:bg-blue-500/20' },
+      { name: 'Website', url: profile.website_url || profile.website, icon: Globe, color: 'hover:text-brand-purple hover:bg-brand-purple/10 dark:hover:bg-brand-purple/20' },
+    ].filter(link => !!link.url);
+
+    if (links.length === 0) return null;
+
+    return (
+      <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5 pt-2">
+        {links.map((link) => {
+          const IconComponent = link.icon;
+          let formattedUrl = link.url;
+          if (!formattedUrl.startsWith('http://') && !formattedUrl.startsWith('https://')) {
+            formattedUrl = `https://${formattedUrl}`;
           }
-        } catch (e) {}
-      }
-      return {
-        id: post.id,
-        url: videoUrl,
-        thumbnailUrl: thumbUrl,
-        type: 'video',
-        title: post.text || 'GigsConnect Clip',
-        isFromPost: true,
-        likes_count: post.likes_count || 0,
-        comments_count: post.comments_count || 0
-      };
-    });
-
-  const allVideos = [...portfolioVideos, ...postVideos];
+          return (
+            <a
+              key={link.name}
+              href={formattedUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => {
+                e.preventDefault();
+                openExternalLink(formattedUrl);
+              }}
+              className={`p-2.5 rounded-xl bg-gray-100 dark:bg-[#1A1A1E] text-gray-600 dark:text-gray-300 transition-all ${link.color} active:scale-95 border border-gray-200/70 dark:border-[#27272A] shadow-sm`}
+              title={`${link.name}: ${link.url}`}
+            >
+              <IconComponent className="w-4 h-4" />
+            </a>
+          );
+        })}
+      </div>
+    );
+  };
 
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-[#FAFAFA] dark:bg-[#09090B] transition-colors">
         <Loader2 className="w-12 h-12 animate-spin text-brand-purple mb-4" />
-        <p className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-650">Tuning Creative Feed...</p>
+        <p className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-600">Loading Creator Profile...</p>
       </div>
     );
   }
@@ -851,7 +729,7 @@ const PublicProfile: React.FC = () => {
           <Shield className="w-16 h-16 text-red-500 mx-auto mb-6" />
           <h2 className="text-2xl font-black text-brand-black dark:text-brand-white mb-2">Creator Blocked</h2>
           <p className="text-gray-500 dark:text-gray-400 text-sm mb-8 leading-relaxed">
-            You blocked this user. If you'd like to see their content, gigs, or profile card again, simply tap the button below.
+            You blocked this user. If you'd like to see their content or profile card again, tap the button below.
           </p>
           <div className="flex flex-col gap-3">
             <button 
@@ -876,45 +754,58 @@ const PublicProfile: React.FC = () => {
     );
   }
 
+  // Formatting username handle
+  const usernameHandle = profile.username
+    ? `@${profile.username.replace(/^@/, '')}`
+    : (profile.full_name ? `@${profile.full_name.toLowerCase().replace(/\s+/g, '')}` : '');
+
   return (
     <div className="bg-[#FAFAFA] dark:bg-[#09090B] min-h-screen pt-16 sm:pt-20 pb-16 transition-colors duration-500 font-sans">
       
-      {/* 1. TOP COVER ACTION ZONE */}
+      {/* 1. TOP COVER BANNER */}
       <div id="profile-cover" className="h-52 sm:h-64 bg-gradient-to-br from-[#8B5CF6]/90 via-[#6D28D9]/95 to-[#4C1D95]/95 w-full relative overflow-hidden">
-        {/* Animated backdrop decoration for luxury vibe */}
         <div className="absolute inset-x-0 bottom-0 top-1/4 bg-radial-gradient from-transparent to-black/20 pointer-events-none" />
         <div className="absolute top-10 left-10 w-44 h-44 rounded-full bg-brand-purple/20 blur-3xl" />
         <div className="absolute right-20 bottom-5 w-60 h-60 rounded-full bg-indigo-500/25 blur-3xl" />
         
-        {/* Cover back button wrapper */}
         <div className="max-w-5xl mx-auto px-4 sm:px-8 h-full flex items-start justify-between pt-6 relative z-10">
           <button 
             onClick={() => navigate(-1)}
-            className="flex items-center justify-center w-11 h-11 bg-black/20 backdrop-blur-md rounded-2xl text-white border border-white/10 hover:bg-black/40 active:scale-95 transition-all shadow-sm shadow-black/10 z-10"
+            className="flex items-center justify-center w-11 h-11 bg-black/20 backdrop-blur-md rounded-2xl text-white border border-white/10 hover:bg-black/40 active:scale-95 transition-all shadow-sm shadow-black/10 z-10 cursor-pointer"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
           
-          {/* Own badge indicator */}
-          {isOwnProfile && (
-            <span className="px-3 py-1 flex items-center gap-1.5 bg-white/20 backdrop-blur-md rounded-xl text-white text-[11px] font-black uppercase tracking-wider border border-white/15">
-              <Radio className="w-3.5 h-3.5 animate-pulse text-emerald-400" />
-              Creator Room Live
-            </span>
-          )}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(window.location.href);
+                toast.success("Profile link copied to clipboard!");
+              }}
+              className="flex items-center justify-center w-11 h-11 bg-black/20 backdrop-blur-md rounded-2xl text-white border border-white/10 hover:bg-black/40 active:scale-95 transition-all shadow-sm shadow-black/10 z-10 cursor-pointer"
+              title="Share profile"
+            >
+              <Share2 className="w-5 h-5" />
+            </button>
+
+            {isOwnProfile && (
+              <span className="px-3.5 py-1.5 flex items-center gap-1.5 bg-white/20 backdrop-blur-md rounded-xl text-white text-[11px] font-black uppercase tracking-wider border border-white/15">
+                <Radio className="w-3.5 h-3.5 animate-pulse text-emerald-400" />
+                Live Profile
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* 2. PREMIUM INSTAGRAM/TIKTOK PROFILE ROW */}
+      {/* 2. CREATOR PROFILE HEADER CARD */}
       <div className="max-w-4xl mx-auto px-4 sm:px-8 relative -mt-16 sm:-mt-20 z-10">
-        
-        {/* Premium Marketplace Profile Card */}
         <div id="profile-card" className="bg-white dark:bg-brand-dark-card rounded-[2.25rem] shadow-xl border border-gray-100 dark:border-[#1F1F23]/80 p-6 sm:p-10 mb-8 relative">
           
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 sm:gap-10">
-            {/* 1. Immersive Avatar block */}
+            {/* Avatar block with gradient ring & badge */}
             <div id="user-avatar" className="relative group/avatar">
-              <div className="w-32 h-32 sm:w-36 sm:h-36 rounded-full border-4 border-white dark:border-brand-dark-card shadow-xl overflow-hidden bg-[#FAFAFA] dark:bg-[#0F0F12] flex-shrink-0 flex items-center justify-center relative transition-transform duration-300 group-hover/avatar:scale-[1.02]">
+              <div className="w-32 h-32 sm:w-36 sm:h-36 rounded-full border-4 border-white dark:border-brand-dark-card shadow-xl overflow-hidden bg-[#FAFAFA] dark:bg-[#0F0F12] flex-shrink-0 flex items-center justify-center relative transition-transform duration-300 group-hover/avatar:scale-[1.02] ring-4 ring-brand-purple/20">
                 {profile.avatar_url ? (
                   <img 
                     src={profile.avatar_url} 
@@ -927,24 +818,25 @@ const PublicProfile: React.FC = () => {
                 )}
               </div>
               
-              {/* verification state */}
               {profile.verification_status === 'verified' && (
-                <div className="absolute bottom-1 right-1 z-20 bg-brand-purple text-white p-1.5 rounded-full border-4 border-white dark:border-brand-dark-card shadow">
+                <div className="absolute bottom-1 right-1 z-20 bg-brand-purple text-white p-1.5 rounded-full border-4 border-white dark:border-brand-dark-card shadow" title="Verified Creator">
                   <BadgeCheck className="w-5 h-5 text-white fill-current" />
                 </div>
               )}
             </div>
 
-            {/* Middle Identity Row */}
+            {/* Creator Identity Details */}
             <div className="text-center sm:text-left flex-1 min-w-0 w-full flex flex-col justify-center pt-2">
               
-              {/* Creator Name & Category */}
-              <div className="mb-4">
-                <h1 className="text-2xl sm:text-3xl font-black text-brand-black dark:text-brand-white tracking-tight leading-tight truncate flex flex-col sm:flex-row sm:items-center justify-center sm:justify-start gap-2">
-                  {profile.full_name || 'Anonymous Creator'}
+              {/* Creator Name & Username */}
+              <div className="mb-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-center sm:justify-start gap-2 flex-wrap">
+                  <h1 className="text-2xl sm:text-3xl font-black text-brand-black dark:text-brand-white tracking-tight leading-tight truncate">
+                    {profile.full_name || 'Anonymous Creator'}
+                  </h1>
                   {profile.verification_status === 'verified' && (
-                    <span title="Verified Creator" className="inline-flex items-center justify-center bg-blue-500 text-white rounded-full p-1 shadow-sm">
-                      <CheckCircle2 className="w-5 h-5" />
+                    <span title="Verified Creator" className="inline-flex items-center justify-center bg-blue-500 text-white rounded-full p-1 shadow-sm shrink-0">
+                      <CheckCircle2 className="w-4 h-4" />
                     </span>
                   )}
                   {profile.active_subscription ? (
@@ -952,25 +844,31 @@ const PublicProfile: React.FC = () => {
                   ) : (
                     <PremiumBadge planName={profile.subscription_plan || 'Starter'} />
                   )}
-                </h1>
-                
-                {/* Dynamic Category (Fallback to role) */}
-                {(dynamicCategories.length > 0 || profile.role) && (
-                  <div className="mt-2 flex flex-wrap justify-center sm:justify-start gap-2">
-                    {(dynamicCategories.length > 0 ? dynamicCategories : (profile.role ? [profile.role] : [])).map((cat: string) => (
-                      <span key={cat} className="px-3 py-1 rounded-full bg-brand-purple/10 text-brand-purple text-xs font-bold uppercase tracking-widest">
-                        {cat}
-                      </span>
-                    ))}
-                  </div>
+                </div>
+
+                {usernameHandle && (
+                  <p className="text-sm font-bold text-gray-400 dark:text-gray-500 mt-0.5">
+                    {usernameHandle}
+                  </p>
                 )}
               </div>
 
-              {/* Creator Skills */}
+              {/* Creator Categories / Role */}
+              {(dynamicCategories.length > 0 || profile.role) && (
+                <div className="mb-3 flex flex-wrap justify-center sm:justify-start gap-2">
+                  {(dynamicCategories.length > 0 ? dynamicCategories : (profile.role ? [profile.role] : [])).map((cat: string) => (
+                    <span key={cat} className="px-3 py-1 rounded-full bg-brand-purple/10 text-brand-purple text-xs font-bold uppercase tracking-widest">
+                      {cat}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* Skills Chips */}
               {(dynamicSkills.length > 0 || (profile.skills && profile.skills.length > 0)) && (
-                <div className="mb-5 flex flex-wrap justify-center sm:justify-start gap-2">
-                  {(dynamicSkills.length > 0 ? dynamicSkills : profile.skills).map((skill: string) => (
-                    <span key={skill} className="px-4 py-1.5 bg-[#F9FAFB] dark:bg-[#161618] rounded-full text-sm font-bold text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-[#27272A] shadow-sm transition-all cursor-default">
+                <div className="mb-4 flex flex-wrap justify-center sm:justify-start gap-2">
+                  {(dynamicSkills.length > 0 ? dynamicSkills : profile.skills).slice(0, 6).map((skill: string) => (
+                    <span key={skill} className="px-3.5 py-1 bg-[#F9FAFB] dark:bg-[#161618] rounded-full text-xs font-bold text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-[#27272A] shadow-sm">
                       {skill}
                     </span>
                   ))}
@@ -980,8 +878,8 @@ const PublicProfile: React.FC = () => {
               {/* Location & Availability */}
               <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3 sm:gap-6 text-sm font-semibold text-gray-500 dark:text-gray-400">
                 <div className="flex items-center gap-1.5">
-                  <MapPin className="w-4 h-4 text-gray-400" />
-                  <span>{profile.city ? `${profile.city}, ${profile.country}` : profile.country || 'Global Talent'}</span>
+                  <MapPin className="w-4 h-4 text-brand-purple shrink-0" />
+                  <span>{profile.city_town || profile.city ? `${profile.city_town || profile.city}, ${profile.country || ''}` : profile.country || 'Global Creator'}</span>
                 </div>
                 
                 <div className="flex items-center gap-1.5">
@@ -989,67 +887,192 @@ const PublicProfile: React.FC = () => {
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
                   </span>
-                  <span className="text-emerald-600 dark:text-emerald-400">Available for gigs</span>
+                  <span className="text-emerald-600 dark:text-emerald-400 font-bold">Available for gigs</span>
                 </div>
               </div>
+
+              {/* Bio Summary */}
+              {profile.bio && (
+                <p className="mt-4 text-xs sm:text-sm text-gray-600 dark:text-gray-300 line-clamp-3 leading-relaxed font-medium">
+                  {profile.bio}
+                </p>
+              )}
+
+              {/* Social Links Bar */}
+              {renderSocialLinks()}
+
             </div>
           </div>
 
-          {/* Trust Indicators (Stats Row) */}
-          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-6 sm:gap-10 border-t border-b border-gray-100 dark:border-[#1F1F23]/80 py-5 my-8">
-            <div className="flex flex-col items-center sm:items-start">
-              <div className="flex items-center gap-1">
-                <Briefcase className="w-4 h-4 text-brand-purple" />
-                <span className="text-xl font-black text-brand-black dark:text-brand-white">{profile.completed_gigs || 12}</span>
-              </div>
-              <span className="text-[10px] font-black uppercase tracking-wider text-gray-500">Gigs Completed</span>
-            </div>
+          {/* 3. AUTHENTIC STATS AREA */}
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center justify-around gap-4 sm:gap-8 border-t border-b border-gray-100 dark:border-[#1F1F23]/80 py-5 my-6">
             
-            <div className="flex flex-col items-center sm:items-start cursor-pointer group/stat" onClick={() => setShowFollowersModal(true)}>
-              <div className="flex items-center gap-1">
+            {/* Real Followers Count */}
+            <div 
+              className="flex flex-col items-center cursor-pointer group/stat p-2 rounded-2xl hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+              onClick={() => setShowFollowersModal(true)}
+            >
+              <div className="flex items-center gap-1.5">
                 <User className="w-4 h-4 text-brand-purple" />
-                <span className="text-xl font-black text-brand-black dark:text-brand-white group-hover:text-brand-purple transition-colors">
+                <span className="text-xl font-black text-brand-black dark:text-brand-white group-hover/stat:text-brand-purple transition-colors">
                   {stats.followers >= 1000 ? (stats.followers / 1000).toFixed(1) + 'K' : stats.followers}
                 </span>
               </div>
-              <span className="text-[10px] font-black uppercase tracking-wider text-gray-500">Followers</span>
+              <span className="text-[10px] font-black uppercase tracking-wider text-gray-500 mt-0.5">Followers</span>
             </div>
             
-            <div className="flex flex-col items-center sm:items-start">
-              <div className="flex items-center gap-1">
-                <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
-                <span className="text-xl font-black text-brand-black dark:text-brand-white">{profile.rating || '4.9'}</span>
+            {/* Real Following Count */}
+            <div 
+              className="flex flex-col items-center cursor-pointer group/stat p-2 rounded-2xl hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+              onClick={() => setShowFollowingModal(true)}
+            >
+              <div className="flex items-center gap-1.5">
+                <UserCheck className="w-4 h-4 text-indigo-500" />
+                <span className="text-xl font-black text-brand-black dark:text-brand-white group-hover/stat:text-brand-purple transition-colors">
+                  {stats.following >= 1000 ? (stats.following / 1000).toFixed(1) + 'K' : stats.following}
+                </span>
               </div>
-              <span className="text-[10px] font-black uppercase tracking-wider text-gray-500">Rating</span>
+              <span className="text-[10px] font-black uppercase tracking-wider text-gray-500 mt-0.5">Following</span>
             </div>
+
+            {/* Real Portfolio Items Count */}
+            <div className="flex flex-col items-center p-2">
+              <div className="flex items-center gap-1.5">
+                <LayoutGrid className="w-4 h-4 text-sky-500" />
+                <span className="text-xl font-black text-brand-black dark:text-brand-white">
+                  {profile.portfolio_media?.length || 0}
+                </span>
+              </div>
+              <span className="text-[10px] font-black uppercase tracking-wider text-gray-500 mt-0.5">Portfolio Work</span>
+            </div>
+
+            {/* Real Completed Gigs (ONLY shown if > 0) */}
+            {completedGigsCount > 0 && (
+              <div className="flex flex-col items-center p-2">
+                <div className="flex items-center gap-1.5">
+                  <Briefcase className="w-4 h-4 text-emerald-500" />
+                  <span className="text-xl font-black text-brand-black dark:text-brand-white">{completedGigsCount}</span>
+                </div>
+                <span className="text-[10px] font-black uppercase tracking-wider text-gray-500 mt-0.5">Gigs Completed</span>
+              </div>
+            )}
+
+            {/* Real Rating (ONLY shown if > 0) */}
+            {typeof profile?.rating === 'number' && profile.rating > 0 && (
+              <div className="flex flex-col items-center p-2">
+                <div className="flex items-center gap-1.5">
+                  <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
+                  <span className="text-xl font-black text-brand-black dark:text-brand-white">{profile.rating}</span>
+                </div>
+                <span className="text-[10px] font-black uppercase tracking-wider text-gray-500 mt-0.5">Rating</span>
+              </div>
+            )}
           </div>
           
-          {/* Action Buttons */}
+          {/* 4. ACTION BUTTONS */}
           <div className="flex flex-col sm:flex-row gap-3">
             {!isOwnProfile ? (
               <>
                 <button 
+                  onClick={handleFollowToggle}
+                  disabled={isTogglingFollow}
+                  className={`flex-1 h-12 flex items-center justify-center gap-2 rounded-xl font-bold text-sm transition-all shadow-md active:scale-95 cursor-pointer ${
+                    isFollowing
+                      ? 'bg-gray-100 dark:bg-[#1F1F23] text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-[#27272A] hover:bg-red-50 dark:hover:bg-red-950/20 hover:text-red-600 hover:border-red-200'
+                      : 'bg-brand-purple text-white hover:bg-brand-purple-hover shadow-brand-purple/20'
+                  }`}
+                >
+                  {isTogglingFollow ? (
+                    <Loader2 className="w-4 h-4 animate-spin text-current" />
+                  ) : isFollowing ? (
+                    <>
+                      <UserCheck className="w-4 h-4 text-emerald-500" />
+                      <span>Following</span>
+                    </>
+                  ) : (
+                    <>
+                      <UserPlus className="w-4 h-4" />
+                      <span>Follow</span>
+                    </>
+                  )}
+                </button>
+
+                <button 
                   onClick={() => navigate(`/messages/${profile.id}`)}
-                  className="flex-1 h-12 flex items-center justify-center gap-2 rounded-xl bg-brand-black dark:bg-white text-white dark:text-brand-black font-bold text-sm transition-transform hover:-translate-y-0.5 shadow-lg active:translate-y-0"
+                  className="flex-1 h-12 flex items-center justify-center gap-2 rounded-xl bg-brand-black dark:bg-white text-white dark:text-brand-black font-bold text-sm transition-all hover:opacity-90 shadow-md active:scale-95 cursor-pointer"
                 >
                   <MessageCircle className="w-4 h-4" />
-                  Message
+                  <span>Message</span>
                 </button>
-                <button 
-                  onClick={() => toast.info('Direct hiring integration coming soon!')}
-                  className="flex-1 h-12 flex items-center justify-center gap-2 rounded-xl bg-brand-purple text-white font-bold text-sm transition-transform hover:-translate-y-0.5 shadow-lg shadow-brand-purple/20 active:translate-y-0"
-                >
-                  <Briefcase className="w-4 h-4" />
-                  Hire Creator
-                </button>
+
+                <div className="relative">
+                  <button
+                    onClick={() => setShowProfileMenu(!showProfileMenu)}
+                    className="h-12 w-12 flex items-center justify-center rounded-xl bg-gray-100 dark:bg-[#1F1F23] text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-[#27272A] transition-all cursor-pointer"
+                    title="More options"
+                  >
+                    <MoreVertical className="w-5 h-5" />
+                  </button>
+
+                  {showProfileMenu && (
+                    <div className="absolute right-0 bottom-14 w-48 bg-white dark:bg-[#1A1A1E] rounded-2xl shadow-2xl border border-gray-100 dark:border-[#2A2A2F] py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                      <button
+                        onClick={() => {
+                          setShowProfileMenu(false);
+                          navigator.clipboard.writeText(window.location.href);
+                          toast.success("Profile URL copied to clipboard!");
+                        }}
+                        className="w-full px-4 py-2.5 text-left text-xs font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5 flex items-center gap-2"
+                      >
+                        <Share2 className="w-4 h-4 text-gray-400" />
+                        Share Profile
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowProfileMenu(false);
+                          setShowReportUserModal(true);
+                        }}
+                        className="w-full px-4 py-2.5 text-left text-xs font-bold text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/20 flex items-center gap-2"
+                      >
+                        <Flag className="w-4 h-4" />
+                        Report Profile
+                      </button>
+                      <button
+                        onClick={async () => {
+                          setShowProfileMenu(false);
+                          if (window.confirm(`Are you sure you want to block ${profile.full_name || 'this creator'}?`)) {
+                            await blockUser(profile.id, profile.full_name || 'Creator');
+                          }
+                        }}
+                        className="w-full px-4 py-2.5 text-left text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 flex items-center gap-2"
+                      >
+                        <Shield className="w-4 h-4" />
+                        Block Creator
+                      </button>
+                    </div>
+                  )}
+                </div>
               </>
             ) : (
-              <button 
-                onClick={() => navigate('/edit-profile')}
-                className="flex-1 h-12 flex items-center justify-center gap-2 rounded-xl bg-gray-100 dark:bg-[#1F1F23] text-brand-black dark:text-white font-bold text-sm transition-transform hover:-translate-y-0.5 active:translate-y-0"
-              >
-                Edit Profile
-              </button>
+              <div className="flex flex-1 flex-col sm:flex-row gap-3">
+                <button 
+                  onClick={() => navigate('/edit-profile')}
+                  className="flex-1 h-12 flex items-center justify-center gap-2 rounded-xl bg-gray-100 dark:bg-[#1F1F23] text-brand-black dark:text-white font-bold text-sm transition-all hover:bg-gray-200 dark:hover:bg-[#27272A] active:scale-95 cursor-pointer"
+                >
+                  <Edit3 className="w-4 h-4 text-brand-purple" />
+                  Edit Profile
+                </button>
+                <button 
+                  onClick={() => {
+                    setActiveTab('portfolio');
+                    setShowAddModal(true);
+                  }}
+                  className="flex-1 h-12 flex items-center justify-center gap-2 rounded-xl bg-brand-purple text-white font-bold text-sm transition-all hover:bg-brand-purple-hover active:scale-95 shadow-md shadow-brand-purple/20 cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  Upload Work
+                </button>
+              </div>
             )}
           </div>
         </div>
@@ -1059,19 +1082,19 @@ const PublicProfile: React.FC = () => {
           setShowAddModal(true);
         }} />}
 
-        {/* 3. STICKY INTERACTIVE PROFILE TABS */}
+        {/* 5. CONTENT NAVIGATION TABS */}
         <div className="sticky top-[4.2rem] sm:top-[5rem] z-30 bg-[#FAFAFA]/90 dark:bg-[#09090B]/90 backdrop-blur-md py-4 border-b border-gray-100 dark:border-[#1F1F23] mb-6">
           <div className="flex items-center justify-around">
             <button
               onClick={() => setActiveTab('portfolio')}
-              className={`flex items-center gap-1.5 py-1.5 px-3 rounded-xl text-xs font-black uppercase tracking-wider relative transition-colors duration-300 ${
+              className={`flex items-center gap-1.5 py-1.5 px-3 rounded-xl text-xs font-black uppercase tracking-wider relative transition-colors duration-300 cursor-pointer ${
                 activeTab === 'portfolio' 
                   ? 'text-brand-purple' 
                   : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
               }`}
             >
               <LayoutGrid className="w-4 h-4" />
-              Portfolio
+              Portfolio ({profile.portfolio_media?.length || 0})
               {activeTab === 'portfolio' && (
                 <motion.div 
                   layoutId="activeTabUnderline" 
@@ -1081,8 +1104,26 @@ const PublicProfile: React.FC = () => {
             </button>
 
             <button
+              onClick={() => setActiveTab('about')}
+              className={`flex items-center gap-1.5 py-1.5 px-3 rounded-xl text-xs font-black uppercase tracking-wider relative transition-colors duration-300 cursor-pointer ${
+                activeTab === 'about' 
+                  ? 'text-brand-purple' 
+                  : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
+              }`}
+            >
+              <User className="w-4 h-4" />
+              About & Skills
+              {activeTab === 'about' && (
+                <motion.div 
+                  layoutId="activeTabUnderline" 
+                  className="absolute -bottom-4 left-0 right-0 h-[3px] bg-brand-purple rounded-full" 
+                />
+              )}
+            </button>
+
+            <button
               onClick={() => setActiveTab('posts')}
-              className={`flex items-center gap-1.5 py-1.5 px-3 rounded-xl text-xs font-black uppercase tracking-wider relative transition-colors duration-300 ${
+              className={`flex items-center gap-1.5 py-1.5 px-3 rounded-xl text-xs font-black uppercase tracking-wider relative transition-colors duration-300 cursor-pointer ${
                 activeTab === 'posts' 
                   ? 'text-brand-purple' 
                   : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
@@ -1100,16 +1141,16 @@ const PublicProfile: React.FC = () => {
           </div>
         </div>
 
-        {/* 4. TABBED CONTENT RENDER AREA */}
+        {/* 6. TABBED CONTENT CONTENT AREA */}
         <div className="min-h-[400px]">
           
-          {/* TAB 1: PORTFOLIO */}
+          {/* TAB 1: PORTFOLIO RECORDS */}
           {activeTab === 'portfolio' && (
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-black text-brand-black dark:text-brand-white uppercase tracking-wider flex items-center gap-2">
                   <LayoutGrid className="w-5 h-5 text-brand-purple" />
-                  Portfolio Records
+                  Portfolio Showcase
                 </h3>
                 {isOwnProfile && (
                   <button
@@ -1124,8 +1165,7 @@ const PublicProfile: React.FC = () => {
               </div>
 
               {profile.portfolio_media && profile.portfolio_media.length > 0 ? (
-                /* Consistent 3-column layout maintaining square aspect ratio with zero layout shifts */
-                <div className="grid grid-cols-3 gap-2 sm:gap-4 md:gap-6">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
                   {profile.portfolio_media.map((item: any, index: number) => (
                     <PortfolioMediaCard
                       key={item.id || index}
@@ -1140,14 +1180,19 @@ const PublicProfile: React.FC = () => {
                 </div>
               ) : (
                 <div className="bg-white dark:bg-brand-dark-card rounded-3xl p-12 text-center border border-gray-150 dark:border-[#1F1F23]">
-                  <Globe className="w-10 h-10 text-gray-400 dark:text-gray-600 mx-auto mb-3" />
-                  <p className="text-gray-600 dark:text-gray-400 font-bold text-sm">No portfolio items saved yet.</p>
+                  <LayoutGrid className="w-12 h-12 text-gray-300 dark:text-gray-700 mx-auto mb-3" />
+                  <h4 className="text-lg font-bold text-brand-black dark:text-brand-white mb-1">No portfolio uploaded yet</h4>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 max-w-sm mx-auto">
+                    {isOwnProfile 
+                      ? "Upload photos and video clips of your work to show potential clients your talent." 
+                      : "This creator hasn't uploaded any portfolio items yet."}
+                  </p>
                   {isOwnProfile && (
                     <button
                       onClick={() => setShowAddModal(true)}
-                      className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 bg-brand-purple/10 text-brand-purple hover:bg-brand-purple/15 font-bold rounded-xl transition-all"
+                      className="mt-5 inline-flex items-center gap-2 px-6 py-3 bg-brand-purple text-white font-bold rounded-2xl hover:bg-brand-purple-hover active:scale-95 transition-all shadow-md shadow-brand-purple/10 cursor-pointer"
                     >
-                      <Plus className="w-4 h-4" /> Add your first item
+                      <Plus className="w-4 h-4" /> Add Portfolio Work
                     </button>
                   )}
                 </div>
@@ -1155,12 +1200,80 @@ const PublicProfile: React.FC = () => {
             </div>
           )}
 
-          {/* TAB 2: POSTS */}
+          {/* TAB 2: ABOUT & SKILLS */}
+          {activeTab === 'about' && (
+            <div className="space-y-6 animate-in fade-in duration-200">
+              {/* Bio Card */}
+              <div className="bg-white dark:bg-brand-dark-card rounded-3xl p-6 sm:p-8 border border-gray-100 dark:border-[#1F1F23] shadow-sm">
+                <h3 className="text-base font-black text-brand-black dark:text-brand-white uppercase tracking-wider mb-4 flex items-center gap-2">
+                  <User className="w-5 h-5 text-brand-purple" />
+                  About Creator
+                </h3>
+                {profile.bio ? (
+                  <p className="text-gray-700 dark:text-gray-300 text-sm sm:text-base leading-relaxed whitespace-pre-line font-medium">
+                    {profile.bio}
+                  </p>
+                ) : (
+                  <p className="text-gray-400 dark:text-gray-500 text-sm italic">
+                    No biography provided yet.
+                  </p>
+                )}
+              </div>
+
+              {/* Skills Card */}
+              <div className="bg-white dark:bg-brand-dark-card rounded-3xl p-6 sm:p-8 border border-gray-100 dark:border-[#1F1F23] shadow-sm">
+                <h3 className="text-base font-black text-brand-black dark:text-brand-white uppercase tracking-wider mb-4 flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-brand-purple" />
+                  Skills & Expertise
+                </h3>
+                {(dynamicSkills.length > 0 || (profile.skills && profile.skills.length > 0)) ? (
+                  <div className="flex flex-wrap gap-2.5">
+                    {(dynamicSkills.length > 0 ? dynamicSkills : profile.skills).map((skill: string) => (
+                      <span key={skill} className="px-4 py-2 bg-brand-purple/5 dark:bg-brand-purple/10 text-brand-purple dark:text-purple-300 rounded-2xl text-xs font-bold border border-brand-purple/20">
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-400 dark:text-gray-500 text-sm italic">No skills listed yet.</p>
+                )}
+              </div>
+
+              {/* Details & Verification Grid */}
+              <div className="bg-white dark:bg-brand-dark-card rounded-3xl p-6 sm:p-8 border border-gray-100 dark:border-[#1F1F23] shadow-sm grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                  <h4 className="text-xs font-black uppercase tracking-wider text-gray-400 mb-2 flex items-center gap-1.5">
+                    <MapPin className="w-4 h-4 text-brand-purple" /> Location
+                  </h4>
+                  <p className="text-sm font-bold text-brand-black dark:text-brand-white">
+                    {profile.city_town || profile.city ? `${profile.city_town || profile.city}, ${profile.country || ''}` : profile.country || 'Global Creator'}
+                  </p>
+                </div>
+
+                <div>
+                  <h4 className="text-xs font-black uppercase tracking-wider text-gray-400 mb-2 flex items-center gap-1.5">
+                    <Award className="w-4 h-4 text-brand-purple" /> Account Status
+                  </h4>
+                  <p className="text-sm font-bold text-brand-black dark:text-brand-white flex items-center gap-1.5">
+                    {profile.verification_status === 'verified' ? (
+                      <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                        <CheckCircle2 className="w-4 h-4 fill-emerald-500 text-white" /> Verified Creator
+                      </span>
+                    ) : (
+                      <span className="text-gray-500 dark:text-gray-400">Standard Creator Account</span>
+                    )}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 3: COMMUNITY POSTS */}
           {activeTab === 'posts' && (
             <div className="space-y-6">
               <h3 className="text-lg font-black text-brand-black dark:text-brand-white uppercase tracking-wider flex items-center gap-2 mb-2">
                 <FileText className="w-5 h-5 text-brand-purple" />
-                Latest Updates
+                Latest Feed Updates
               </h3>
 
               {isLoadingPosts ? (
@@ -1192,12 +1305,12 @@ const PublicProfile: React.FC = () => {
                 </div>
               ) : (
                 <div className="bg-white dark:bg-brand-dark-card rounded-3xl p-12 text-center border border-gray-150 dark:border-[#1F1F23]">
-                  <Radio className="w-10 h-10 text-gray-400 dark:text-gray-600 mx-auto mb-3 animate-pulse" />
+                  <Radio className="w-10 h-10 text-gray-400 dark:text-gray-600 mx-auto mb-3" />
                   <p className="text-gray-600 dark:text-gray-400 font-bold text-sm">No updates posted on feed yet.</p>
                   {isOwnProfile && (
                     <button
                       onClick={() => navigate('/dashboard')}
-                      className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 bg-brand-purple text-white hover:bg-brand-purple-hover font-bold rounded-xl transition-all"
+                      className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 bg-brand-purple text-white hover:bg-brand-purple-hover font-bold rounded-xl transition-all cursor-pointer"
                     >
                       Create first post
                     </button>
@@ -1211,12 +1324,10 @@ const PublicProfile: React.FC = () => {
 
       </div>
 
-      {/* 5. ADD PORTFOLIO WORK MODAL */}
+      {/* 7. UPLOAD PORTFOLIO WORK MODAL */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[9990] p-4">
-          <div 
-            className="w-full max-w-md bg-white dark:bg-brand-dark-card rounded-[2rem] shadow-2xl border border-gray-100 dark:border-[#2A2A2F] overflow-hidden animate-in fade-in zoom-in-95 duration-250"
-          >
+          <div className="w-full max-w-md bg-white dark:bg-brand-dark-card rounded-[2rem] shadow-2xl border border-gray-100 dark:border-[#2A2A2F] overflow-hidden animate-in fade-in zoom-in-95 duration-250">
             {/* Header */}
             <div className="px-6 py-5 border-b border-gray-105 dark:border-[#1F1F23] flex items-center justify-between">
               <div>
@@ -1261,12 +1372,12 @@ const PublicProfile: React.FC = () => {
                       }
                     }}
                   />
-                  <Upload className="w-10 h-10 text-gray-400 dark:text-gray-600 mx-auto mb-3 animate-bounce" style={{ animationDuration: '2.5s' }} />
+                  <Upload className="w-10 h-10 text-gray-400 dark:text-gray-600 mx-auto mb-3" />
                   <p className="text-sm font-bold text-gray-750 dark:text-gray-200 mb-1">
                     Drag and drop your media, or <span className="text-brand-purple hover:underline">browse</span>
                   </p>
                   <p className="text-[11px] text-gray-400 dark:text-gray-500 flex flex-col gap-0.5 leading-normal mt-2.5">
-                    <span>Supports high-quality images and vertical/horizontal session logs</span>
+                    <span>Supports high-quality images and video highlights</span>
                     <span>JPEG, PNG, WebP up to 5MB</span>
                     <span>MP4, MOV, WebM up to 50MB</span>
                   </p>
@@ -1297,7 +1408,7 @@ const PublicProfile: React.FC = () => {
                     {!isUploading && (
                       <button
                         onClick={clearSelectedFile}
-                        className="absolute top-2.5 right-2.5 p-1 bg-black/60 hover:bg-black/80 rounded-full text-white transition-colors"
+                        className="absolute top-2.5 right-2.5 p-1 bg-black/60 hover:bg-black/80 rounded-full text-white transition-colors cursor-pointer"
                         title="Remove file"
                       >
                         <X className="w-4 h-4" />
@@ -1347,7 +1458,7 @@ const PublicProfile: React.FC = () => {
         </div>
       )}
 
-      {/* 6. MODALS / LIGHTBOXES */}
+      {/* 8. FOLLOWERS & FOLLOWING MODALS */}
       {userId && showFollowersModal && (
         <FollowListModal 
           userId={userId} 
@@ -1364,15 +1475,15 @@ const PublicProfile: React.FC = () => {
         />
       )}
 
+      {/* 9. MEDIA LIGHTBOX PREVIEW */}
       {selectedMedia && (
         <div
           onClick={() => setSelectedMedia(null)}
-          className="fixed inset-0 bg-black/95 z-[9999] flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/95 z-[9999] flex items-center justify-center p-4 cursor-pointer"
         >
-          {/* Close lightbox helper */}
           <button 
             onClick={() => setSelectedMedia(null)}
-            className="absolute top-6 right-6 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white border border-white/10 transition-colors cursor-pointer"
+            className="absolute top-6 right-6 p-2.5 bg-white/10 hover:bg-white/20 rounded-full text-white border border-white/10 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -1388,7 +1499,7 @@ const PublicProfile: React.FC = () => {
           {selectedMedia.type === "video" && (
             <div className="max-w-[500px] w-full max-h-[90vh] aspect-[9/16] rounded-2xl overflow-hidden bg-black select-none" onClick={(e) => e.stopPropagation()}>
               <video
-                src={selectedMedia.url}
+                src={selectedMedia.url.includes('?thumb=') ? selectedMedia.url.split('?thumb=')[0] : selectedMedia.url}
                 controls
                 autoPlay
                 playsInline
@@ -1399,7 +1510,7 @@ const PublicProfile: React.FC = () => {
         </div>
       )}
 
-      {/* 7. PORTFOLIO DELETION DIALOG */}
+      {/* 10. DELETE ITEM CONFIRMATION MODAL */}
       <AnimatePresence>
         {portfolioItemToDelete && (
           <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
@@ -1415,7 +1526,7 @@ const PublicProfile: React.FC = () => {
 
               <h3 className="text-xl font-bold text-brand-black dark:text-brand-white mb-2">Delete Portfolio Item?</h3>
               <p className="text-gray-500 dark:text-gray-400 text-sm font-medium leading-relaxed mb-6">
-                Are you sure you want to remove this item from your public portfolio? This item and its uploaded asset will be removed permanently.
+                Are you sure you want to remove this item from your portfolio?
               </p>
 
               <div className="flex gap-3">
@@ -1440,13 +1551,13 @@ const PublicProfile: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* 8. REPORT USER MODAL */}
+      {/* 11. REPORT USER MODAL */}
       {showReportUserModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
           <div className="bg-white dark:bg-[#1A1A1E] rounded-[2.5rem] w-full max-w-md overflow-hidden border border-gray-100 dark:border-[#2A2A2F] p-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
             <button 
               onClick={() => setShowReportUserModal(false)}
-              className="absolute top-4 right-4 p-1.5 text-gray-400 hover:text-gray-700 dark:hover:text-white rounded-full transition-colors"
+              className="absolute top-4 right-4 p-1.5 text-gray-400 hover:text-gray-700 dark:hover:text-white rounded-full transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -1470,7 +1581,7 @@ const PublicProfile: React.FC = () => {
               </div>
               
               <div>
-                <label className="block text-xs font-black uppercase tracking-wider text-gray-500 mb-2">Report Info / Context (Optional)</label>
+                <label className="block text-xs font-black uppercase tracking-wider text-gray-500 mb-2">Report Context (Optional)</label>
                 <textarea 
                   value={reportUserDetails}
                   onChange={(e) => setReportUserDetails(e.target.value)}
@@ -1483,20 +1594,20 @@ const PublicProfile: React.FC = () => {
               <div className="flex gap-3 pt-2">
                 <button 
                   onClick={() => setShowReportUserModal(false)}
-                  className="flex-1 py-3 rounded-xl font-bold bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-gray-300 transition-all hover:bg-gray-200 dark:hover:bg-white/10"
+                  className="flex-1 py-3 rounded-xl font-bold bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-gray-300 transition-all hover:bg-gray-200 dark:hover:bg-white/10 cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button 
                   onClick={async () => {
                     if (!profile) return;
-                    const success = await reportContent('profile', profile.user_id, reportUserReason, reportUserDetails);
+                    const success = await reportContent('profile', profile.user_id || profile.id, reportUserReason, reportUserDetails);
                     if (success) {
                       setShowReportUserModal(false);
                       setReportUserDetails('');
                     }
                   }}
-                  className="flex-1 py-3 rounded-xl font-bold bg-brand-purple text-white transition-all hover:bg-brand-purple-dark"
+                  className="flex-1 py-3 rounded-xl font-bold bg-brand-purple text-white transition-all hover:bg-brand-purple-hover cursor-pointer"
                 >
                   Submit Report
                 </button>

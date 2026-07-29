@@ -73,8 +73,13 @@ const Login: React.FC = () => {
       const from = state?.from || '/overview';
       navigate(from, { replace: true });
     } catch (error: any) {
-      console.error('Login error:', error);
-      setSupabaseError(error.message || 'An error occurred during sign in');
+      const isInvalidCreds = error?.message?.toLowerCase().includes('invalid login credentials');
+      if (isInvalidCreds) {
+        setSupabaseError('Invalid email or password. Please check your credentials or sign up below if you do not have an account.');
+      } else {
+        console.error('Login error:', error);
+        setSupabaseError(error.message || 'An error occurred during sign in');
+      }
     } finally {
       setIsLoading(false);
     }
