@@ -265,9 +265,9 @@ const AboutUs: React.FC = () => {
               <div className="p-8 md:p-10 text-center flex flex-col items-center h-full">
                 <div className="w-32 h-32 mx-auto rounded-full bg-gray-100 border-4 border-white shadow-md mb-6 relative overflow-hidden flex items-center justify-center">
                   <img
-                    src="/assets/team/joshua_ayomide_ceo.png"
+                    src="/joshua-ayomide-ceo.png"
                     alt="Joshua Ayomide - Founder & Chief Executive Officer"
-                    className="w-full h-full object-cover object-center rounded-full"
+                    className="w-full h-full object-cover rounded-full"
                   />
                 </div>
                 <div className="inline-flex items-center justify-center px-3 py-1 rounded-full bg-[#F3E8FF] text-[#4B0082] text-xs font-bold uppercase tracking-wider mb-4">
@@ -295,9 +295,12 @@ const AboutUs: React.FC = () => {
               <div className="p-8 md:p-10 text-center flex flex-col items-center h-full">
                 <div className="w-32 h-32 mx-auto rounded-full bg-gray-100 border-4 border-white shadow-md mb-6 relative overflow-hidden flex items-center justify-center">
                   <img
-                    src="/assets/team/daniel.png"
+                    src="/daniel.png"
                     alt="Amoo Daniels - Co-Founder"
-                    className="w-full h-full object-cover object-center rounded-full"
+                    className="w-full h-full object-cover rounded-full"
+                    onError={(e) => {
+                      e.currentTarget.src = "/amoo-daniels.png";
+                    }}
                   />
                 </div>
                 <div className="inline-flex items-center justify-center px-3 py-1 rounded-full bg-[#F3E8FF] text-[#4B0082] text-xs font-bold uppercase tracking-wider mb-4">
