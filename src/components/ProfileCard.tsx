@@ -7,6 +7,8 @@ import { profilesService } from '../services/profilesService';
 import { supabase } from '../services/supabaseClient';
 import { toast } from 'sonner';
 import FollowListModal from './FollowListModal';
+import { notifyError } from '../utils/errorHandler';
+import { handleError } from '../utils/errorHandler';
 
 interface ProfileCardProps {
   profile?: any;
@@ -133,7 +135,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile: initialProfile, user
 
   const handleFollowToggle = async () => {
     if (!currentUser) {
-      toast.error("Please sign in to follow users.");
+      notifyError("Please sign in to follow users.");
       return;
     }
     if (!targetUserId) return;
@@ -155,7 +157,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile: initialProfile, user
         ...prev,
         followers: !newFollowingState ? prev.followers + 1 : Math.max(0, prev.followers - 1)
       }));
-      toast.error("Failed to update follow status. Please ensure the 'follows' table exists in Supabase.");
+      handleError(err, "Operation Error");
     }
   };
 

@@ -23,6 +23,7 @@ import imageCompression from 'browser-image-compression';
 import { toast } from 'sonner';
 
 import { useAuth } from '../context/AuthContext';
+import { handleError, notifyError } from '../utils/errorHandler';
 
 const CreateProfile: React.FC = () => {
   const navigate = useNavigate();
@@ -109,7 +110,7 @@ const CreateProfile: React.FC = () => {
     if (!file) return;
 
     if (file.size > 5 * 1024 * 1024) {
-      toast.error('Image must be under 5MB');
+      notifyError('Image must be under 5MB');
       return;
     }
 
@@ -135,7 +136,7 @@ const CreateProfile: React.FC = () => {
       window.dispatchEvent(new CustomEvent('profile-updated'));
       toast.success('Avatar updated successfully!');
     } catch (err: any) {
-      toast.error(err.message);
+      handleError(err, "Operation Error");
     } finally {
       setIsLoading(false);
       setUploadStatus('');
@@ -144,11 +145,11 @@ const CreateProfile: React.FC = () => {
 
   const handleSaveAndLaunch = async () => {
     if (!formData.full_name.trim()) {
-      toast.error('Full Name is required');
+      notifyError('Full Name is required');
       return;
     }
     if (!formData.username.trim()) {
-      toast.error('Username handle is required');
+      notifyError('Username handle is required');
       return;
     }
 
@@ -172,7 +173,7 @@ const CreateProfile: React.FC = () => {
           .maybeSingle();
 
         if (existingUser) {
-          toast.error('This username handle is already claimed by another musician.');
+          notifyError('This username handle is already claimed by another musician.');
           setIsLoading(false);
           isSubmittingRef.current = false;
           return;
@@ -201,7 +202,7 @@ const CreateProfile: React.FC = () => {
       navigate('/creator-categories');
     } catch (err: any) {
       console.error(err);
-      toast.error(err.message || 'Failed to save profile settings.');
+      handleError(err, "Operation Error");
     } finally {
       setIsLoading(false);
       isSubmittingRef.current = false;

@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../services/supabaseClient';
 import { profilesService } from '../services/profilesService';
+import { getFriendlyErrorMessage } from '../utils/errorHandler';
 
 interface AuthContextType {
   user: User | null;
@@ -47,7 +48,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setSession(null);
           } else {
             console.error('Error fetching session:', err);
-            setError(err.message || 'Failed to fetch session');
+            setError(getFriendlyErrorMessage(err));
           }
         }
       } finally {

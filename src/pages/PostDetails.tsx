@@ -6,6 +6,7 @@ import { CommentList } from '../components/comments/CommentList';
 import { CommentBox } from '../components/comments/CommentBox';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { notifyError } from '../utils/errorHandler';
 
 export default function PostDetails() {
   const { id } = useParams();
@@ -29,7 +30,7 @@ export default function PostDetails() {
         }
       } catch (err) {
         console.error(err);
-        toast.error("Failed to load comments");
+        notifyError("Failed to load comments");
       } finally {
         setLoading(false);
       }
@@ -118,7 +119,7 @@ export default function PostDetails() {
                   setComments(prev => prev.filter(c => c.id !== commentId && c.parent_id !== commentId));
                   toast.success("Comment deleted");
                 } else {
-                  toast.error("Failed to delete comment");
+                  notifyError("Failed to delete comment");
                 }
               }}
               onEdit={async (commentId, content) => {
@@ -127,7 +128,7 @@ export default function PostDetails() {
                   setComments(prev => prev.map(c => c.id === commentId ? { ...c, content } : c));
                   toast.success("Comment updated");
                 } else {
-                  toast.error("Failed to update comment");
+                  notifyError("Failed to update comment");
                 }
               }}
             />
@@ -147,7 +148,7 @@ export default function PostDetails() {
                const { error } = await communityService.addComment(id!, user.id, text, parentId);
                if (error) {
                  console.error(error);
-                 toast.error("Failed to add comment.");
+                 notifyError("Failed to add comment.");
                } else {
                  const { data } = await communityService.getComments(id!, user?.id);
                  if (data) {

@@ -5,6 +5,7 @@ import { Check, Loader2, ArrowRight, Grid, Camera, Music, Video, PenTool, Monito
 import { supabase } from '../services/supabaseClient';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
+import { notifyError } from '../utils/errorHandler';
 
 interface Category {
   id: string;
@@ -59,7 +60,7 @@ const CreatorCategories: React.FC = () => {
         setCategories(data || []);
       } catch (err: any) {
         console.error('Error fetching categories:', err);
-        toast.error('Failed to load categories');
+        notifyError('Failed to load categories');
       } finally {
         setIsLoading(false);
       }
@@ -82,7 +83,7 @@ const CreatorCategories: React.FC = () => {
 
   const handleContinue = async () => {
     if (selectedIds.size === 0) {
-      toast.error('Please select at least one category to continue.');
+      notifyError('Please select at least one category to continue.');
       return;
     }
     
@@ -113,7 +114,7 @@ const CreatorCategories: React.FC = () => {
       navigate('/creator-skills', { replace: true });
     } catch (err: any) {
       console.error('Error saving categories:', err);
-      toast.error('Failed to save your selections.');
+      notifyError('Failed to save your selections.');
     } finally {
       setIsSaving(false);
     }

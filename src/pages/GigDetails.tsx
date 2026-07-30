@@ -7,6 +7,7 @@ import { applicationsService } from '../services/applicationsService';
 import { supabase } from '../services/supabaseClient';
 import { formatCurrency, formatDate } from '../utils/helpers';
 import VerificationBadge from '../components/VerificationBadge';
+import { handleError, notifyError } from '../utils/errorHandler';
 
 const GigDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -47,7 +48,7 @@ const GigDetails: React.FC = () => {
         }
       } catch (err: any) {
         console.error('Error in fetchGigAndStatus:', err);
-        toast.error(err.message);
+        handleError(err, "Operation Error");
         navigate('/browse');
       } finally {
         setIsLoading(false);
@@ -66,13 +67,13 @@ const GigDetails: React.FC = () => {
       const applicantId = session?.user?.id;
 
       if (!applicantId) {
-        toast.error("Please log in first");
+        notifyError("Please log in first");
         return;
       }
 
       // Ensure gig object exists
       if (!gig?.id) {
-        toast.error("Gig details not loaded");
+        notifyError("Gig details not loaded");
         return;
       }
 
@@ -85,10 +86,10 @@ const GigDetails: React.FC = () => {
       if (appError) {
         console.error("Application error:", appError);
         if ((appError as any).code === '23505') {
-          toast.error("You have already applied to this gig.");
+          notifyError("You have already applied to this gig.");
           setHasAlreadyApplied(true);
         } else {
-          toast.error("Application failed: " + appError.message);
+          handleError(appError, "Operation Error");
         }
         return;
       }
@@ -100,7 +101,7 @@ const GigDetails: React.FC = () => {
 
     } catch (err) {
       console.error("Unexpected error:", err);
-      toast.error("Something went wrong. Try again.");
+      notifyError("Something went wrong. Try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -123,7 +124,7 @@ const GigDetails: React.FC = () => {
       toast.success('Gig deleted successfully.');
       navigate('/posted-gigs');
     } catch (err: any) {
-      toast.error('Failed to delete gig: ' + err.message);
+      handleError(err, "Operation Error");
     } finally {
       setIsDeleting(false);
     }

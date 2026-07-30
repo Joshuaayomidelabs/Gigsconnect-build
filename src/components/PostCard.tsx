@@ -10,6 +10,7 @@ import { renderTextWithMentions } from '../utils/textUtils';
 import { useModeration } from '../hooks/useModeration';
 import { openExternalLink } from '../lib/openExternalLink';
 import { copyToClipboard } from '../lib/copyToClipboard';
+import { notifyError } from '../utils/errorHandler';
 
 function timeAgo(dateInput: string | Date) {
   try {
@@ -206,7 +207,7 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
 
   const handleLike = async () => {
     if (!user) {
-      toast.error("You must be logged in to like posts.");
+      notifyError("You must be logged in to like posts.");
       return;
     }
     
@@ -225,7 +226,7 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
       // Revert on error
       setIsLiked(!newIsLiked);
       setLikesCount((prev) => (!newIsLiked ? prev + 1 : Math.max(0, prev - 1)));
-      toast.error("Failed to update like status.");
+      notifyError("Failed to update like status.");
     }
   };
 
@@ -267,7 +268,7 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
       if (onDelete) onDelete(post.id);
     } catch (err) {
       console.error("Error deleting post:", err);
-      toast.error("Failed to delete post.");
+      notifyError("Failed to delete post.");
       setIsDeleting(false);
     }
   };

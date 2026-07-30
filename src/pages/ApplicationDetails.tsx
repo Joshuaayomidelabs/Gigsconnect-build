@@ -5,6 +5,8 @@ import { supabase } from '../services/supabaseClient';
 import { applicationsService } from '../services/applicationsService';
 import { toast } from 'sonner';
 import VerificationBadge from '../components/VerificationBadge';
+import { notifyError } from '../utils/errorHandler';
+import { getFriendlyErrorMessage } from '../utils/errorHandler';
 
 const ApplicationDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -65,7 +67,7 @@ const ApplicationDetails: React.FC = () => {
         }
       } catch (err: any) {
         console.error("Error fetching application details:", err);
-        setError(err.message || "Failed to load application details");
+        setError(getFriendlyErrorMessage(err));
       } finally {
         setIsLoading(false);
       }
@@ -83,7 +85,7 @@ const ApplicationDetails: React.FC = () => {
       toast.success(`Application status updated to ${status.toLowerCase()}`);
     } catch (err) {
       console.error("Error updating status:", err);
-      toast.error("Failed to update application status");
+      notifyError("Failed to update application status");
     } finally {
       setIsUpdating(false);
     }

@@ -4,6 +4,7 @@ import { Loader2, ArrowLeft, Mail, CheckCircle } from 'lucide-react';
 import { supabase } from '../services/supabaseClient';
 import { Capacitor } from '@capacitor/core';
 import Logo from '../components/Logo';
+import { getFriendlyErrorMessage } from '../utils/errorHandler';
 
 const ForgotPassword: React.FC = () => {
   const navigate = useNavigate();
@@ -45,7 +46,7 @@ const ForgotPassword: React.FC = () => {
       setIsSuccess(true);
     } catch (err: any) {
       console.error('Forgot password error:', err);
-      setError(err.message || 'An error occurred while sending the reset link');
+      setError(getFriendlyErrorMessage(err));
     } finally {
       setIsLoading(false);
     }

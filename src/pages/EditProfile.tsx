@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import imageCompression from 'browser-image-compression';
 import { checkVideoConstraints } from '../utils/validation';
 import { generateVideoThumbnail, dataUrlToFile } from '../utils/videoUtils';
+import { handleError, notifyError } from '../utils/errorHandler';
 
 interface PortfolioItem {
   url: string;
@@ -95,7 +96,7 @@ const EditProfile: React.FC = () => {
     if (!file) return;
 
     if (file.size > 5 * 1024 * 1024) {
-      toast.error('Image must be under 5MB');
+      notifyError('Image must be under 5MB');
       return;
     }
 
@@ -123,7 +124,7 @@ const EditProfile: React.FC = () => {
       
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err: any) {
-      toast.error(err.message);
+      handleError(err, "Operation Error");
     } finally {
       setIsLoading(false);
       setUploadStatus('');
@@ -137,14 +138,14 @@ const EditProfile: React.FC = () => {
     if (type === 'video') {
       const validTypes = ["video/mp4", "video/quicktime", "video/webm"];
       if (!validTypes.includes(file.type)) {
-        toast.error("Please upload an mp4, mov, or webm video file.");
+        notifyError("Please upload an mp4, mov, or webm video file.");
         e.target.value = '';
         return;
       }
       
       const MAX_VIDEO_SIZE = 100 * 1024 * 1024; // 100MB
       if (file.size > MAX_VIDEO_SIZE) {
-        toast.error("Video must be less than 100MB");
+        notifyError("Video must be less than 100MB");
         e.target.value = '';
         return;
       }
@@ -152,7 +153,7 @@ const EditProfile: React.FC = () => {
 
     const currentMedia = formData.portfolio_media.filter(m => m.type === type);
     if (currentMedia.length >= 3) {
-      toast.error(`You can only upload up to 3 ${type}s.`);
+      notifyError(`You can only upload up to 3 ${type}s.`);
       e.target.value = '';
       return;
     }
@@ -236,7 +237,7 @@ const EditProfile: React.FC = () => {
       setSuccessMessage(`${type.charAt(0).toUpperCase() + type.slice(1)} uploaded!`);
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err: any) {
-      toast.error(err.message);
+      handleError(err, "Operation Error");
     } finally {
       setIsLoading(false);
     }
@@ -256,7 +257,7 @@ const EditProfile: React.FC = () => {
       setSuccessMessage('Verification submitted');
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err: any) {
-      toast.error(err.message);
+      handleError(err, "Operation Error");
     } finally {
       setIsLoading(false);
     }
@@ -296,7 +297,7 @@ const EditProfile: React.FC = () => {
       setSuccessMessage('Item deleted!');
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err: any) {
-      toast.error(err.message);
+      handleError(err, "Operation Error");
     } finally {
       setIsLoading(false);
     }
@@ -304,7 +305,7 @@ const EditProfile: React.FC = () => {
 
   const handleAccountDelete = async () => {
     if (deleteConfirmText !== "DELETE MY ACCOUNT") {
-      toast.error("Please type the confirmation text exactly.");
+      notifyError("Please type the confirmation text exactly.");
       return;
     }
 
@@ -314,7 +315,7 @@ const EditProfile: React.FC = () => {
       
       const { data: { session } } = await supabase.auth.getSession();
       if (!session || !session.user) {
-        toast.error("You must be logged in to delete your account.", { id: toastId });
+        notifyError("You must be logged in to delete your account.");
         return;
       }
 
@@ -333,7 +334,7 @@ const EditProfile: React.FC = () => {
       navigate("/");
     } catch (err: any) {
       console.error(err);
-      toast.error(err.message || "An error occurred during account deletion.");
+      handleError(err, "Operation Error");
     } finally {
       setIsDeletingAccount(false);
       setShowAccountDeleteConfirm(false);
@@ -362,7 +363,7 @@ const EditProfile: React.FC = () => {
       setTimeout(() => setSuccessMessage(''), 5000);
     } catch (err: any) {
       console.error('Error in handleSubmit:', err);
-      toast.error(err.message || 'An unexpected error occurred. Please check the console for details.');
+      handleError(err, "Operation Error");
     } finally {
       setIsLoading(false);
     }

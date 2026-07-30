@@ -7,6 +7,8 @@ import { supabase } from '../services/supabaseClient';
 import GigCard from '../components/GigCard';
 import { GigCardSkeleton } from '../components/Skeleton';
 import ApplicantsModal from '../components/ApplicantsModal';
+import { handleError } from '../utils/errorHandler';
+import { getFriendlyErrorMessage } from '../utils/errorHandler';
 
 const MyPostedGigs: React.FC = () => {
   const navigate = useNavigate();
@@ -42,7 +44,7 @@ const MyPostedGigs: React.FC = () => {
           }
         }
       } catch (err: any) {
-        setError(err.message);
+        setError(getFriendlyErrorMessage(err));
       } finally {
         setIsLoading(false);
       }
@@ -72,7 +74,7 @@ const MyPostedGigs: React.FC = () => {
       setGigs(prev => prev.filter(gig => gig.id !== targetId));
       toast.success('Gig deleted successfully.');
     } catch (err: any) {
-      toast.error('Failed to delete gig: ' + err.message);
+      handleError(err, "Operation Error");
     } finally {
       setDeletingIds(prev => {
         const next = new Set(prev);

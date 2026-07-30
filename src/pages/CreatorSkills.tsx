@@ -6,6 +6,7 @@ import { supabase } from '../services/supabaseClient';
 import { profilesService } from '../services/profilesService';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
+import { notifyError } from '../utils/errorHandler';
 
 const POPULAR_SKILLS = [
   'Video Editing',
@@ -61,7 +62,7 @@ const CreatorSkills: React.FC = () => {
     }
 
     if (skills.length >= 15) {
-      toast.error('Maximum of 15 skills allowed.');
+      notifyError('Maximum of 15 skills allowed.');
       return;
     }
     
@@ -116,7 +117,7 @@ const CreatorSkills: React.FC = () => {
       navigate('/creator-location', { replace: true });
     } catch (err: any) {
       console.error('Error saving skills:', err);
-      toast.error('Failed to save your skills.');
+      notifyError('Failed to save your skills.');
     } finally {
       setIsSaving(false);
     }

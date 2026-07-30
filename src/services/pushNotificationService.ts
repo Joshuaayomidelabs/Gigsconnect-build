@@ -2,6 +2,7 @@ import { Capacitor } from '@capacitor/core';
 import { PushNotifications, Token, ActionPerformed, PushNotificationSchema } from '@capacitor/push-notifications';
 import { supabase } from './supabaseClient';
 import { toast } from 'sonner';
+import { notifyError } from '../utils/errorHandler';
 
 export const pushNotificationService = {
   /**
@@ -66,7 +67,7 @@ export const pushNotificationService = {
       // On registration error
       await PushNotifications.addListener('registrationError', (error: any) => {
         console.error('Capacitor Push Registration Error:', JSON.stringify(error));
-        toast.error('Failed to register for push notifications. Check device settings.');
+        notifyError('Failed to register for push notifications. Check device settings.');
       });
 
       // On foreground notification received

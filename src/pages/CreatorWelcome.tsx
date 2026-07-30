@@ -5,6 +5,7 @@ import { CheckCircle2, ArrowRight, Loader2 } from 'lucide-react';
 import { profilesService } from '../services/profilesService';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
+import { notifyError } from '../utils/errorHandler';
 
 const CreatorWelcome: React.FC = () => {
   const { refreshProfile } = useAuth();
@@ -22,7 +23,7 @@ const CreatorWelcome: React.FC = () => {
       navigate('/overview', { replace: true });
     } catch (err: any) {
       console.error('Error completing onboarding:', err);
-      toast.error('Failed to complete setup. Please try again.');
+      notifyError('Failed to complete setup. Please try again.');
       setIsLoading(false);
     }
   };

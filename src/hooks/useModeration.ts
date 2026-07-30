@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { moderationService } from '../services/moderationService';
 import { supabase } from '../services/supabaseClient';
 import { toast } from 'sonner';
+import { handleError, notifyError } from '../utils/errorHandler';
 
 /**
  * Custom hook to manage Apple UGC Compliance (Guideline 1.2) - reporting content and blocking users.
@@ -71,12 +72,12 @@ export const useModeration = () => {
    */
   const blockUser = async (targetUserId: string, targetName: string): Promise<boolean> => {
     if (!currentUserId) {
-      toast.error('Please log in to block users.');
+      notifyError('Please log in to block users.');
       return false;
     }
 
     if (currentUserId === targetUserId) {
-      toast.error('You cannot block yourself.');
+      notifyError('You cannot block yourself.');
       return false;
     }
 
@@ -84,7 +85,7 @@ export const useModeration = () => {
     const { error, alreadyBlocked } = await moderationService.blockUser(currentUserId, targetUserId);
     
     if (error) {
-      toast.error(error.message || 'Failed to block user.', { id: toastId });
+      handleError(error, "Operation Error");
       return false;
     }
 
@@ -107,7 +108,7 @@ export const useModeration = () => {
     const { error } = await moderationService.unblockUser(currentUserId, targetUserId);
 
     if (error) {
-      toast.error(error.message || 'Failed to unblock user.', { id: toastId });
+      handleError(error, "Operation Error");
       return false;
     }
 
@@ -125,7 +126,7 @@ export const useModeration = () => {
     details?: string
   ): Promise<boolean> => {
     if (!currentUserId) {
-      toast.error('Please log in first to submit a report.');
+      notifyError('Please log in first to submit a report.');
       return false;
     }
 
@@ -139,7 +140,7 @@ export const useModeration = () => {
     });
 
     if (error) {
-      toast.error(error.message || 'Failed to submit report. Please try again.', { id: toastId });
+      handleError(error, "Operation Error");
       return false;
     }
 

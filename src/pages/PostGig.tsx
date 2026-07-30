@@ -31,6 +31,7 @@ import { checkVideoConstraints } from "../utils/validation";
 import { resumableUploadService, UploadState } from "../services/resumableUploadService";
 import { generateVideoThumbnail, dataUrlToFile } from "../utils/videoUtils";
 import { useMentions } from "../hooks/useMentions";
+import { handleError, notifyError } from '../utils/errorHandler';
 
 const PostGig: React.FC = () => {
   const navigate = useNavigate();
@@ -128,14 +129,14 @@ const PostGig: React.FC = () => {
       
       const validTypes = ["video/mp4", "video/quicktime", "video/webm"];
       if (!validTypes.includes(file.type)) {
-        toast.error("Please upload an mp4, mov, or webm video file.");
+        notifyError("Please upload an mp4, mov, or webm video file.");
         e.target.value = '';
         return;
       }
       
       const MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50MB
       if (file.size > MAX_VIDEO_SIZE) {
-        toast.error("Please upload a video smaller than 50MB.");
+        notifyError("Please upload a video smaller than 50MB.");
         e.target.value = '';
         return;
       }
@@ -279,7 +280,7 @@ const PostGig: React.FC = () => {
       }, 1500);
     } catch (err: any) {
       console.error("Post creation error:", err);
-      toast.error(err.message || "Error publishing post");
+      handleError(err, "Operation Error");
       setUploadStage("error");
       setIsLoading(false);
       isSubmittingRef.current = false;
@@ -314,7 +315,7 @@ const PostGig: React.FC = () => {
       toast.success("Gig posted successfully!");
       navigate("/overview");
     } catch (err: any) {
-      toast.error(err.message);
+      handleError(err, "Operation Error");
       setIsLoading(false);
       isSubmittingRef.current = false;
     }

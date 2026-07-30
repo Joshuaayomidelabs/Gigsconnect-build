@@ -5,6 +5,7 @@ import { motion } from 'motion/react';
 import { supabase } from '../services/supabaseClient';
 import { UserCard } from '../components/UserCard';
 import { UserCardSkeleton } from '../components/Skeleton';
+import { getFriendlyErrorMessage } from '../utils/errorHandler';
 
 export const FeaturedCreators: React.FC = () => {
   const navigate = useNavigate();
@@ -89,7 +90,7 @@ export const FeaturedCreators: React.FC = () => {
         }
       } catch (err: any) {
         console.error('Error loading featured creators:', err);
-        setError(err.message || 'Failed to load featured creators.');
+        setError(getFriendlyErrorMessage(err));
       } finally {
         setIsLoading(false);
       }

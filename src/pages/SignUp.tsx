@@ -7,6 +7,8 @@ import { profilesService } from '../services/profilesService';
 import Logo from '../components/Logo';
 import PasswordInput from '../components/PasswordInput';
 import { toast } from 'sonner';
+import { notifyError } from '../utils/errorHandler';
+import { getFriendlyErrorMessage } from '../utils/errorHandler';
 
 const SignUp: React.FC = () => {
   const navigate = useNavigate();
@@ -170,11 +172,8 @@ const SignUp: React.FC = () => {
       
     } catch (err: any) {
       console.error('Signup error:', err);
-      setSupabaseError(err.message || 'An error occurred during sign up.');
-      toast.error('Failed to create account', { 
-        id: loadingToastId,
-        description: err.message || 'Please try again.'
-      });
+      setSupabaseError(getFriendlyErrorMessage(err));
+      notifyError('Failed to create account');
     } finally {
       setIsLoading(false);
       isSubmittingRef.current = false;

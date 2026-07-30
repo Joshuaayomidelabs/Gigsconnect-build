@@ -5,6 +5,7 @@ import { Loader2, AlertCircle } from 'lucide-react';
 import { supabase } from '../services/supabaseClient';
 import Logo from '../components/Logo';
 import PasswordInput from '../components/PasswordInput';
+import { getFriendlyErrorMessage } from '../utils/errorHandler';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -78,7 +79,7 @@ const Login: React.FC = () => {
         setSupabaseError('Invalid email or password. Please check your credentials or sign up below if you do not have an account.');
       } else {
         console.error('Login error:', error);
-        setSupabaseError(error.message || 'An error occurred during sign in');
+        setSupabaseError(getFriendlyErrorMessage(error));
       }
     } finally {
       setIsLoading(false);

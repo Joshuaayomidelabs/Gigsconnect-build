@@ -59,6 +59,8 @@ import ProfileCompletionWidget from '../components/ProfileCompletionWidget';
 import { useModeration } from '../hooks/useModeration';
 import { openExternalLink } from '../lib/openExternalLink';
 import { generateVideoThumbnail, dataUrlToFile } from '../utils/videoUtils';
+import { handleError, notifyError } from '../utils/errorHandler';
+import { getFriendlyErrorMessage } from '../utils/errorHandler';
 
 // TikTok Icon SVG
 const TikTokIcon: React.FC<{ className?: string }> = ({ className = "w-4 h-4" }) => (
@@ -237,7 +239,7 @@ const PublicProfile: React.FC = () => {
   // File Selection for Portfolio
   const handleFileSelect = (file: File) => {
     if (file.size > 50 * 1024 * 1024) {
-      toast.error("File size must be under 50MB");
+      notifyError("File size must be under 50MB");
       return;
     }
     
@@ -245,12 +247,12 @@ const PublicProfile: React.FC = () => {
     const isVideo = file.type.startsWith('video/');
     
     if (!isImage && !isVideo) {
-      toast.error("Please upload an image (JPG, PNG, WebP) or video (MP4, MOV, WebM).");
+      notifyError("Please upload an image (JPG, PNG, WebP) or video (MP4, MOV, WebM).");
       return;
     }
     
     if (isImage && file.size > 5 * 1024 * 1024) {
-      toast.error("Images must be under 5MB");
+      notifyError("Images must be under 5MB");
       return;
     }
     
@@ -377,7 +379,7 @@ const PublicProfile: React.FC = () => {
       clearSelectedFile();
     } catch (err: any) {
       console.error(err);
-      toast.error(err.message || "Failed to upload portfolio item", { id: toastId });
+      handleError(err, "Operation Error");
     } finally {
       setIsUploading(false);
     }
@@ -425,7 +427,7 @@ const PublicProfile: React.FC = () => {
       toast.success("Item deleted from portfolio", { id: toastId });
     } catch (err: any) {
       console.error(err);
-      toast.error(err.message || "Failed to delete item", { id: toastId });
+      handleError(err, "Operation Error");
     }
   };
 
@@ -460,7 +462,7 @@ const PublicProfile: React.FC = () => {
       toast.success(nextFeaturedVal ? "Item set as featured!" : "Item removed from featured", { id: toastId });
     } catch (err: any) {
       console.error(err);
-      toast.error(err.message || "Failed to update featured item", { id: toastId });
+      handleError(err, "Operation Error");
     }
   };
 
@@ -551,7 +553,7 @@ const PublicProfile: React.FC = () => {
           }
         }
       } catch (err: any) {
-        if (isMounted) setError(err.message || 'Failed to load profile');
+        if (isMounted) setError(getFriendlyErrorMessage(err));
       } finally {
         if (isMounted) setIsLoading(false);
       }
@@ -604,7 +606,7 @@ const PublicProfile: React.FC = () => {
   // Real-time Follow / Unfollow Handler
   const handleFollowToggle = async () => {
     if (!currentUser) {
-      toast.error("Please sign in to follow creators.");
+      notifyError("Please sign in to follow creators.");
       return;
     }
     if (!userId || isTogglingFollow) return;
@@ -630,7 +632,7 @@ const PublicProfile: React.FC = () => {
           ...prev,
           followers: currentlyFollowing ? prev.followers + 1 : Math.max(0, prev.followers - 1)
         }));
-        toast.error("Failed to update follow status. Please try again.");
+        notifyError("Failed to update follow status. Please try again.");
       } else {
         if (newFollowingState) {
           toast.success(`You are now following ${profile?.full_name || 'this creator'}!`);
@@ -645,7 +647,7 @@ const PublicProfile: React.FC = () => {
         ...prev,
         followers: currentlyFollowing ? prev.followers + 1 : Math.max(0, prev.followers - 1)
       }));
-      toast.error("An error occurred. Please try again.");
+      notifyError("An error occurred. Please try again.");
     } finally {
       setIsTogglingFollow(false);
     }

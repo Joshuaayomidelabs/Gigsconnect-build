@@ -1,6 +1,7 @@
 import { Clipboard } from '@capacitor/clipboard';
 import { isNative } from './native';
 import { toast } from 'sonner';
+import { notifyError } from '../utils/errorHandler';
 
 /**
  * Copies modern text formats to either mobile clipboard or web clipboard safely.
@@ -10,7 +11,7 @@ import { toast } from 'sonner';
  */
 export const copyToClipboard = async (text: string, successMessage: string = 'Copied to clipboard!'): Promise<boolean> => {
   if (!text) {
-    toast.error('Nothing to copy');
+    notifyError('Nothing to copy');
     return false;
   }
 
@@ -39,7 +40,7 @@ export const copyToClipboard = async (text: string, successMessage: string = 'Co
     return true;
   } catch (err) {
     console.error('Failed to copy to clipboard:', err);
-    toast.error('Failed to copy to clipboard.');
+    notifyError('Failed to copy to clipboard.');
     return false;
   }
 };

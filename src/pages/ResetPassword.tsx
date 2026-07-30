@@ -4,6 +4,7 @@ import { Loader2, ArrowLeft, CheckCircle, ShieldCheck } from 'lucide-react';
 import { supabase } from '../services/supabaseClient';
 import PasswordInput from '../components/PasswordInput';
 import Logo from '../components/Logo';
+import { getFriendlyErrorMessage } from '../utils/errorHandler';
 
 const ResetPassword: React.FC = () => {
   const navigate = useNavigate();
@@ -102,7 +103,7 @@ const ResetPassword: React.FC = () => {
       } catch (err: any) {
         console.error('Session establishment error:', err);
         if (mounted) {
-          setGlobalError(err.message || 'Verification failed. Password reset token is expired or altered.');
+          setGlobalError(getFriendlyErrorMessage(err));
         }
       } finally {
         if (mounted) {
@@ -160,7 +161,7 @@ const ResetPassword: React.FC = () => {
       setIsSuccess(true);
     } catch (err: any) {
       console.error('Password reset submit error:', err);
-      setGlobalError(err.message || 'Failed to update your password. Please try again.');
+      setGlobalError(getFriendlyErrorMessage(err));
     } finally {
       setIsLoading(false);
     }

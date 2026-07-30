@@ -3,6 +3,7 @@ import { Loader2, AlertCircle } from 'lucide-react';
 import { applicationsService } from '../services/applicationsService';
 import { supabase } from '../services/supabaseClient';
 import ApplicationCard from '../components/ApplicationCard';
+import { getFriendlyErrorMessage } from '../utils/errorHandler';
 
 const MyApplications: React.FC = () => {
   const [applications, setApplications] = useState<any[]>([]);
@@ -20,7 +21,7 @@ const MyApplications: React.FC = () => {
         if (fetchError) throw fetchError;
         setApplications(data || []);
       } catch (err: any) {
-        setError(err.message);
+        setError(getFriendlyErrorMessage(err));
       } finally {
         setIsLoading(false);
       }

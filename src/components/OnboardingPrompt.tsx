@@ -19,6 +19,7 @@ import { profilesService } from '../services/profilesService';
 import { africanCountries, musicProfessions } from '../utils/locations';
 import imageCompression from 'browser-image-compression';
 import { toast } from 'sonner';
+import { handleError, notifyError } from '../utils/errorHandler';
 
 interface OnboardingPromptProps {
   profile: any;
@@ -128,7 +129,7 @@ export const OnboardingPrompt: React.FC<OnboardingPromptProps> = ({ profile, onR
     if (!file) return;
 
     if (file.size > 5 * 1024 * 1024) {
-      toast.error('Image must be under 5MB');
+      notifyError('Image must be under 5MB');
       return;
     }
 
@@ -160,7 +161,7 @@ export const OnboardingPrompt: React.FC<OnboardingPromptProps> = ({ profile, onR
       setActiveSegment(null);
       onRefresh();
     } catch (err: any) {
-      toast.error(err.message || 'Failed to upload photo.');
+      handleError(err, "Operation Error");
     } finally {
       setIsUploading(false);
     }
@@ -168,7 +169,7 @@ export const OnboardingPrompt: React.FC<OnboardingPromptProps> = ({ profile, onR
 
   const handleSaveBio = async () => {
     if (bioText.trim().length <= 5) {
-      toast.error('Please enter a slightly longer bio (at least 6 characters).');
+      notifyError('Please enter a slightly longer bio (at least 6 characters).');
       return;
     }
 
@@ -190,7 +191,7 @@ export const OnboardingPrompt: React.FC<OnboardingPromptProps> = ({ profile, onR
       setActiveSegment(null);
       onRefresh();
     } catch (err: any) {
-      toast.error(err.message || 'Failed to save bio');
+      handleError(err, "Operation Error");
     } finally {
       setIsSubmitting(false);
     }
@@ -198,7 +199,7 @@ export const OnboardingPrompt: React.FC<OnboardingPromptProps> = ({ profile, onR
 
   const handleSaveRoleAndSkills = async () => {
     if (!selectedRole) {
-      toast.error('Please select your primary musical role.');
+      notifyError('Please select your primary musical role.');
       return;
     }
 
@@ -221,7 +222,7 @@ export const OnboardingPrompt: React.FC<OnboardingPromptProps> = ({ profile, onR
       setActiveSegment(null);
       onRefresh();
     } catch (err: any) {
-      toast.error(err.message || 'Failed to update specialties.');
+      handleError(err, "Operation Error");
     } finally {
       setIsSubmitting(false);
     }
@@ -229,7 +230,7 @@ export const OnboardingPrompt: React.FC<OnboardingPromptProps> = ({ profile, onR
 
   const handleSaveLocation = async () => {
     if (!clientCountry || !clientCity.trim()) {
-      toast.error('Country and City/Town are required.');
+      notifyError('Country and City/Town are required.');
       return;
     }
 
@@ -252,7 +253,7 @@ export const OnboardingPrompt: React.FC<OnboardingPromptProps> = ({ profile, onR
       setActiveSegment(null);
       onRefresh();
     } catch (err: any) {
-      toast.error(err.message || 'Failed to save location.');
+      handleError(err, "Operation Error");
     } finally {
       setIsSubmitting(false);
     }

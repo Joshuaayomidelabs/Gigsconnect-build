@@ -13,6 +13,7 @@ import { GigCardSkeleton, UserCardSkeleton } from '../components/Skeleton';
 import GigDetailsModal from '../components/GigDetailsModal';
 import { GIG_CATEGORIES } from '../utils/constants';
 import VerificationBadge from '../components/VerificationBadge';
+import { getFriendlyErrorMessage } from '../utils/errorHandler';
 
 const BrowseGigs: React.FC = () => {
   const navigate = useNavigate();
@@ -71,7 +72,7 @@ const BrowseGigs: React.FC = () => {
           setUsers([]);
           setGigs(gigsRes.data || []);
         } catch (err: any) {
-          setError(err.message);
+          setError(getFriendlyErrorMessage(err));
         } finally {
           setIsLoading(false);
         }
@@ -323,7 +324,8 @@ const BrowseGigs: React.FC = () => {
               </div>
             ) : (
               <div className="col-span-full text-center py-20 bg-brand-white dark:bg-brand-dark-card rounded-[2.5rem] border border-brand-gray dark:border-[#1F1F23]/80 border-dashed mx-2">
-                <p className="text-gray-500 dark:text-gray-400 text-lg font-medium">No gigs found matching your search.</p>
+                <p className="text-gray-500 dark:text-gray-400 text-lg font-medium">No gigs available right now.</p>
+                <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">Check back later or create your own opportunity.</p>
                 {searchTerm.trim() !== '' && (
                   <button onClick={() => setSearchTerm('')} className="mt-4 text-brand-purple font-bold hover:underline">Clear search</button>
                 )}

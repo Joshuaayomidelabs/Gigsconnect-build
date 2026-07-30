@@ -3,6 +3,7 @@ import { Notification, notificationsService } from '../services/notificationsSer
 import { useAuth } from './AuthContext';
 import { supabase } from '../services/supabaseClient';
 import { toast } from 'sonner';
+import { getFriendlyErrorMessage } from '../utils/errorHandler';
 
 interface NotificationContextType {
   notifications: Notification[];
@@ -62,7 +63,7 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
         await refreshNotificationCount();
       } catch (err: any) {
         console.error("Unexpected notification error:", err);
-        setError(err.message || "An unexpected error occurred");
+        setError(getFriendlyErrorMessage(err));
       } finally {
         setIsLoading(false);
       }

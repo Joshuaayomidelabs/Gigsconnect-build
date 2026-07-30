@@ -6,6 +6,7 @@ import { profilesService } from '../services/profilesService';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
 import { africanCountries, getStatesForCountry } from '../utils/locations';
+import { notifyError } from '../utils/errorHandler';
 
 const CreatorLocation: React.FC = () => {
   const { user, profile, refreshProfile } = useAuth();
@@ -62,7 +63,7 @@ const CreatorLocation: React.FC = () => {
 
   const handleContinue = async () => {
     if (!formData.country || !formData.city || !formData.state) {
-      toast.error('Please fill in all location fields.');
+      notifyError('Please fill in all location fields.');
       return;
     }
     
@@ -80,7 +81,7 @@ const CreatorLocation: React.FC = () => {
       navigate('/creator-welcome', { replace: true });
     } catch (err: any) {
       console.error('Error saving location:', err);
-      toast.error('Failed to save your location.');
+      notifyError('Failed to save your location.');
     } finally {
       setIsLoading(false);
     }

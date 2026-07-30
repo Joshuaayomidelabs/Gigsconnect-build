@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { applicationsService } from '../services/applicationsService';
 import { formatDate } from '../utils/helpers';
 import { Link } from 'react-router-dom';
+import { handleError } from '../utils/errorHandler';
 
 interface ApplicantsModalProps {
   gig: any;
@@ -25,7 +26,7 @@ const ApplicantsModal: React.FC<ApplicantsModalProps> = ({ gig, onClose, highlig
         if (error) throw error;
         setApplicants(data || []);
       } catch (err: any) {
-        toast.error(err.message);
+        handleError(err, "Operation Error");
       } finally {
         setIsLoading(false);
       }
@@ -44,7 +45,7 @@ const ApplicantsModal: React.FC<ApplicantsModalProps> = ({ gig, onClose, highlig
         app.id === applicationId ? { ...app, status } : app
       ));
     } catch (err: any) {
-      toast.error(err.message);
+      handleError(err, "Operation Error");
     } finally {
       setIsProcessing(null);
     }

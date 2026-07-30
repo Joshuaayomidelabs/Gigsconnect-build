@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNotificationContext } from '../context/NotificationContext';
 import { notificationsService } from '../services/notificationsService';
 import { applicationsService } from '../services/applicationsService';
+import { handleError } from '../utils/errorHandler';
 
 const Notifications: React.FC = () => {
   const { user } = useAuth();
@@ -55,7 +56,7 @@ const Notifications: React.FC = () => {
       
       toast.success(`Application ${status.toLowerCase()} successfully!`);
     } catch (err: any) {
-      toast.error(err.message);
+      handleError(err, "Operation Error");
     } finally {
       setIsProcessing(null);
     }
@@ -82,8 +83,9 @@ const Notifications: React.FC = () => {
       </header>
 
       {isLoading ? (
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="w-10 h-10 animate-spin text-brand-purple" />
+        <div className="flex flex-col items-center justify-center py-20">
+          <Loader2 className="w-10 h-10 animate-spin text-brand-purple mb-4" />
+          <p className="text-gray-500 dark:text-gray-400 font-medium">Loading notifications...</p>
         </div>
       ) : error ? (
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/40 rounded-3xl p-12 text-center">
@@ -233,8 +235,7 @@ const Notifications: React.FC = () => {
           ) : (
             <div className="bg-brand-white dark:bg-brand-dark-card rounded-[3rem] p-20 text-center border border-brand-gray dark:border-brand-black border-dashed">
               <Bell className="w-16 h-16 text-gray-400/20 dark:text-gray-700 mx-auto mb-6" />
-              <h3 className="text-xl font-bold text-brand-black dark:text-brand-white mb-2">All caught up!</h3>
-              <p className="text-gray-500 dark:text-gray-400">You don't have any notifications at the moment.</p>
+              <h3 className="text-xl font-bold text-brand-black dark:text-brand-white mb-2">You're all caught up.</h3>
             </div>
           )}
         </div>

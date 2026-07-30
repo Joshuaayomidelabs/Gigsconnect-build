@@ -57,6 +57,7 @@ import { SubscriptionProvider } from './context/SubscriptionContext';
 import { pushNotificationService } from './services/pushNotificationService';
 
 import { Toaster, toast } from 'sonner';
+import { notifyError } from './utils/errorHandler';
 
 const App: React.FC = () => {
   const { user, loading, error } = useAuth();
@@ -147,20 +148,14 @@ const App: React.FC = () => {
           // Check initial network connection status
           const status = await Network.getStatus();
           if (!status.connected) {
-            toast.error('You are offline. Connection is required to find gigs.', {
-              id: 'offline-toast',
-              duration: Infinity,
-            });
+            notifyError('You are offline. Connection is required to find gigs.');
           }
 
           // Monitor network connectivity changes
           networkListener = await Network.addListener('networkStatusChange', (status) => {
             if (!active) return;
             if (!status.connected) {
-              toast.error('You are offline. Connection is required to find gigs.', {
-                id: 'offline-toast',
-                duration: Infinity,
-              });
+              notifyError('You are offline. Connection is required to find gigs.');
             } else {
               toast.dismiss('offline-toast');
               toast.success('Your connection has been restored!');
