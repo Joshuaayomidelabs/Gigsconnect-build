@@ -16,7 +16,8 @@ export const SubscriptionCard: React.FC = () => {
     );
   }
 
-  const planName = subscription?.plan?.name || subscription?.plan_name || 'Starter';
+  const rawPlanName = subscription?.plan?.name || subscription?.plan_name || 'Starter';
+  const planName = rawPlanName.charAt(0).toUpperCase() + rawPlanName.slice(1).toLowerCase();
   const status = subscription?.status || 'inactive';
   const renewalDate = subscription?.end_date 
     ? new Date(subscription.end_date).toLocaleDateString() 

@@ -60,6 +60,7 @@ import { useModeration } from '../hooks/useModeration';
 import { openExternalLink } from '../lib/openExternalLink';
 import { generateVideoThumbnail, dataUrlToFile } from '../utils/videoUtils';
 import { handleError, notifyError } from '../utils/errorHandler';
+import { getOrCreateDirectConversation } from '../services/messagesService';
 import { getFriendlyErrorMessage } from '../utils/errorHandler';
 
 // TikTok Icon SVG
@@ -201,6 +202,7 @@ const PublicProfile: React.FC = () => {
   // Social Stats State
   const [stats, setStats] = useState({ followers: 0, following: 0 });
   const [isFollowing, setIsFollowing] = useState(false);
+  const [isCreatingConversation, setIsCreatingConversation] = useState(false);
   const [isTogglingFollow, setIsTogglingFollow] = useState(false);
   
   // Content Tab State
@@ -604,6 +606,30 @@ const PublicProfile: React.FC = () => {
   }, [activeTab, userId, currentUser]);
 
   // Real-time Follow / Unfollow Handler
+  
+  const handleMessageClick = async () => {
+    if (!currentUser) {
+      toast.error('Please sign in to send messages');
+      navigate('/login');
+      return;
+    }
+    
+    if (currentUser.id === profile?.id) {
+      toast.error('You cannot message yourself');
+      return;
+    }
+
+    try {
+      setIsCreatingConversation(true);
+      const conversationId = await getOrCreateDirectConversation(profile!.id);
+      navigate('/messages/' + conversationId);
+    } catch (err: any) {
+      handleError(err, 'Failed to start conversation');
+    } finally {
+      setIsCreatingConversation(false);
+    }
+  };
+
   const handleFollowToggle = async () => {
     if (!currentUser) {
       notifyError("Please sign in to follow creators.");
@@ -1000,7 +1026,8 @@ const PublicProfile: React.FC = () => {
                 </button>
 
                 <button 
-                  onClick={() => navigate(`/messages/${profile.id}`)}
+                  onClick={handleMessageClick}
+                  disabled={isCreatingConversation}
                   className="flex-1 h-12 flex items-center justify-center gap-2 rounded-xl bg-brand-black dark:bg-white text-white dark:text-brand-black font-bold text-sm transition-all hover:opacity-90 shadow-md active:scale-95 cursor-pointer"
                 >
                   <MessageCircle className="w-4 h-4" />

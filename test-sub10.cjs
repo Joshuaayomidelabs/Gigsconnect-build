@@ -1,0 +1,21 @@
+const { createClient } = require('@supabase/supabase-js');
+const supabase = createClient(process.env.VITE_SUPABASE_URL, process.env.VITE_SUPABASE_ANON_KEY);
+(async () => {
+  const email = 'test_sub10_' + Date.now() + '@example.com';
+  await supabase.auth.signUp({ email, password: 'Password123!' });
+  const { data: { session }, error: signErr } = await supabase.auth.signInWithPassword({ email, password: 'Password123!' });
+  const userId = session.user.id;
+  
+  const plans = ['starter plan', 'Starter Plan', 'free tier', 'Free Tier'];
+  
+  for (const name of plans) {
+    const { error } = await supabase.from('subscriptions').insert({
+      user_id: userId,
+      plan_name: name,
+      status: 'active',
+      payment_status: 'free',
+      billing_cycle: 'monthly'
+    });
+    console.log(name, error?.message || 'SUCCESS');
+  }
+})();

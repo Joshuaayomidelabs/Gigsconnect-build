@@ -13,6 +13,7 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard';
 import Messages from './pages/Messages';
+import Chat from './pages/Chat';
 import BrowseGigs from './pages/BrowseGigs';
 import PostGig from './pages/PostGig';
 import MyApplications from './pages/MyApplications';
@@ -275,6 +276,7 @@ const App: React.FC = () => {
               <Route path="/profile/:userId" element={<ProtectedRoute><PublicProfile /></ProtectedRoute>} />
               <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
               <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
+              <Route path="/messages/:conversationId" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
               
               <Route path="*" element={<Navigate to="/" />} />
             <Route path="/settings" element={

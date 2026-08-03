@@ -115,7 +115,7 @@ export const communityService = {
       .eq('id', postId)
       .select(); // Add select to verify the row was actually updated
 
-    if (error) {
+    if (error && error.code !== '23505') {
       console.error("[deletePost] Error deleting post:", error);
       return { error };
     } 
@@ -145,12 +145,12 @@ export const communityService = {
         .eq('post_id', postId)
         .eq('user_id', userId);
       
-      if (error) {
+      if (error && error.code !== '23505') {
         console.error("Error unliking post:", error);
       } else {
         // Fallback: manually update the post count as trigger may not exist
         supabase.from('posts').select('likes_count').eq('id', postId).single().then(({ data }) => {
-          if (data) supabase.from('posts').update({ likes_count: Math.max(0, (data.likes_count || 1) - 1) }).eq('id', postId).then();
+          if (data) supabase.from('posts').update({ likes_count: Math.max(0, (data.likes_count || 1) - 1) }).eq('id', postId).then().catch(console.error);
         });
       }
 
@@ -164,12 +164,12 @@ export const communityService = {
           user_id: userId
         });
       
-      if (error) {
+      if (error && error.code !== '23505') {
         console.error("Error liking post:", error);
       } else {
         // Fallback: manually update the post count as trigger may not exist
         supabase.from('posts').select('likes_count').eq('id', postId).single().then(({ data }) => {
-          if (data) supabase.from('posts').update({ likes_count: (data.likes_count || 0) + 1 }).eq('id', postId).then();
+          if (data) supabase.from('posts').update({ likes_count: (data.likes_count || 0) + 1 }).eq('id', postId).then().catch(console.error);
         });
 
         // Notify
@@ -180,11 +180,11 @@ export const communityService = {
             title: 'New Like',
             message: 'Someone liked your post',
             reference_id: postId,
-          }).catch(console.error);
+          }).then().catch(console.error);
         }
       }
 
-      return { liked: true, error };
+      return { liked: true, error: error && error.code !== '23505' ? error : null };
     }
   },
 
@@ -216,13 +216,13 @@ export const communityService = {
       console.log("SUPABASE RESPONSE DATA:", data);
       console.log("SUPABASE ERROR:", error);
 
-      if (error) {
+      if (error && error.code !== '23505') {
         console.error("Error adding comment:", error);
       } else {
         // Fallback: manually update the post count as trigger may not exist
         supabase.from('posts').select('comments_count').eq('id', post_id).single().then(({ data: postData }) => {
           if (postData) {
-            supabase.from('posts').update({ comments_count: (postData.comments_count || 0) + 1 }).eq('id', post_id).then();
+            supabase.from('posts').update({ comments_count: (postData.comments_count || 0) + 1 }).eq('id', post_id).then().catch(console.error);
           }
         });
       }
@@ -255,13 +255,13 @@ export const communityService = {
         .delete()
         .eq('id', commentId);
 
-      if (error) {
+      if (error && error.code !== '23505') {
         console.error("Error deleting comment:", error);
       } else {
         // Fallback: manually update the post count as trigger may not exist
         supabase.from('posts').select('comments_count').eq('id', postId).single().then(({ data: postData }) => {
           if (postData) {
-            supabase.from('posts').update({ comments_count: Math.max(0, (postData.comments_count || 1) - 1) }).eq('id', postId).then();
+            supabase.from('posts').update({ comments_count: Math.max(0, (postData.comments_count || 1) - 1) }).eq('id', postId).then().catch(console.error);
           }
         });
       }
@@ -287,7 +287,7 @@ export const communityService = {
         return { liked: false, error };
       } else {
         const { error } = await supabase.from('comment_likes').insert({ user_id: userId, comment_id: commentId });
-        return { liked: true, error };
+        return { liked: true, error: error && error.code !== '23505' ? error : null };
       }
     } catch (e) {
       return { liked: false, error: e };
