@@ -121,7 +121,6 @@ export const RichComposer: React.FC<RichComposerProps> = ({ conversationId, onSe
               <EmojiPicker 
                 onEmojiClick={onEmojiClick}
                 autoFocusSearch={false}
-                theme="auto"
                 width="100%"
                 height="100%"
                 previewConfig={{ showPreview: false }}

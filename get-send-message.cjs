@@ -1,0 +1,10 @@
+const { createClient } = require('@supabase/supabase-js');
+const supabase = createClient(process.env.VITE_SUPABASE_URL, process.env.VITE_SUPABASE_ANON_KEY);
+(async () => {
+  const { data, error } = await supabase.rpc('exec_sql', { sql: `
+    SELECT pg_get_functiondef(oid) 
+    FROM pg_proc 
+    WHERE proname = 'send_message';
+  `});
+  console.log('Result:', data, error);
+})();

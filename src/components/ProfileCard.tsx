@@ -157,7 +157,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile: initialProfile, user
         ...prev,
         followers: !newFollowingState ? prev.followers + 1 : Math.max(0, prev.followers - 1)
       }));
-      handleError(err, "Operation Error");
+      handleError(error, "Operation Error");
     }
   };
 

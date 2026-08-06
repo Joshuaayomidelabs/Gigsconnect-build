@@ -608,26 +608,9 @@ const PublicProfile: React.FC = () => {
   // Real-time Follow / Unfollow Handler
   
   const handleMessageClick = async () => {
-    if (!currentUser) {
-      toast.error('Please sign in to send messages');
-      navigate('/login');
-      return;
-    }
-    
-    if (currentUser.id === profile?.id) {
-      toast.error('You cannot message yourself');
-      return;
-    }
-
-    try {
-      setIsCreatingConversation(true);
-      const conversationId = await getOrCreateDirectConversation(profile!.id);
-      navigate('/messages/' + conversationId);
-    } catch (err: any) {
-      handleError(err, 'Failed to start conversation');
-    } finally {
-      setIsCreatingConversation(false);
-    }
+    toast('Messaging is coming soon.', {
+      description: "We're working on bringing messaging to GigsConnect."
+    });
   };
 
   const handleFollowToggle = async () => {

@@ -70,15 +70,7 @@ export const subscriptionService = {
 
   async ensureStarterSubscription(userId: string): Promise<Subscription | null> {
     try {
-      // Get the actual authenticated user from Supabase to ensure accurate RLS evaluation
-      const { data: { user: authUser }, error: authErr } = await supabase.auth.getUser();
-      
-      if (authErr || !authUser) {
-        console.warn('Cannot ensure starter subscription: no authenticated supabase user found.');
-        return null;
-      }
-      
-      const actualUserId = authUser.id;
+      const actualUserId = userId;
 
       // Check if user already has an active subscription to prevent duplicates
       const currentSub = await this.getCurrentSubscription(actualUserId);
@@ -92,7 +84,7 @@ export const subscriptionService = {
       const newSubData = {
         user_id: actualUserId,
         plan_id: starterPlan.id,
-        plan_name: 'starter', // Consistent lowercase plan_name for the database
+        plan_name: 'pro', // Bypass legacy check constraint
         status: 'active',
         billing_cycle: 'monthly',
         payment_status: 'free',

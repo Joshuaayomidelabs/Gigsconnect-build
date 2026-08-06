@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import { Home, Search, PlusCircle, MessageCircle, User } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useAuth } from '../context/AuthContext';
@@ -30,7 +31,7 @@ const BottomNav: React.FC = () => {
     { icon: <Home />, label: 'Home', path: '/overview' },
     { icon: <Search />, label: 'Search', path: '/browse' },
     { icon: <PlusCircle />, label: 'Post', path: '/post', isAction: true },
-    { icon: <MessageCircle />, label: 'Messages', path: '/messages' },
+    { icon: <MessageCircle />, label: 'Messages', path: '/messages', isFrozen: true },
     { 
       icon: profile?.avatar_url ? (
         <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
@@ -60,6 +61,37 @@ const BottomNav: React.FC = () => {
                   <div className="w-14 h-14 rounded-full bg-brand-purple flex items-center justify-center text-brand-white shadow-lg shadow-purple-500/30 border-4 border-brand-white dark:border-brand-black active:scale-90 transition-all duration-300">
                     {React.cloneElement(item.icon as React.ReactElement, { className: 'w-7 h-7' })}
                   </div>
+                </button>
+              );
+            }
+
+            if (item.isFrozen) {
+              return (
+                <button
+                  key={item.path}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    toast('Messaging is coming soon.', {
+                      description: "We're working on bringing messaging to GigsConnect."
+                    });
+                  }}
+                  className="flex flex-col items-center justify-center gap-1 group relative flex-1"
+                >
+                  <div className={`p-2.5 rounded-2xl transition-all duration-300 overflow-hidden ${
+                    isActive 
+                      ? 'text-brand-purple bg-brand-purple/5 dark:bg-brand-purple/10' 
+                      : 'text-gray-500 dark:text-gray-400 group-hover:text-brand-purple group-hover:bg-brand-purple/5 dark:group-hover:bg-brand-purple/10'
+                  }`}>
+                    {React.cloneElement(item.icon as React.ReactElement, { 
+                      className: `w-5 h-5 transition-all duration-300 ${isActive ? 'scale-110 stroke-[2.5px]' : 'group-active:scale-90'}` 
+                    })}
+                  </div>
+                  {isActive && (
+                    <motion.div 
+                      layoutId="nav-indicator"
+                      className="absolute -bottom-1 w-1 h-1 rounded-full bg-brand-purple shadow-[0_0_8px_rgba(75,0,130,0.5)]"
+                    />
+                  )}
                 </button>
               );
             }

@@ -150,7 +150,7 @@ export const communityService = {
       } else {
         // Fallback: manually update the post count as trigger may not exist
         supabase.from('posts').select('likes_count').eq('id', postId).single().then(({ data }) => {
-          if (data) supabase.from('posts').update({ likes_count: Math.max(0, (data.likes_count || 1) - 1) }).eq('id', postId).then().catch(console.error);
+          if (data) supabase.from('posts').update({ likes_count: Math.max(0, (data.likes_count || 1) - 1) }).eq('id', postId).then(({ error }) => { if (error) console.error(error); });
         });
       }
 
@@ -169,7 +169,7 @@ export const communityService = {
       } else {
         // Fallback: manually update the post count as trigger may not exist
         supabase.from('posts').select('likes_count').eq('id', postId).single().then(({ data }) => {
-          if (data) supabase.from('posts').update({ likes_count: (data.likes_count || 0) + 1 }).eq('id', postId).then().catch(console.error);
+          if (data) supabase.from('posts').update({ likes_count: (data.likes_count || 0) + 1 }).eq('id', postId).then(({ error }) => { if (error) console.error(error); });
         });
 
         // Notify
@@ -180,7 +180,7 @@ export const communityService = {
             title: 'New Like',
             message: 'Someone liked your post',
             reference_id: postId,
-          }).then().catch(console.error);
+          }).then(({ error }) => { if (error) console.error(error); });
         }
       }
 
@@ -222,7 +222,7 @@ export const communityService = {
         // Fallback: manually update the post count as trigger may not exist
         supabase.from('posts').select('comments_count').eq('id', post_id).single().then(({ data: postData }) => {
           if (postData) {
-            supabase.from('posts').update({ comments_count: (postData.comments_count || 0) + 1 }).eq('id', post_id).then().catch(console.error);
+            supabase.from('posts').update({ comments_count: (postData.comments_count || 0) + 1 }).eq('id', post_id).then(({ error }) => { if (error) console.error(error); });
           }
         });
       }
@@ -261,7 +261,7 @@ export const communityService = {
         // Fallback: manually update the post count as trigger may not exist
         supabase.from('posts').select('comments_count').eq('id', postId).single().then(({ data: postData }) => {
           if (postData) {
-            supabase.from('posts').update({ comments_count: Math.max(0, (postData.comments_count || 1) - 1) }).eq('id', postId).then().catch(console.error);
+            supabase.from('posts').update({ comments_count: Math.max(0, (postData.comments_count || 1) - 1) }).eq('id', postId).then(({ error }) => { if (error) console.error(error); });
           }
         });
       }

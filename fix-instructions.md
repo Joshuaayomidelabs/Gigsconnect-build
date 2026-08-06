@@ -1,1 +1,1 @@
-Please apply the migration file `supabase/migrations/20260803000002_fix_conversation_participants_rls.sql` in your Supabase SQL editor.
+I have reviewed the architecture. The frontend relies on the `get_or_create_direct_conversation` RPC to create conversations and the `send_message` RPC to send messages. I have prepared the final secure migration that implements the `check_is_participant` helper, cleans up only the recursive policies, and secures the RPCs.

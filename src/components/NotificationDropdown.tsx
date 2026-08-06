@@ -1,3 +1,4 @@
+import { toast } from 'sonner';
 import React, { useState, useEffect, useRef } from 'react';
 import { Bell, Check, ExternalLink, MessageSquare, Briefcase, Info, X, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -195,16 +196,18 @@ const NotificationDropdown: React.FC = () => {
                         )}
                         
                         {notif.type === 'gig_application' && (
-                          <Link 
-                            to="/messages"
+                          <button 
                             onClick={() => {
                               handleMarkAsRead(notif.id);
                               setIsOpen(false);
+                              toast('Messaging is coming soon.', {
+                                description: "We're working on bringing messaging to GigsConnect."
+                              });
                             }}
                             className="text-[10px] font-bold text-brand-purple border border-brand-purple px-3 py-1.5 rounded-lg hover:bg-brand-purple-soft transition-all"
                           >
                             Message Applicant
-                          </Link>
+                          </button>
                         )}
 
                         {!notif.is_read && notif.type !== 'gig_application' && (

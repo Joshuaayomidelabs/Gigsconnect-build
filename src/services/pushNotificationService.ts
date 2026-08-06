@@ -107,7 +107,7 @@ export const pushNotificationService = {
             // Default fallbacks based on message/category types
             const type = action.notification.data?.type;
             if (type === 'message_new' || type === 'message') {
-              navigate('/messages');
+              toast('Messaging is coming soon.', { description: "We're working on bringing messaging to GigsConnect." });
             } else if (type === 'gig_application' || type === 'application_received') {
               navigate('/applications');
             } else {

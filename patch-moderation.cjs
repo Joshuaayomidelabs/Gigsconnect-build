@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+const fs = require('fs');
+const content = `import { useState, useEffect, useCallback } from 'react';
 import { moderationService } from '../services/moderationService';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
@@ -53,7 +54,7 @@ export const useModeration = () => {
       return false;
     }
 
-    const toastId = toast.loading(`Blocking ${targetName}...`);
+    const toastId = toast.loading(\`Blocking \${targetName}...\`);
     const { error, alreadyBlocked } = await moderationService.blockUser(currentUserId, targetUserId);
     
     if (error) {
@@ -62,9 +63,9 @@ export const useModeration = () => {
     }
 
     if (alreadyBlocked) {
-      toast.info(`You have already blocked ${targetName}.`, { id: toastId });
+      toast.info(\`You have already blocked \${targetName}.\`, { id: toastId });
     } else {
-      toast.success(`Blocked ${targetName}. Their posts, comments, and profile content are now filtered.`, { id: toastId });
+      toast.success(\`Blocked \${targetName}. Their posts, comments, and profile content are now filtered.\`, { id: toastId });
     }
     
     return true;
@@ -76,7 +77,7 @@ export const useModeration = () => {
   const unblockUser = async (targetUserId: string, targetName: string): Promise<boolean> => {
     if (!currentUserId) return false;
     
-    const toastId = toast.loading(`Unblocking ${targetName}...`);
+    const toastId = toast.loading(\`Unblocking \${targetName}...\`);
     const { error } = await moderationService.unblockUser(currentUserId, targetUserId);
     
     if (error) {
@@ -84,7 +85,7 @@ export const useModeration = () => {
       return false;
     }
 
-    toast.success(`Unblocked ${targetName}.`, { id: toastId });
+    toast.success(\`Unblocked \${targetName}.\`, { id: toastId });
     return true;
   };
 
@@ -139,3 +140,7 @@ export const useModeration = () => {
     currentUserId
   };
 };
+`;
+
+fs.writeFileSync('src/hooks/useModeration.ts', content, 'utf-8');
+console.log('Rewritten useModeration.ts');

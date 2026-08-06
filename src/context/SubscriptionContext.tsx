@@ -46,11 +46,12 @@ export const SubscriptionProvider: React.FC<{ children: ReactNode }> = ({ childr
   };
 
   useEffect(() => {
-    fetchPlans();
-  }, []);
-
-  useEffect(() => {
-    refreshSubscription();
+    // Sequence the calls to prevent concurrent Supabase network requests
+    // which can cause "Lock broken" token refresh race conditions
+    fetchPlans().then(() => {
+      refreshSubscription();
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const features = subscription?.plan?.features || {};

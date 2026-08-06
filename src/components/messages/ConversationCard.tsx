@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import { motion } from 'motion/react';
 import { Image as ImageIcon, Video, Mic, FileText, Briefcase, Music } from 'lucide-react';
 import VerificationBadge from '../VerificationBadge';
@@ -34,7 +35,7 @@ export const ConversationCard: React.FC<ConversationCardProps> = ({ conversation
     <motion.button
       whileHover={{ scale: 0.99 }}
       whileTap={{ scale: 0.97 }}
-      onClick={() => navigate(`/messages/${conversation.conversation_id}`)}
+      onClick={() => toast('Messaging is coming soon.', { description: "We're working on bringing messaging to GigsConnect." })}
       layout
       className="w-full flex items-center p-4 bg-brand-white dark:bg-brand-dark-card hover:bg-gray-50 dark:hover:bg-[#1A1A1E] transition-colors rounded-2xl border border-transparent hover:border-gray-200 dark:hover:border-gray-800 text-left"
     >
