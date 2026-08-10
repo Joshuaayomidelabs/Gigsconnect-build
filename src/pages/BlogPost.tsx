@@ -134,42 +134,10 @@ const BlogPost: React.FC = () => {
         {/* Main Content */}
         <div className="flex-1 max-w-[800px]">
           <div className="prose prose-lg prose-indigo max-w-none prose-headings:font-bold prose-headings:text-[#111827] prose-p:text-gray-600 prose-p:leading-relaxed prose-a:text-[#6C2BFF] prose-img:rounded-2xl">
-            {/* 
-               In a real implementation with a CMS, this would be rendered using a Markdown parser 
-               or a rich text renderer like dangerouslySetInnerHTML for HTML content.
-               For this mockup, we'll simulate a rich article body.
-            */}
-            <p className="lead text-xl text-gray-700 font-medium mb-8">
-              {post.excerpt}
-            </p>
-            
-            <h2>The Changing Landscape</h2>
-            <p>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-            </p>
-            
-            <blockquote>
-              "The creative economy in Africa is not just emerging; it is accelerating at a pace that demands attention, innovation, and dedicated platforms."
-            </blockquote>
-            
-            <p>
-              Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-            </p>
-
-            <h3>Key Takeaways for Creators</h3>
-            <ul>
-              <li><strong>Focus on value:</strong> Clients are looking for measurable outcomes, not just deliverables.</li>
-              <li><strong>Build a network:</strong> Collaboration is the new currency in the digital age.</li>
-              <li><strong>Stay adaptable:</strong> Tools and trends change, but fundamental storytelling remains constant.</li>
-            </ul>
-
-            <p>
-              Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.
-            </p>
+            <div dangerouslySetInnerHTML={{ __html: post.content }} />
           </div>
-
-          {/* Tags */}
-          <div className="mt-12 pt-8 border-t border-gray-100">
+        
+        <div className="mt-12 pt-8 border-t border-gray-100">
             <h4 className="text-sm font-bold text-gray-900 mb-4 uppercase tracking-wider">Related Tags</h4>
             <div className="flex flex-wrap gap-2">
               {post.tags.map(tag => (
@@ -197,16 +165,7 @@ const BlogPost: React.FC = () => {
         {/* Right Sidebar (Table of Contents / Ads / Related) */}
         <div className="hidden lg:block w-72 flex-shrink-0">
           <div className="sticky top-32">
-            <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
-              <h4 className="font-bold text-[#111827] mb-4 uppercase tracking-wider text-sm">Table of Contents</h4>
-              <ul className="space-y-3 text-sm text-gray-600">
-                <li><a href="#" className="hover:text-[#6C2BFF] transition-colors">The Changing Landscape</a></li>
-                <li><a href="#" className="hover:text-[#6C2BFF] transition-colors">Key Takeaways for Creators</a></li>
-                <li><a href="#" className="hover:text-[#6C2BFF] transition-colors pl-4">Focus on value</a></li>
-                <li><a href="#" className="hover:text-[#6C2BFF] transition-colors pl-4">Build a network</a></li>
-                <li><a href="#" className="hover:text-[#6C2BFF] transition-colors">Conclusion</a></li>
-              </ul>
-            </div>
+            
           </div>
         </div>
 

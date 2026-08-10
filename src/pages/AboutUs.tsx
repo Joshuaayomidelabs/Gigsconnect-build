@@ -44,6 +44,11 @@ const STATS = [
   { label: 'Successful Collaborations', value: '100k+', icon: Briefcase },
 ];
 
+const TEAM_SOCIALS = {
+  twitter: 'https://twitter.com',
+  linkedin: 'https://linkedin.com'
+};
+
 const AboutUs: React.FC = () => {
   const accentColor = '#6C2BFF';
   const [isVisible, setIsVisible] = useState(false);
@@ -279,10 +284,10 @@ const AboutUs: React.FC = () => {
                   Joshua Ayomide founded GigsConnect with the vision of creating Africa's leading digital platform where creators can showcase their talent, connect with opportunities, collaborate with others, and build sustainable creative careers. His mission is to remove barriers that prevent talented African creators from gaining visibility and accessing meaningful opportunities.
                 </p>
                 <div className="flex items-center justify-center gap-4 mt-auto">
-                  <a href="#" className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:text-[#6C2BFF] hover:bg-[#6C2BFF]/10 transition-colors">
+                  <a href={TEAM_SOCIALS.twitter} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:text-[#6C2BFF] hover:bg-[#6C2BFF]/10 transition-colors">
                     <Linkedin className="w-5 h-5" />
                   </a>
-                  <a href="#" className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:text-[#6C2BFF] hover:bg-[#6C2BFF]/10 transition-colors">
+                  <a href={TEAM_SOCIALS.twitter} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:text-[#6C2BFF] hover:bg-[#6C2BFF]/10 transition-colors">
                     <Mail className="w-5 h-5" />
                   </a>
                 </div>
@@ -312,7 +317,7 @@ const AboutUs: React.FC = () => {
                   Amoo Daniels works alongside the founding team to help shape GigsConnect's growth, product direction, and community. He is committed to building an ecosystem that supports creators across Africa through innovation, collaboration, and technology.
                 </p>
                 <div className="flex items-center justify-center gap-4 mt-auto">
-                  <a href="#" className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:text-[#6C2BFF] hover:bg-[#6C2BFF]/10 transition-colors">
+                  <a href={TEAM_SOCIALS.twitter} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:text-[#6C2BFF] hover:bg-[#6C2BFF]/10 transition-colors">
                     <Linkedin className="w-5 h-5" />
                   </a>
                 </div>

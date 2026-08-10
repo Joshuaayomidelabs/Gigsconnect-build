@@ -235,7 +235,7 @@ const App: React.FC = () => {
         <div className="flex flex-col min-h-screen bg-brand-gray dark:bg-brand-black transition-colors">
           <Toaster position="top-right" richColors />
           <TopNav />
-          <main className={`flex-grow ${showBottomNav ? 'pb-20 lg:pb-0' : ''}`}>
+          <main className={`flex-grow ${showBottomNav ? 'pb-\[calc(4rem+env(safe-area-inset-bottom))\] lg:pb-0' : ''}`}>
             <Routes>
               <Route path="/" element={<Landing />} />
               <Route path="/login" element={<Login />} />
@@ -255,6 +255,8 @@ const App: React.FC = () => {
               <Route path="/faqs" element={<FAQs />} />
               <Route path="/pricing" element={<Pricing />} />
               <Route path="/about-us" element={<AboutUs />} />
+              <Route path="/blog" element={<Blog />} />
+              <Route path="/blog/:slug" element={<BlogPost />} />
               <Route path="/success-stories" element={<SuccessStories />} />
               <Route path="/creators-hub" element={<CreatorsHub />} />
               {/* Protected Routes */}

@@ -1,12 +1,19 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { toast } from 'sonner';
 import { ShieldAlert } from 'lucide-react';
 import { Facebook, Twitter, Instagram, Linkedin, ArrowRight, CheckCircle2 } from 'lucide-react';
 import Logo from './Logo';
 
+
 const Footer: React.FC = () => {
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
+
+  const handleSocialClick = (e: React.MouseEvent, platform: string) => {
+    e.preventDefault();
+    toast.info(`${platform} integration coming soon.`);
+  };
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,18 +46,18 @@ const Footer: React.FC = () => {
               Africa's leading creator ecosystem. Showcase your portfolio, discover opportunities, collaborate with brands, and grow your creative career across Africa.
             </p>
             <div className="flex items-center gap-4">
-              <a href="#" aria-label="Twitter" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:bg-[#4B0082] hover:text-white transition-all duration-300">
+              <button onClick={(e) => handleSocialClick(e, 'Twitter')} aria-label="Twitter" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:bg-[#4B0082] hover:text-white transition-all duration-300 cursor-pointer">
                 <Twitter className="w-4 h-4" />
-              </a>
-              <a href="#" aria-label="Instagram" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:bg-[#4B0082] hover:text-white transition-all duration-300">
+              </button>
+              <button onClick={(e) => handleSocialClick(e, 'Instagram')} aria-label="Instagram" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:bg-[#4B0082] hover:text-white transition-all duration-300 cursor-pointer">
                 <Instagram className="w-4 h-4" />
-              </a>
-              <a href="#" aria-label="LinkedIn" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:bg-[#4B0082] hover:text-white transition-all duration-300">
+              </button>
+              <button onClick={(e) => handleSocialClick(e, 'LinkedIn')} aria-label="LinkedIn" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:bg-[#4B0082] hover:text-white transition-all duration-300 cursor-pointer">
                 <Linkedin className="w-4 h-4" />
-              </a>
-              <a href="#" aria-label="Facebook" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:bg-[#4B0082] hover:text-white transition-all duration-300">
+              </button>
+              <button onClick={(e) => handleSocialClick(e, 'Facebook')} aria-label="Facebook" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:bg-[#4B0082] hover:text-white transition-all duration-300 cursor-pointer">
                 <Facebook className="w-4 h-4" />
-              </a>
+              </button>
             </div>
           </div>
 
@@ -76,7 +83,7 @@ const Footer: React.FC = () => {
               <li><Link to="/creators-hub" className="text-gray-400 hover:text-[#4B0082] text-sm font-medium transition-colors">Creators Hub</Link></li>
               <li><Link to="/safety-center" className="text-gray-400 hover:text-[#4B0082] text-sm font-medium transition-colors">Safety Center</Link></li>
               <li><Link to="/faqs" className="text-gray-400 hover:text-[#4B0082] text-sm font-medium transition-colors">FAQs</Link></li>
-              <li><a href="mailto:support@gigsconnect.africa" className="text-gray-400 hover:text-[#4B0082] text-sm font-medium transition-colors">Contact Support</a></li>
+              <li><a href="mailto:support@gigsconnect.africa" aria-label="Contact Support" className="text-gray-400 hover:text-[#4B0082] text-sm font-medium transition-colors">Contact Support</a></li>
             </ul>
           </div>
 
@@ -102,7 +109,7 @@ const Footer: React.FC = () => {
             {subscribed ? (
               <div className="flex items-center gap-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4">
                 <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
-                <p className="text-emerald-400 text-sm font-medium">Thanks for subscribing!</p>
+                <p className="text-emerald-400 text-sm font-medium">Newsletter signup is coming soon.</p>
               </div>
             ) : (
               <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row lg:flex-col xl:flex-row gap-3">

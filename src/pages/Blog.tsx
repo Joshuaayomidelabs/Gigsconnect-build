@@ -30,111 +30,21 @@ export interface BlogPostData {
 export const BLOG_POSTS: BlogPostData[] = [
   {
     id: 'b-1',
-    title: 'GigsConnect Raises $5M Seed Round to Empower African Creators',
-    slug: 'gigsconnect-raises-5m-seed',
+    title: 'Welcome to the GigsConnect Blog: Empowering African Creators',
+    slug: 'welcome-to-gigsconnect',
     cover_image: 'https://images.unsplash.com/photo-1556761175-5973dc0f32d7?auto=format&fit=crop&q=80&w=1200',
-    excerpt: 'We are thrilled to announce our latest funding round, aimed at building more tools, expanding across the continent, and bringing global opportunities to local talent.',
-    content: '<p>Lorem ipsum...</p>', // Placeholder for content
-    author_name: 'Obi Nwosu',
-    author_avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150',
-    category: 'Company News',
-    tags: ['#Announcements', '#Funding', '#Startup'],
-    reading_time: '4 min read',
-    published_at: 'Oct 24, 2023',
-    featured: true,
-    views: 12500,
-    likes: 342,
-    comments_count: 56,
-    status: 'published'
-  },
-  {
-    id: 'b-2',
-    title: 'Introducing GigsConnect Portfolios: Showcase Your Best Work',
-    slug: 'introducing-gigsconnect-portfolios',
-    cover_image: 'https://images.unsplash.com/photo-1499951360447-b19be8fe80f5?auto=format&fit=crop&q=80&w=600',
-    excerpt: 'Our highly requested feature is finally here. Learn how to set up your interactive portfolio and increase your chances of landing high-paying gigs.',
-    content: '<p>Content goes here...</p>',
-    author_name: 'Sarah Kariuki',
-    author_avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=150',
-    category: 'Product Updates',
-    tags: ['#Product', '#Design', '#Portfolios'],
-    reading_time: '6 min read',
-    published_at: 'Oct 18, 2023',
-    views: 8400,
-    likes: 215,
-    comments_count: 34,
-    status: 'published'
-  },
-  {
-    id: 'b-3',
-    title: 'How African Developers are Shaping the Future of Web3',
-    slug: 'african-developers-web3',
-    cover_image: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80&w=600',
-    excerpt: 'From Lagos to Nairobi, see how local tech talent is building decentralized applications that solve real-world problems and attract global funding.',
-    content: '<p>Content goes here...</p>',
-    author_name: 'David Njuguna',
-    author_avatar: 'https://images.unsplash.com/photo-1506277886164-e25aa3f4ef7f?auto=format&fit=crop&q=80&w=150',
-    category: 'Industry Insights',
-    tags: ['#Web3', '#Technology', '#Development'],
-    reading_time: '10 min read',
-    published_at: 'Oct 12, 2023',
-    views: 15200,
-    likes: 489,
-    comments_count: 112,
-    status: 'published'
-  },
-  {
-    id: 'b-4',
-    title: '5 Tips for Negotiating Better Rates as a Freelance Designer',
-    slug: 'negotiating-better-rates',
-    cover_image: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&q=80&w=600',
-    excerpt: 'Stop underpricing your services. Learn how to communicate value, handle pushback, and secure the compensation your creative work deserves.',
-    content: '<p>Content goes here...</p>',
-    author_name: 'Amara Osei',
-    author_avatar: 'https://images.unsplash.com/photo-1531123897727-8f129e1bf98c?auto=format&fit=crop&q=80&w=150',
-    category: 'Marketplace Tips',
-    tags: ['#Freelancing', '#Business', '#Design'],
-    reading_time: '7 min read',
-    published_at: 'Oct 05, 2023',
-    views: 9300,
-    likes: 310,
-    comments_count: 45,
-    status: 'published'
-  },
-  {
-    id: 'b-5',
-    title: 'Creator Spotlight: How Aisha Scaled Her Digital Marketing Agency',
-    slug: 'creator-spotlight-aisha',
-    cover_image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=600',
-    excerpt: 'We sit down with Aisha Bello to discuss her journey from solo freelancer on GigsConnect to managing a team of 15 across three countries.',
-    content: '<p>Content goes here...</p>',
+    excerpt: 'We are thrilled to launch the GigsConnect blog! Stay tuned for product updates, platform features, and official announcements.',
+    content: '<p>The GigsConnect blog is coming soon. This space will be used for official platform announcements, product updates, and community guidelines.</p>',
     author_name: 'GigsConnect Editorial',
-    author_avatar: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80&w=150',
-    category: 'Creator Stories',
-    tags: ['#Interviews', '#Success', '#Marketing'],
-    reading_time: '8 min read',
-    published_at: 'Sep 28, 2023',
-    views: 11400,
-    likes: 420,
-    comments_count: 67,
-    status: 'published'
-  },
-  {
-    id: 'b-6',
-    title: 'The Rise of AI Tools: Threat or Opportunity for Writers?',
-    slug: 'ai-tools-for-writers',
-    cover_image: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&q=80&w=600',
-    excerpt: 'Exploring how artificial intelligence is changing the copywriting landscape, and how you can leverage these tools to speed up your workflow rather than being replaced.',
-    content: '<p>Content goes here...</p>',
-    author_name: 'Sarah Kariuki',
-    author_avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=150',
-    category: 'Technology',
-    tags: ['#AI', '#Writing', '#FutureOfWork'],
-    reading_time: '12 min read',
-    published_at: 'Sep 22, 2023',
-    views: 18500,
-    likes: 650,
-    comments_count: 210,
+    author_avatar: 'https://ui-avatars.com/api/?name=GigsConnect&background=6C2BFF&color=fff',
+    category: 'Company News',
+    tags: ['Announcement', 'Platform'],
+    reading_time: '1 min read',
+    published_at: 'Oct 15, 2023',
+    featured: true,
+    views: 0,
+    likes: 0,
+    comments_count: 0,
     status: 'published'
   }
 ];
@@ -448,7 +358,7 @@ const Blog: React.FC = () => {
                 {subscribed ? (
                   <div className="bg-green-500/10 text-green-400 p-4 rounded-xl flex items-center gap-3 font-medium text-sm">
                     <CheckCircle className="w-4 h-4" />
-                    Subscribed successfully!
+                    Newsletter signup is coming soon.
                   </div>
                 ) : (
                   <form onSubmit={handleSubscribe} className="space-y-3">

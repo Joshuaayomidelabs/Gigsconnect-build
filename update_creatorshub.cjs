@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+const fs = require('fs');
+const content = `import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { BookOpen, Search, ArrowRight, Play, Briefcase, Star, TrendingUp, Users, Download, ShieldCheck, PenTool, CheckCircle, Monitor } from 'lucide-react';
 
@@ -88,7 +89,7 @@ const CreatorsHub: React.FC = () => {
           style={{ backgroundColor: accentColor }}
         ></div>
 
-        <div className={`max-w-4xl mx-auto text-center relative z-10 transition-all duration-1000 transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+        <div className={\`max-w-4xl mx-auto text-center relative z-10 transition-all duration-1000 transform \${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}\`}>
           <div className="inline-flex items-center justify-center p-3 px-5 bg-[#4B0082]/5 rounded-full mb-8 border border-[#4B0082]/10">
             <span className="text-[#4B0082] font-bold text-sm tracking-wide uppercase flex items-center gap-2">
               <BookOpen className="w-4 h-4 fill-current" /> Education & Resources
@@ -210,7 +211,7 @@ const CreatorsHub: React.FC = () => {
               </p>
               <div className="flex gap-3"> 
                 <Link 
-                  to="/overview"
+                  to="/community"
                   className="h-12 px-6 rounded-xl bg-white text-[#111827] font-bold flex items-center justify-center hover:bg-gray-100 transition-colors flex-1 text-center"
                 >
                   Join Community
@@ -227,3 +228,6 @@ const CreatorsHub: React.FC = () => {
 };
 
 export default CreatorsHub;
+`
+fs.writeFileSync('src/pages/CreatorsHub.tsx', content, 'utf-8');
+console.log('CreatorsHub updated');

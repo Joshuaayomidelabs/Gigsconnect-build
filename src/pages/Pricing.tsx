@@ -1,19 +1,20 @@
 import React from 'react';
+import { PricingSection } from '../components/PricingSection';
 
 const Pricing: React.FC = () => {
   return (
-    <div className="min-h-screen bg-brand-gray dark:bg-brand-black flex flex-col justify-center items-center py-20 px-6">
-      <div className="max-w-3xl w-full bg-white dark:bg-brand-dark-card rounded-3xl p-10 md:p-16 shadow-xl border border-gray-100 dark:border-gray-800 text-center">
-        <h1 className="text-3xl md:text-4xl font-black text-brand-black dark:text-brand-white tracking-tight mb-6">Pricing</h1>
-        <p className="text-gray-500 dark:text-gray-400 text-lg mb-8 leading-relaxed">
-          This page is currently under construction. Please check back later.
-        </p>
-        <button 
-          onClick={() => window.history.back()}
-          className="inline-flex items-center justify-center px-8 h-[54px] rounded-xl bg-brand-purple text-white font-bold text-sm hover:bg-brand-purple-dark transition-all duration-300"
-        >
-          Go Back
-        </button>
+    <div className="min-h-screen bg-brand-gray dark:bg-brand-black pt-24 pb-20 px-6 transition-colors duration-300">
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-16">
+          <h1 className="text-4xl md:text-5xl font-black text-brand-black dark:text-brand-white tracking-tight mb-6">
+            Simple, Transparent Pricing
+          </h1>
+          <p className="text-gray-500 dark:text-gray-400 text-lg max-w-2xl mx-auto leading-relaxed font-medium">
+            Choose the plan that best fits your creative journey. Upgrade anytime as your career grows.
+          </p>
+        </div>
+        
+        <PricingSection />
       </div>
     </div>
   );

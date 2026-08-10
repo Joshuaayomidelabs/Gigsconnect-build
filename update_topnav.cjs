@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+const fs = require('fs');
+
+const topnavCode = `import React, { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Bell, Home, Search, Briefcase, User, Settings, LogOut, ChevronDown } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
@@ -37,11 +39,11 @@ const TopNav: React.FC = () => {
   };
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+    <nav className={\`fixed top-0 left-0 right-0 z-50 transition-all duration-300 \${
       isLandingPage 
         ? "bg-white/70 dark:bg-brand-black/70 backdrop-blur-md border-b border-white/20 dark:border-white/10 shadow-sm" 
         : "bg-brand-white dark:bg-brand-black shadow-md border-b border-brand-gray dark:border-brand-dark-card"
-    } px-4 pb-4 pt-[calc(1rem+env(safe-area-inset-top))] flex items-center justify-between`}>
+    } px-4 pb-4 pt-[calc(1rem+env(safe-area-inset-top))] flex items-center justify-between\`}>
       
       {/* Left: Clickable Logo + App Name */}
       <Link 
@@ -70,7 +72,7 @@ const TopNav: React.FC = () => {
             <Link 
               key={item.path} 
               to={item.path} 
-              className={`flex items-center gap-2 text-sm font-bold transition-colors ${isActive ? 'text-brand-purple' : 'text-brand-gray-dark dark:text-gray-300 hover:text-brand-purple'}`}
+              className={\`flex items-center gap-2 text-sm font-bold transition-colors \${isActive ? 'text-brand-purple' : 'text-brand-gray-dark dark:text-gray-300 hover:text-brand-purple'}\`}
             >
               {item.icon}
               {item.label}
@@ -204,3 +206,6 @@ const TopNav: React.FC = () => {
 };
 
 export default TopNav;
+`;
+fs.writeFileSync('src/components/TopNav.tsx', topnavCode);
+console.log('TopNav updated');
