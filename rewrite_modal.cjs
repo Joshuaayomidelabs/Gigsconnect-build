@@ -1,4 +1,5 @@
-import React from 'react';
+const fs = require('fs');
+const content = `import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, MessageSquare, Briefcase } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -87,3 +88,6 @@ export default function CreateHubModal({ isOpen, onClose }: CreateHubModalProps)
     </AnimatePresence>
   );
 }
+`;
+fs.writeFileSync('src/components/CreateHubModal.tsx', content, 'utf-8');
+console.log('Rewrote CreateHubModal completely');

@@ -1,6 +1,4 @@
 const fs = require('fs');
-let content = fs.readFileSync('src/App.tsx', 'utf8');
-
-content = content.replace("import { FeaturedCreators }\nimport Pricing from './pages/Pricing';\nimport Settings from './pages/Settings'; from './pages/FeaturedCreators';", "import { FeaturedCreators } from './pages/FeaturedCreators';\nimport Pricing from './pages/Pricing';\nimport Settings from './pages/Settings';");
-
-fs.writeFileSync('src/App.tsx', content);
+let content = fs.readFileSync('src/App.tsx', 'utf-8');
+content = content.replace("pb-\\[calc(4rem+env(safe-area-inset-bottom))\\]", "pb-[calc(4rem+env(safe-area-inset-bottom))]");
+fs.writeFileSync('src/App.tsx', content, 'utf-8');
