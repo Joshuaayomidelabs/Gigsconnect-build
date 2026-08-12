@@ -1,3 +1,4 @@
+import { SEO } from '../components/SEO';
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
@@ -9,6 +10,7 @@ import PasswordInput from '../components/PasswordInput';
 import { toast } from 'sonner';
 import { notifyError } from '../utils/errorHandler';
 import { getFriendlyErrorMessage } from '../utils/errorHandler';
+
 
 const SignUp: React.FC = () => {
   const navigate = useNavigate();
@@ -182,6 +184,8 @@ const SignUp: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#F9FAFB] flex flex-col items-center justify-center p-4 md:p-8 pt-24 md:pt-28 relative overflow-hidden">
+      <SEO title="Sign Up | GigsConnect" noindex={true} />
+
       {/* Editorial Background Accents */}
       <div className="absolute inset-0 z-0 pointer-events-none" style={{ backgroundImage: 'radial-gradient(#E5E7EB 1.5px, transparent 1.5px)', backgroundSize: '32px 32px', opacity: 0.5 }}></div>
       <div className="absolute inset-0 z-0 pointer-events-none bg-gradient-to-b from-transparent to-[#F9FAFB] opacity-80"></div>

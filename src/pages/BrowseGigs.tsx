@@ -1,3 +1,4 @@
+import { SEO } from '../components/SEO';
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, Loader2, AlertCircle, X, ChevronDown, Banknote, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -14,6 +15,7 @@ import GigDetailsModal from '../components/GigDetailsModal';
 import { GIG_CATEGORIES } from '../utils/constants';
 import VerificationBadge from '../components/VerificationBadge';
 import { getFriendlyErrorMessage } from '../utils/errorHandler';
+
 
 const BrowseGigs: React.FC = () => {
   const navigate = useNavigate();
@@ -120,6 +122,8 @@ const BrowseGigs: React.FC = () => {
 
   return (
     <div className="pt-main pb-12 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto min-h-screen bg-brand-gray dark:bg-brand-black transition-colors duration-500">
+      <SEO title="Find Gigs | Browse Opportunities on GigsConnect" canonical="https://gigsconnect.africa/browse" />
+
       <section className="mb-8 px-2">
         <h1 className="text-3xl lg:text-4xl font-black text-brand-black dark:text-brand-white tracking-tight mb-2">Search</h1>
         <p className="text-gray-700 dark:text-gray-200 text-sm lg:text-base font-medium">Find people and opportunities across the continent.</p>

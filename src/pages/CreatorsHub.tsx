@@ -1,6 +1,8 @@
+import { SEO } from '../components/SEO';
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { BookOpen, Search, ArrowRight, Play, Briefcase, Star, TrendingUp, Users, Download, ShieldCheck, PenTool, CheckCircle, Monitor } from 'lucide-react';
+
 
 const CATEGORIES = [
   { name: 'Profile Building', icon: Briefcase },
@@ -76,6 +78,8 @@ const CreatorsHub: React.FC = () => {
 
   return (
     <div className="w-full bg-gray-50 flex flex-col font-sans min-h-screen">
+      <SEO title="Creators Hub | Resources & Community for African Freelancers" canonical="https://gigsconnect.africa/creators-hub" />
+
       
       {/* Hero Section */}
       <div className="pt-32 pb-24 px-6 md:px-8 bg-white border-b border-gray-100 relative overflow-hidden flex-shrink-0">

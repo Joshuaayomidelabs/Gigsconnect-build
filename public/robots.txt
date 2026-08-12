@@ -1,0 +1,19 @@
+User-agent: *
+Allow: /
+Disallow: /login
+Disallow: /signup
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /overview
+Disallow: /edit-profile
+Disallow: /settings
+Disallow: /messages
+Disallow: /notifications
+Disallow: /applications
+Disallow: /posted-gigs
+Disallow: /post
+Disallow: /profile/edit
+Disallow: /chat
+Disallow: /apply
+
+Sitemap: https://gigsconnect.africa/sitemap.xml

@@ -1,10 +1,11 @@
+import { SEO } from '../components/SEO';
+import { Helmet } from 'react-helmet-async';
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence, useInView } from 'motion/react';
 import { Link, useLocation } from 'react-router-dom';
 import { PricingSection } from '../components/PricingSection';
 import { useAuth } from '../context/AuthContext';
-import { 
-  CheckCircle, Zap, PlusCircle, Music, Mic2, Disc, Settings, Calendar,
+import { CheckCircle, Zap, PlusCircle, Music, Mic2, Disc, Settings, Calendar,
   Star, ArrowRight, MapPin, MessageSquare, Share2, Heart, Clock, Briefcase,
   Camera, Video, PenTool, Edit3, MonitorPlay, Mic, Scissors, Shirt, Code,
   Film, Grid, Handshake, ArrowRightCircle, Quote, BadgeCheck, ChevronLeft, ChevronRight,
@@ -12,6 +13,22 @@ import {
 } from 'lucide-react';
 
 const Landing: React.FC = () => {
+  const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "GigsConnect",
+    "url": "https://gigsconnect.africa",
+    "logo": "https://gigsconnect.africa/default-og-image.jpg",
+    "description": "GigsConnect is the premier platform connecting African creators, freelancers, and talent with top gig opportunities, collaborations, and brands."
+  };
+
+  const websiteSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "GigsConnect",
+    "url": "https://gigsconnect.africa"
+  };
+
   const { user } = useAuth();
   const location = useLocation();
 
@@ -100,6 +117,13 @@ const Landing: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#faf9fc] selection:bg-brand-purple/30 selection:text-brand-purple-dark font-sans text-brand-black">
+      <SEO title="GigsConnect Africa | Connecting Talent with Opportunity" />
+      <Helmet>
+        <script type="application/ld+json">{JSON.stringify(organizationSchema)}</script>
+        <script type="application/ld+json">{JSON.stringify(websiteSchema)}</script>
+      </Helmet>
+
+
       <BackgroundDecor />
       
       {/* 1. Hero Section */}
@@ -116,21 +140,21 @@ const Landing: React.FC = () => {
             >
 
               <h1 className="text-5xl lg:text-7xl font-black text-brand-black leading-[1.05] tracking-tight mb-6">
-                Build Your <br />
-                <span className="text-brand-purple">Creative Career.</span>
+                Connecting African Talent With <br />
+                <span className="text-brand-purple">Global Opportunity.</span>
               </h1>
               
               <p className="text-lg lg:text-xl text-brand-gray-dark leading-relaxed mb-10 w-full max-w-lg font-medium">
-                Connect, collaborate, and grow with a leading creative ecosystem. Where top talent meets incredible opportunities.
+                GigsConnect is the premier platform for African creators, professionals, and businesses to discover talent, find gigs, and build thriving careers.
               </p>
               
               <div className="flex flex-col sm:flex-row flex-wrap gap-4 w-full justify-start items-center mb-10">
                 <Link to="/signup" className="w-full sm:w-auto px-8 py-4 rounded-xl bg-brand-purple text-white font-bold text-base hover:bg-brand-purple-dark active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2 shadow-sm">
-                  Join for Free
+                  Join the Community
                   <ArrowRight className="w-5 h-5" />
                 </Link>
                 <Link to="/login" className="w-full sm:w-auto px-8 py-4 rounded-xl bg-white text-brand-black font-bold text-base border border-gray-200 hover:border-brand-purple/30 active:scale-[0.98] transition-all duration-200 flex items-center justify-center shadow-sm">
-                  Hire Creators
+                  Hire African Creators
                 </Link>
               </div>
             </motion.div>
@@ -145,7 +169,7 @@ const Landing: React.FC = () => {
               <div className="relative w-full h-full flex items-center justify-center">
                 {/* Main Illustration */}
                 <div className="relative z-10 w-[90%] max-w-[400px] lg:max-w-[500px] xl:max-w-[550px] aspect-square rounded-[3rem] overflow-hidden bg-white shadow-[0_20px_60px_rgba(0,0,0,0.04)] border border-gray-100 flex items-center justify-center p-8 lg:p-12">
-                  <img src="/assets/illustrations/landing/teamwork.svg" alt="Creators Collaborating" className="w-full h-full object-contain relative z-10 mix-blend-multiply" />
+                  <img src="/assets/illustrations/landing/teamwork.svg" alt="African creators collaborating on GigsConnect" className="w-full h-full object-contain relative z-10 mix-blend-multiply" {...{ fetchpriority: "high" } as any} />
                 </div>
 
                 {/* Floating Cards */}
@@ -255,7 +279,7 @@ const Landing: React.FC = () => {
               className="lg:w-1/2 w-full"
             >
               <div className="w-full max-w-[400px] lg:max-w-none mx-auto aspect-square rounded-[3rem] overflow-hidden bg-white shadow-[0_20px_60px_rgba(0,0,0,0.06)] border border-gray-100 p-8">
-                <img src="/assets/illustrations/creators/photographer.svg" alt="Find Talent" loading="lazy" className="w-full h-full object-contain mix-blend-multiply" />
+                <img src="/assets/illustrations/creators/photographer.svg" alt="Find African creative talent and freelancers" loading="lazy" className="w-full h-full object-contain mix-blend-multiply" />
               </div>
             </motion.div>
             
@@ -338,7 +362,7 @@ const Landing: React.FC = () => {
               className="lg:w-1/2 w-full"
             >
               <div className="w-full max-w-[400px] lg:max-w-none mx-auto aspect-square rounded-[3rem] overflow-hidden bg-[#faf9fc] shadow-[0_20px_60px_rgba(0,0,0,0.06)] border border-gray-100 p-8 relative">
-                <img src="/assets/illustrations/creators/dj-bro.svg" alt="Find Gigs" loading="lazy" className="w-full h-full object-contain mix-blend-multiply relative z-10" />
+                <img src="/assets/illustrations/creators/dj-bro.svg" alt="Find creative gigs and freelance opportunities in Africa" loading="lazy" className="w-full h-full object-contain mix-blend-multiply relative z-10" />
                 
                 {/* Floating Notification */}
                 <motion.div animate={{ y: [0, -10, 0] }} transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }} className="absolute top-[15%] right-[5%] z-20">
@@ -476,20 +500,20 @@ const Landing: React.FC = () => {
             <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-brand-purple/10 rounded-full blur-[80px] translate-y-1/3 -translate-x-1/3 pointer-events-none"></div>
             
             <div className="w-48 h-48 lg:w-64 lg:h-64 mb-8 relative z-10 bg-white rounded-full p-4 shadow-xl">
-              <img src="/assets/illustrations/landing/networking.svg" alt="Community Networking" loading="lazy" className="w-full h-full object-contain mix-blend-multiply" />
+              <img src="/assets/illustrations/landing/networking.svg" alt="African creator community networking and connecting" loading="lazy" className="w-full h-full object-contain mix-blend-multiply" />
             </div>
 
             <div className="relative z-10 max-w-2xl mx-auto">
-              <h2 className="text-4xl lg:text-5xl font-black mb-6 tracking-tight">Join the Creative Movement</h2>
+              <h2 className="text-4xl lg:text-5xl font-black mb-6 tracking-tight">Join Africa's Creative Movement</h2>
               <p className="text-lg text-gray-300 mb-10 font-medium leading-relaxed">
-                Start connecting with opportunities, collaborators, and clients globally today.
+                Start connecting with gig opportunities, collaborators, and clients globally today. Explore the African creator economy with GigsConnect.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link to="/signup" className="px-10 py-5 rounded-xl bg-white text-brand-black font-black hover:bg-gray-50 active:scale-[0.98] transition-all text-lg shadow-xl">
                   Get Started Free
                 </Link>
-                <Link to="/login" className="px-10 py-5 rounded-xl bg-white/10 text-white font-black border border-white/20 hover:bg-white/20 active:scale-[0.98] transition-all text-lg backdrop-blur-md">
-                  Explore Creators
+                <Link to="/about-us" className="px-10 py-5 rounded-xl bg-white/10 text-white font-black border border-white/20 hover:bg-white/20 active:scale-[0.98] transition-all text-lg backdrop-blur-md">
+                  Learn More About Us
                 </Link>
               </div>
             </div>

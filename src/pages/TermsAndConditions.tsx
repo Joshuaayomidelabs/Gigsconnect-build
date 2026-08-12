@@ -1,6 +1,8 @@
+import { SEO } from '../components/SEO';
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronDown, ArrowRight } from 'lucide-react';
+
 
 const sections = [
   { id: 'introduction', title: '1. Introduction' },
@@ -144,6 +146,8 @@ const TermsAndConditions: React.FC = () => {
 
   return (
     <div className="w-full bg-gray-50 flex flex-col font-sans min-h-screen">
+      <SEO title="Terms & Conditions | GigsConnect" canonical="https://gigsconnect.africa/terms" />
+
       
       {/* Hero Section */}
       <div className="pt-24 pb-16 px-6 md:px-8 bg-white border-b border-gray-100 relative overflow-hidden flex-shrink-0">

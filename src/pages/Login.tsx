@@ -1,3 +1,4 @@
+import { SEO } from '../components/SEO';
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
@@ -6,6 +7,7 @@ import { supabase } from '../services/supabaseClient';
 import Logo from '../components/Logo';
 import PasswordInput from '../components/PasswordInput';
 import { getFriendlyErrorMessage } from '../utils/errorHandler';
+
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -88,6 +90,8 @@ const Login: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#F9FAFB] flex flex-col items-center justify-center p-4 md:p-8 pt-24 md:pt-28 relative overflow-hidden">
+      <SEO title="Log In | GigsConnect" noindex={true} />
+
       {/* Editorial Background Accents */}
       <div className="absolute inset-0 z-0 pointer-events-none" style={{ backgroundImage: 'radial-gradient(#E5E7EB 1.5px, transparent 1.5px)', backgroundSize: '32px 32px', opacity: 0.5 }}></div>
       <div className="absolute inset-0 z-0 pointer-events-none bg-gradient-to-b from-transparent to-[#F9FAFB] opacity-80"></div>

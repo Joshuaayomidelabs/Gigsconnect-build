@@ -1,9 +1,13 @@
+import { SEO } from '../components/SEO';
 import React from 'react';
 import { PricingSection } from '../components/PricingSection';
+
 
 const Pricing: React.FC = () => {
   return (
     <div className="min-h-screen bg-brand-gray dark:bg-brand-black pt-24 pb-20 px-6 transition-colors duration-300">
+      <SEO title="GigsConnect Pricing | Plans for African Creators" canonical="https://gigsconnect.africa/pricing" />
+
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
           <h1 className="text-4xl md:text-5xl font-black text-brand-black dark:text-brand-white tracking-tight mb-6">

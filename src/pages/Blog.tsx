@@ -1,7 +1,7 @@
+import { SEO } from '../components/SEO';
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { 
-  Search, ArrowRight, Bookmark, Share2, MessageCircle, Heart, 
+import { Search, ArrowRight, Bookmark, Share2, MessageCircle, Heart, 
   TrendingUp, Star, Clock, ChevronRight, CheckCircle, Mail, BookOpen
 } from 'lucide-react';
 
@@ -66,6 +66,7 @@ const POPULAR_TAGS = [
 const BlogCard: React.FC<{ post: BlogPostData }> = ({ post }) => {
   return (
     <div className="bg-white rounded-3xl border border-gray-100 shadow-[0_4px_20px_rgb(0,0,0,0.02)] hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col group">
+
       <Link to={`/blog/${post.slug}`} className="block relative h-56 overflow-hidden">
         <img src={post.cover_image} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
         <div className="absolute top-4 left-4">
@@ -167,6 +168,7 @@ const Blog: React.FC = () => {
 
   return (
     <div className="w-full bg-[#FAFAFA] flex flex-col font-sans min-h-screen">
+      <SEO title="GigsConnect Blog | Creator Opportunities, Gigs & Insights" canonical="https://gigsconnect.africa/blog" />
       
       {/* Hero Section */}
       <div className="pt-32 pb-24 px-6 md:px-8 bg-white border-b border-gray-100 relative overflow-hidden flex-shrink-0">

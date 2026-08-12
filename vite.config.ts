@@ -19,6 +19,18 @@ export default defineConfig({
       '@': '/src',
     },
   },
+  
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          supabase: ['@supabase/supabase-js'],
+          ui: ['lucide-react', 'motion', 'motion/react', 'sonner']
+        }
+      }
+    }
+  },
   optimizeDeps: {
     include: ['motion/react', 'lucide-react', 'react-router-dom', 'sonner']
   }

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { SEO } from '../components/SEO';
 import { ChevronDown, ArrowRight, ArrowUp, Info, Shield, Mail, Globe, CheckCircle } from 'lucide-react';
 
 const sections = [
@@ -188,6 +189,12 @@ const CommunityGuidelines: React.FC = () => {
 
   return (
     <div className="w-full bg-gray-50 flex flex-col font-sans min-h-screen relative">
+      <SEO 
+        title="Community Guidelines | GigsConnect"
+        description="Our Community Guidelines for a safe, respectful, and professional environment on GigsConnect."
+        canonical="https://gigsconnect.africa/community-guidelines"
+      />
+
       
       {/* Reading Progress Indicator */}
       <div className="fixed top-0 left-0 w-full h-1 bg-gray-200 z-50">

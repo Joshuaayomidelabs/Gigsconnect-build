@@ -1,10 +1,14 @@
+import { SEO } from '../components/SEO';
 import React from 'react';
 import { Shield, Lock, AlertTriangle, Users, Flag, LifeBuoy } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
+
 const SafetyCenter: React.FC = () => {
   return (
     <div className="min-h-screen bg-brand-gray dark:bg-brand-black pt-24 pb-20 px-4 sm:px-6 transition-colors duration-300">
+      <SEO title="Safety Center | Trust & Security on GigsConnect" canonical="https://gigsconnect.africa/safety-center" />
+
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-16">
           <div className="w-20 h-20 bg-green-500/10 text-green-500 rounded-3xl flex items-center justify-center mx-auto mb-6 transform rotate-3">
@@ -46,7 +50,7 @@ const SafetyCenter: React.FC = () => {
                 <li><strong>Use a strong password:</strong> Create a unique password that you do not use on other platforms.</li>
                 <li><strong>Do not share verification codes:</strong> GigsConnect will never ask you for your verification codes or password.</li>
                 <li><strong>Be cautious of suspicious links:</strong> Do not click on unknown links sent by unverified users.</li>
-                <li><strong>Report suspicious activity:</strong> If you notice unusual activity on your account, reset your password and contact support immediately.</li>
+                <li><strong>Report suspicious activity:</strong> If you notice unusual activity on your account, reset your password and <Link to="/help-center" className="text-brand-purple hover:underline">contact support immediately</Link>.</li>
               </ul>
             </div>
           </section>
@@ -64,7 +68,7 @@ const SafetyCenter: React.FC = () => {
                 <li><strong>Verify who you are dealing with:</strong> Check the client's profile, past activity, and reviews if available.</li>
                 <li><strong>Protect sensitive information:</strong> Be extremely cautious if a client asks for highly sensitive personal data.</li>
                 <li><strong>Avoid suspicious payment requests:</strong> Be wary of opportunities that require you to pay upfront fees, buy equipment from specific vendors, or involve complex investment schemes.</li>
-                <li><strong>Report suspicious opportunities:</strong> Use the report function on any gig that seems fraudulent or violates our guidelines.</li>
+                <li><strong>Report suspicious opportunities:</strong> Use the <Link to="/report-abuse" className="text-brand-purple hover:underline">report function</Link> on any gig that seems fraudulent or violates our <Link to="/community-guidelines" className="text-brand-purple hover:underline">community guidelines</Link>.</li>
               </ul>
             </div>
           </section>

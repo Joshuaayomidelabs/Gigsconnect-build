@@ -1,7 +1,7 @@
+import { SEO } from '../components/SEO';
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { 
-  ArrowRight, Users, Globe, Briefcase, Heart, 
+import { ArrowRight, Users, Globe, Briefcase, Heart, 
   Shield, Zap, Star, MessageCircle, FileImage, 
   MapPin, CheckCircle, Video, Music, Palette, PenTool,
   Code, Megaphone, Smartphone, Headphones, Camera, Mic,
@@ -62,6 +62,8 @@ const AboutUs: React.FC = () => {
 
   return (
     <div className="w-full bg-gray-50 flex flex-col font-sans min-h-screen">
+      <SEO title="About GigsConnect | Connecting African Talent With Opportunity" canonical="https://gigsconnect.africa/about-us" />
+
       
       {/* Hero Section */}
       <div className="pt-32 pb-24 px-6 md:px-8 bg-white border-b border-gray-100 relative overflow-hidden flex-shrink-0">

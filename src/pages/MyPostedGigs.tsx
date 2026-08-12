@@ -1,3 +1,4 @@
+import { SEO } from '../components/SEO';
 import React, { useState, useEffect } from 'react';
 import { Loader2, AlertCircle, Plus, Trash2, AlertTriangle, X } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
@@ -9,6 +10,7 @@ import { GigCardSkeleton } from '../components/Skeleton';
 import ApplicantsModal from '../components/ApplicantsModal';
 import { handleError } from '../utils/errorHandler';
 import { getFriendlyErrorMessage } from '../utils/errorHandler';
+
 
 const MyPostedGigs: React.FC = () => {
   const navigate = useNavigate();
@@ -86,6 +88,8 @@ const MyPostedGigs: React.FC = () => {
 
   return (
     <div className="pt-main pb-12 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto min-h-screen bg-brand-gray dark:bg-brand-black transition-colors duration-500">
+      <SEO title="My Posted Gigs | GigsConnect" noindex={true} />
+
       <div className="flex justify-between items-center mb-10">
         <div>
           <h1 className="text-4xl font-black text-brand-black dark:text-brand-white tracking-tight mb-2">My Posted <span className="text-brand-purple">Gigs</span></h1>

@@ -4,6 +4,7 @@ import {
   ArrowLeft, Share2, Bookmark, Heart, MessageCircle, 
   Clock, Calendar, Check, Facebook, Twitter, Linkedin, Link2
 } from 'lucide-react';
+import { SEO } from '../components/SEO';
 import { BLOG_POSTS } from './Blog'; // Import dummy data
 
 const BlogPost: React.FC = () => {

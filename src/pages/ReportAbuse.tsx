@@ -1,8 +1,8 @@
+import { SEO } from '../components/SEO';
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Globe } from 'lucide-react';
-import { 
-  ShieldAlert, 
+import { ShieldAlert, 
   AlertTriangle, 
   CheckCircle2, 
   ChevronRight, 
@@ -207,6 +207,8 @@ const ReportAbuse: React.FC = () => {
       case 1:
         return (
           <div className="animate-in fade-in slide-in-from-right-4 duration-300">
+      <SEO title="Report Abuse | GigsConnect" canonical="https://gigsconnect.africa/report-abuse" />
+
             <h3 className="text-xl font-bold text-[#111827] mb-4">What would you like to report?</h3>
             <p className="text-gray-500 mb-6">Select the category that best describes the issue you are reporting.</p>
             <div className="relative">

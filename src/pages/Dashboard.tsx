@@ -1,3 +1,4 @@
+import { SEO } from '../components/SEO';
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Compass, BarChart, PlusSquare, FileText, User, ArrowRight, Loader2, Zap, MapPin, CheckCircle2, TrendingUp, Award, MessageSquare } from 'lucide-react';
@@ -14,6 +15,7 @@ import CommunityFeed from '../components/CommunityFeed';
 import GigsFeed from '../components/GigsFeed';
 import { OnboardingPrompt } from '../components/OnboardingPrompt';
 
+
 const CreatorBadge = ({ type }: { type: string }) => {
   const configs: Record<string, { icon: any, color: string, bg: string }> = {
     'Verified': { icon: <CheckCircle2 className="w-3 h-3" />, color: 'text-brand-purple', bg: 'bg-brand-purple/10' },
@@ -25,6 +27,8 @@ const CreatorBadge = ({ type }: { type: string }) => {
 
   return (
     <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full ${config.bg} ${config.color} text-[9px] font-black uppercase tracking-wider`}>
+      <SEO title="Dashboard | GigsConnect" noindex={true} />
+
       {config.icon}
       {type}
     </div>

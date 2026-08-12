@@ -1,3 +1,4 @@
+import { SEO } from '../components/SEO';
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
@@ -24,6 +25,7 @@ import { toast } from 'sonner';
 
 import { useAuth } from '../context/AuthContext';
 import { handleError, notifyError } from '../utils/errorHandler';
+
 
 const CreateProfile: React.FC = () => {
   const navigate = useNavigate();
@@ -212,6 +214,8 @@ const CreateProfile: React.FC = () => {
   if (isFetching) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-brand-gray dark:bg-brand-black">
+      <SEO title="Create Profile | GigsConnect" noindex={true} />
+
         <Loader2 className="w-10 h-10 animate-spin text-brand-purple" />
       </div>
     );

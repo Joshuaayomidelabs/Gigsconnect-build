@@ -1,3 +1,4 @@
+import { SEO } from '../components/SEO';
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Loader2, ArrowLeft, CheckCircle, ShieldCheck } from 'lucide-react';
@@ -5,6 +6,7 @@ import { supabase } from '../services/supabaseClient';
 import PasswordInput from '../components/PasswordInput';
 import Logo from '../components/Logo';
 import { getFriendlyErrorMessage } from '../utils/errorHandler';
+
 
 const ResetPassword: React.FC = () => {
   const navigate = useNavigate();
@@ -170,6 +172,8 @@ const ResetPassword: React.FC = () => {
   if (isInitializing) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-brand-gray dark:bg-brand-black transition-colors">
+      <SEO title="Reset Password | GigsConnect" noindex={true} />
+
         <div className="text-center">
           <Loader2 className="w-12 h-12 text-brand-purple animate-spin mx-auto mb-4" />
           <p className="text-gray-500 dark:text-gray-400 font-medium font-sans">Verifying link authenticity...</p>

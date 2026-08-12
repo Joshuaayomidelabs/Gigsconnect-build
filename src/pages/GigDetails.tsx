@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MapPin, Calendar, FileText, Loader2, CheckCircle, ArrowLeft, Trash2, AlertTriangle, X } from 'lucide-react';
+import { SEO } from '../components/SEO';
 import { toast } from 'sonner';
 import { gigsService } from '../services/gigsService';
 import { applicationsService } from '../services/applicationsService';
@@ -133,6 +134,15 @@ const GigDetails: React.FC = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-brand-gray dark:bg-brand-black transition-colors">
+      {gig && (
+        <SEO 
+          title={`${gig.title} | GigsConnect`}
+          description={gig.description ? gig.description.substring(0, 150) + '...' : 'Gig opportunity on GigsConnect'}
+          type="article"
+          canonical={`https://gigsconnect.africa/gigs/${gig.id}`}
+        />
+      )}
+
         <Loader2 className="w-10 h-10 animate-spin text-brand-purple" />
       </div>
     );

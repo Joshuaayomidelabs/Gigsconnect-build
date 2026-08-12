@@ -1,6 +1,8 @@
+import { SEO } from '../components/SEO';
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Star, Quote, ArrowUpRight, CheckCircle } from 'lucide-react';
+
 
 const SuccessStories: React.FC = () => {
   const accentColor = '#6C2BFF';
@@ -14,6 +16,8 @@ const SuccessStories: React.FC = () => {
 
   return (
     <div className="w-full bg-gray-50 flex flex-col font-sans min-h-screen">
+      <SEO title="Success Stories | GigsConnect Africa" canonical="https://gigsconnect.africa/success-stories" />
+
       
       {/* Hero Section */}
       <div className="pt-32 pb-24 px-6 md:px-8 bg-white border-b border-gray-100 relative overflow-hidden flex-shrink-0">

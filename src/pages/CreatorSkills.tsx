@@ -1,3 +1,4 @@
+import { SEO } from '../components/SEO';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
@@ -7,6 +8,7 @@ import { profilesService } from '../services/profilesService';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
 import { notifyError } from '../utils/errorHandler';
+
 
 const POPULAR_SKILLS = [
   'Video Editing',
@@ -126,6 +128,8 @@ const CreatorSkills: React.FC = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-brand-gray dark:bg-brand-black transition-colors">
+      <SEO title="Select Skills | GigsConnect" noindex={true} />
+
         <Loader2 className="w-10 h-10 animate-spin text-brand-purple" />
       </div>
     );

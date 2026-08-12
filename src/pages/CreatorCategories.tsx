@@ -1,3 +1,4 @@
+import { SEO } from '../components/SEO';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
@@ -6,6 +7,7 @@ import { supabase } from '../services/supabaseClient';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
 import { notifyError } from '../utils/errorHandler';
+
 
 interface Category {
   id: string;
@@ -128,7 +130,9 @@ const CreatorCategories: React.FC = () => {
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: Math.min(index * 0.03, 0.3) }}
-        onClick={() => toggleCategory(category.id)}
+        onClick={() =>
+      
+ toggleCategory(category.id)}
         className={`relative cursor-pointer rounded-[20px] p-5 border transition-all duration-200 flex flex-col items-center justify-center text-center h-full min-h-[120px] ${
           isSelected 
             ? 'border-[#7C3AED] bg-[#7C3AED]/5 shadow-sm scale-[1.02]' 

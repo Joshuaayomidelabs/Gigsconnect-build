@@ -7,49 +7,8 @@ import TopNav from './components/TopNav';
 import Footer from './components/Footer';
 import BottomNav from './components/BottomNav';
 import Landing from './pages/Landing';
-import Login from './pages/Login';
-import SignUp from './pages/SignUp';
-import ForgotPassword from './pages/ForgotPassword';
-import ResetPassword from './pages/ResetPassword';
-import Dashboard from './pages/Dashboard';
-import Messages from './pages/Messages';
-import Chat from './pages/Chat';
-import BrowseGigs from './pages/BrowseGigs';
-import PostGig from './pages/PostGig';
-import MyApplications from './pages/MyApplications';
-import MyPostedGigs from './pages/MyPostedGigs';
-import EditProfile from './pages/EditProfile';
-import CreateProfile from './pages/CreateProfile';
-import CreatorCategories from './pages/CreatorCategories';
-import CreatorSkills from './pages/CreatorSkills';
-import CreatorLocation from './pages/CreatorLocation';
-import CreatorWelcome from './pages/CreatorWelcome';
-import Notifications from './pages/Notifications';
-import GigDetails from './pages/GigDetails';
-import PublicProfile from './pages/PublicProfile';
-import ApplicationDetails from './pages/ApplicationDetails';
-import PostDetails from './pages/PostDetails';
-import { FeaturedCreators } from './pages/FeaturedCreators';
-import Settings from './pages/Settings';
-import Blog from './pages/Blog';
-import BlogPost from './pages/BlogPost';
-import Analytics from './pages/Analytics';
 
 import ProtectedRoute from './components/ProtectedRoute';
-import TermsAndConditions from './pages/TermsAndConditions';
-import PrivacyPolicy from './pages/PrivacyPolicy';
-import CommunityGuidelines from './pages/CommunityGuidelines';
-import CookiePolicy from './pages/CookiePolicy';
-import CopyrightPolicy from './pages/CopyrightPolicy';
-import AcceptableUsePolicy from './pages/AcceptableUsePolicy';
-import ReportAbuse from './pages/ReportAbuse';
-import HelpCenter from './pages/HelpCenter';
-import SafetyCenter from './pages/SafetyCenter';
-import FAQs from './pages/FAQs';
-import Pricing from './pages/Pricing';
-import AboutUs from './pages/AboutUs';
-import SuccessStories from './pages/SuccessStories';
-import CreatorsHub from './pages/CreatorsHub';
 
 import { useAuth } from './context/AuthContext';
 import { DarkModeProvider } from './context/DarkModeContext';
@@ -59,6 +18,49 @@ import { pushNotificationService } from './services/pushNotificationService';
 
 import { Toaster, toast } from 'sonner';
 import { notifyError } from './utils/errorHandler';
+
+// Lazy-loaded routes
+const Login = React.lazy(() => import('./pages/Login'));
+const SignUp = React.lazy(() => import('./pages/SignUp'));
+const ForgotPassword = React.lazy(() => import('./pages/ForgotPassword'));
+const ResetPassword = React.lazy(() => import('./pages/ResetPassword'));
+const Dashboard = React.lazy(() => import('./pages/Dashboard'));
+const Messages = React.lazy(() => import('./pages/Messages'));
+const Chat = React.lazy(() => import('./pages/Chat'));
+const BrowseGigs = React.lazy(() => import('./pages/BrowseGigs'));
+const PostGig = React.lazy(() => import('./pages/PostGig'));
+const MyApplications = React.lazy(() => import('./pages/MyApplications'));
+const MyPostedGigs = React.lazy(() => import('./pages/MyPostedGigs'));
+const EditProfile = React.lazy(() => import('./pages/EditProfile'));
+const CreateProfile = React.lazy(() => import('./pages/CreateProfile'));
+const CreatorCategories = React.lazy(() => import('./pages/CreatorCategories'));
+const CreatorSkills = React.lazy(() => import('./pages/CreatorSkills'));
+const CreatorLocation = React.lazy(() => import('./pages/CreatorLocation'));
+const CreatorWelcome = React.lazy(() => import('./pages/CreatorWelcome'));
+const Notifications = React.lazy(() => import('./pages/Notifications'));
+const GigDetails = React.lazy(() => import('./pages/GigDetails'));
+const PublicProfile = React.lazy(() => import('./pages/PublicProfile'));
+const ApplicationDetails = React.lazy(() => import('./pages/ApplicationDetails'));
+const PostDetails = React.lazy(() => import('./pages/PostDetails'));
+const Settings = React.lazy(() => import('./pages/Settings'));
+const Blog = React.lazy(() => import('./pages/Blog'));
+const BlogPost = React.lazy(() => import('./pages/BlogPost'));
+const Analytics = React.lazy(() => import('./pages/Analytics'));
+const TermsAndConditions = React.lazy(() => import('./pages/TermsAndConditions'));
+const PrivacyPolicy = React.lazy(() => import('./pages/PrivacyPolicy'));
+const CommunityGuidelines = React.lazy(() => import('./pages/CommunityGuidelines'));
+const CookiePolicy = React.lazy(() => import('./pages/CookiePolicy'));
+const CopyrightPolicy = React.lazy(() => import('./pages/CopyrightPolicy'));
+const AcceptableUsePolicy = React.lazy(() => import('./pages/AcceptableUsePolicy'));
+const ReportAbuse = React.lazy(() => import('./pages/ReportAbuse'));
+const HelpCenter = React.lazy(() => import('./pages/HelpCenter'));
+const SafetyCenter = React.lazy(() => import('./pages/SafetyCenter'));
+const FAQs = React.lazy(() => import('./pages/FAQs'));
+const Pricing = React.lazy(() => import('./pages/Pricing'));
+const AboutUs = React.lazy(() => import('./pages/AboutUs'));
+const SuccessStories = React.lazy(() => import('./pages/SuccessStories'));
+const CreatorsHub = React.lazy(() => import('./pages/CreatorsHub'));
+const FeaturedCreators = React.lazy(() => import('./pages/FeaturedCreators').then(module => ({ default: module.FeaturedCreators })));
 
 const App: React.FC = () => {
   const { user, loading, error } = useAuth();
@@ -236,6 +238,7 @@ const App: React.FC = () => {
           <Toaster position="top-right" richColors />
           <TopNav />
           <main className={`flex-grow ${showBottomNav ? 'pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0' : ''}`}>
+            <React.Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-brand-gray dark:bg-brand-black"><div className="w-12 h-12 border-4 border-brand-purple border-t-transparent rounded-full animate-spin"></div></div>}>
             <Routes>
               <Route path="/" element={<Landing />} />
               <Route path="/login" element={<Login />} />
@@ -288,6 +291,7 @@ const App: React.FC = () => {
             } />
             <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
           </Routes>
+            </React.Suspense>
           </main>
           {showBottomNav && <BottomNav />}
           {!showBottomNav && <Footer />}

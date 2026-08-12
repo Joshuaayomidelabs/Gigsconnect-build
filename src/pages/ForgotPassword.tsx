@@ -1,3 +1,4 @@
+import { SEO } from '../components/SEO';
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Loader2, ArrowLeft, Mail, CheckCircle } from 'lucide-react';
@@ -5,6 +6,7 @@ import { supabase } from '../services/supabaseClient';
 import { Capacitor } from '@capacitor/core';
 import Logo from '../components/Logo';
 import { getFriendlyErrorMessage } from '../utils/errorHandler';
+
 
 const ForgotPassword: React.FC = () => {
   const navigate = useNavigate();
@@ -54,6 +56,8 @@ const ForgotPassword: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-brand-gray dark:bg-brand-black flex flex-col font-sans transition-colors duration-500">
+      <SEO title="Reset Password | GigsConnect" noindex={true} />
+
       {/* Minimal Header */}
       <div className="pt-8 px-6 flex justify-center sm:justify-start max-w-md mx-auto w-full">
         <Link to="/" className="inline-flex items-center gap-2 group">

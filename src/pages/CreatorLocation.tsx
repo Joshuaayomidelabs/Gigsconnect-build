@@ -1,3 +1,4 @@
+import { SEO } from '../components/SEO';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
@@ -7,6 +8,7 @@ import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
 import { africanCountries, getStatesForCountry } from '../utils/locations';
 import { notifyError } from '../utils/errorHandler';
+
 
 const CreatorLocation: React.FC = () => {
   const { user, profile, refreshProfile } = useAuth();
@@ -89,6 +91,8 @@ const CreatorLocation: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-brand-gray dark:bg-brand-black flex flex-col pt-24 md:pt-32 pb-16 px-4 sm:px-6 lg:px-8 transition-colors">
+      <SEO title="Location | GigsConnect" noindex={true} />
+
       <div className="max-w-[1200px] mx-auto w-full flex flex-col items-center">
         <div className="w-full max-w-2xl">
           <motion.div 

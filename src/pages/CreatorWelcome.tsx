@@ -1,3 +1,4 @@
+import { SEO } from '../components/SEO';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
@@ -6,6 +7,7 @@ import { profilesService } from '../services/profilesService';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
 import { notifyError } from '../utils/errorHandler';
+
 
 const CreatorWelcome: React.FC = () => {
   const { refreshProfile } = useAuth();
@@ -30,6 +32,8 @@ const CreatorWelcome: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-brand-gray dark:bg-brand-black flex flex-col pt-24 md:pt-32 pb-16 px-4 sm:px-6 lg:px-8 transition-colors">
+      <SEO title="Welcome | GigsConnect" noindex={true} />
+
       <div className="max-w-[1200px] mx-auto w-full flex flex-col items-center">
         <div className="w-full max-w-md">
           <motion.div 

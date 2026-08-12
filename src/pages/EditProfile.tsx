@@ -1,3 +1,4 @@
+import { SEO } from '../components/SEO';
 import { SubscriptionCard } from '../components/SubscriptionCard';
 import React, { useState, useEffect } from 'react';
 import { Camera, Loader2, Save, MapPin, User, Briefcase, Globe, Edit3, Phone, CheckCircle2, Facebook, Instagram, Twitter, Linkedin, Music2, Video, Image as ImageIcon, Trash2, Plus, ExternalLink, Play, ShieldCheck, Upload, AlertCircle } from 'lucide-react';
@@ -10,6 +11,7 @@ import imageCompression from 'browser-image-compression';
 import { checkVideoConstraints } from '../utils/validation';
 import { generateVideoThumbnail, dataUrlToFile } from '../utils/videoUtils';
 import { handleError, notifyError } from '../utils/errorHandler';
+
 
 interface PortfolioItem {
   url: string;
@@ -372,6 +374,8 @@ const EditProfile: React.FC = () => {
   if (isFetching) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-brand-gray dark:bg-brand-black transition-colors">
+      <SEO title="Edit Profile | GigsConnect" noindex={true} />
+
         <Loader2 className="w-10 h-10 animate-spin text-brand-purple" />
       </div>
     );

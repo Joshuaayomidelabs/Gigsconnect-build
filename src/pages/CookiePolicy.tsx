@@ -1,6 +1,8 @@
+import { SEO } from '../components/SEO';
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronDown, ArrowRight, ArrowUp, Cookie, ShieldAlert, Mail, Globe, Info } from 'lucide-react';
+
 
 const sections = [
   { id: 'introduction', title: '1. Introduction' },
@@ -248,6 +250,8 @@ const CookiePolicy: React.FC = () => {
 
   return (
     <div className="w-full bg-[#FAFAFA] flex flex-col font-sans min-h-screen">
+      <SEO title="Cookie Policy | GigsConnect" canonical="https://gigsconnect.africa/cookie-policy" />
+
       
       {/* Reading Progress Bar */}
       <div 

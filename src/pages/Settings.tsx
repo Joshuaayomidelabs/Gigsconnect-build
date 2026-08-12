@@ -1,3 +1,4 @@
+import { SEO } from '../components/SEO';
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
@@ -7,6 +8,7 @@ import { Settings as SettingsIcon, CreditCard, ChevronRight, CheckCircle2, Shiel
 import { toast } from 'sonner';
 import { PremiumBadge } from '../components/PremiumBadge';
 
+
 export const Settings: React.FC = () => {
   const { user, profile } = useAuth();
   const { subscription, plans, isLoading } = useSubscription();
@@ -15,6 +17,8 @@ export const Settings: React.FC = () => {
   if (!user || !profile) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh]">
+      <SEO title="Settings | GigsConnect" noindex={true} />
+
         <div className="w-12 h-12 border-4 border-brand-purple border-t-transparent rounded-full animate-spin"></div>
       </div>
     );

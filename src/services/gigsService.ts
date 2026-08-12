@@ -10,7 +10,8 @@ export const gigsService = {
       .from('gigs')
       .select('*, poster_id(*)')
       .gte('created_at', threeDaysAgo.toISOString())
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .limit(100);
     return { data, error };
   },
 
@@ -116,7 +117,8 @@ export const gigsService = {
       const { data: allProfiles, error: profilesError } = await supabase
         .from('profiles')
         .select('id, full_name, username, avatar_url, skills, city_town, country, verification_status, bio')
-        .order('verification_status', { ascending: false });
+        .order('verification_status', { ascending: false })
+        .limit(1000);
 
       if (profilesError) console.error("Error fetching profiles:", profilesError);
 

@@ -1,6 +1,8 @@
+import { SEO } from '../components/SEO';
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronDown, ArrowRight, ArrowUp, Info, Shield, Mail, Globe } from 'lucide-react';
+
 
 const sections = [
   { id: 'introduction', title: '1. Introduction' },
@@ -172,6 +174,8 @@ const PrivacyPolicy: React.FC = () => {
 
   return (
     <div className="w-full bg-gray-50 flex flex-col font-sans min-h-screen relative">
+      <SEO title="Privacy Policy | GigsConnect" canonical="https://gigsconnect.africa/privacy" />
+
       
       {/* Reading Progress Indicator */}
       <div className="fixed top-0 left-0 w-full h-1 bg-gray-200 z-50">

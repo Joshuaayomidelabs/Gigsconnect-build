@@ -1,3 +1,4 @@
+import { SEO } from '../components/SEO';
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import {
@@ -32,6 +33,7 @@ import { resumableUploadService, UploadState } from "../services/resumableUpload
 import { generateVideoThumbnail, dataUrlToFile } from "../utils/videoUtils";
 import { useMentions } from "../hooks/useMentions";
 import { handleError, notifyError } from '../utils/errorHandler';
+
 
 const PostGig: React.FC = () => {
   const navigate = useNavigate();
@@ -324,6 +326,8 @@ const PostGig: React.FC = () => {
 
   return (
     <div className="pt-main pb-12 px-4 sm:px-6 lg:px-8 max-w-[640px] mx-auto min-h-screen transition-colors duration-500">
+      <SEO title="Create | GigsConnect" noindex={true} />
+
       <section className="mb-6">
         <h1 className="text-3xl font-black text-brand-black dark:text-brand-white tracking-tight">
           Create{" "}

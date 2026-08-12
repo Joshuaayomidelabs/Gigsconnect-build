@@ -1,3 +1,4 @@
+import { SEO } from '../components/SEO';
 import React, { useState, useEffect, useMemo } from 'react';
 import { Loader2 } from 'lucide-react';
 import { Virtuoso } from 'react-virtuoso';
@@ -74,6 +75,8 @@ const Messages: React.FC = () => {
 
   return (
     <div className="pt-main pb-24 px-4 sm:px-6 lg:px-8 min-h-screen bg-brand-gray dark:bg-brand-black flex justify-center">
+      <SEO title="Messages | GigsConnect" noindex={true} />
+
       <div className="w-full max-w-[600px] flex flex-col h-[calc(100vh-80px)]">
         
         <header className="py-6 shrink-0 flex items-center justify-between">
@@ -135,6 +138,7 @@ const Messages: React.FC = () => {
 
 import { toast as sonnerToast } from 'sonner';
 import { useNavigate as useFrozenNavigate } from 'react-router-dom';
+
 
 const FrozenComponent: React.FC = () => {
   const navigate = useFrozenNavigate();

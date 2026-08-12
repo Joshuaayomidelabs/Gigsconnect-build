@@ -1,7 +1,7 @@
+import { SEO } from '../components/SEO';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { 
-  Search, ChevronDown, ArrowUp, HelpCircle, 
+import { Search, ChevronDown, ArrowUp, HelpCircle, 
   Rocket, UserCircle, Briefcase, PlusCircle, ShieldCheck, Lock, 
   Mail, Globe, ArrowRight, MessageSquare 
 } from 'lucide-react';
@@ -19,8 +19,8 @@ const CATEGORIES = [
 
 const FAQS = [
   // ACCOUNT
-  { id: 'acc-1', category: 'ACCOUNT', question: 'How do I create an account?', answer: 'To create an account, click the "Sign Up" button in the top right corner. You can register using your email address, Google, or other supported social logins. Follow the on-screen instructions to complete your profile setup.' },
-  { id: 'acc-2', category: 'ACCOUNT', question: 'How do I reset my password?', answer: 'If you forgot your password, go to the login page and click "Forgot Password?". Enter your registered email address, and we\'ll send you a link to securely reset your password.' },
+  { id: 'acc-1', category: 'ACCOUNT', question: 'How do I create an account?', answer: <>To create an account, click the <Link to="/signup" className="text-brand-purple hover:underline">Sign Up</Link> button in the top right corner. You can register using your email address, Google, or other supported social logins. Follow the on-screen instructions to complete your profile setup.</> },
+  { id: 'acc-2', category: 'ACCOUNT', question: 'How do I reset my password?', answer: <>If you forgot your password, go to the <Link to="/login" className="text-brand-purple hover:underline">login page</Link> and click "Forgot Password?". Enter your registered email address, and we'll send you a link to securely reset your password.</> },
   { id: 'acc-3', category: 'ACCOUNT', question: 'How do I change my email?', answer: 'You can change your email address by navigating to Settings > Account Settings. Enter your new email and verify it through the confirmation link sent to your new inbox.' },
   { id: 'acc-4', category: 'ACCOUNT', question: 'Can I delete my account?', answer: 'Yes, you can permanently delete your account from Settings > Account Settings > Danger Zone. Please note that this action is irreversible and will erase all your data, portfolio items, and messages.' },
   
@@ -37,7 +37,7 @@ const FAQS = [
   { id: 'com-4', category: 'COMMUNITY', question: 'How do I report content?', answer: 'Click the three dots (...) next to any post, comment, or message and select "Report". Our moderation team will review the content promptly.' },
   
   // MARKETPLACE
-  { id: 'mkt-1', category: 'MARKETPLACE', question: 'How do I apply for gigs?', answer: 'Browse the Marketplace, click on a gig you\'re interested in, and hit "Apply Now". You\'ll need to submit a proposal outlining why you are the best fit for the job.' },
+  { id: 'mkt-1', category: 'MARKETPLACE', question: 'How do I apply for gigs?', answer: <>Browse the <Link to="/browse" className="text-brand-purple hover:underline">Marketplace</Link>, click on a gig you're interested in, and hit "Apply Now". You'll need to submit a proposal outlining why you are the best fit for the job.</> },
   { id: 'mkt-2', category: 'MARKETPLACE', question: 'How do I post a gig?', answer: 'If you\'re looking to hire, click "Post a Gig" from the main navigation. Fill out the requirements, budget, and timeline to start receiving applications from creators.' },
   { id: 'mkt-3', category: 'MARKETPLACE', question: 'Can I edit a gig?', answer: 'Yes, as long as the gig is still active and hasn\'t been awarded. Go to "My Posted Gigs", select the gig, and choose "Edit".' },
   { id: 'mkt-4', category: 'MARKETPLACE', question: 'How do I close a gig?', answer: 'Go to "My Posted Gigs", select the gig, and choose "Close Gig". You can do this once you\'ve hired someone or if you no longer need the services.' },
@@ -118,7 +118,7 @@ const HelpCenter: React.FC = () => {
     return FAQS.filter(
       (faq) => 
         faq.question.toLowerCase().includes(query) || 
-        faq.answer.toLowerCase().includes(query) ||
+        (typeof faq.answer === 'string' && faq.answer.toLowerCase().includes(query)) ||
         faq.category.toLowerCase().includes(query)
     );
   }, [searchQuery]);
@@ -131,6 +131,8 @@ const HelpCenter: React.FC = () => {
 
   return (
     <div className="w-full bg-gray-50 flex flex-col font-sans min-h-screen relative">
+      <SEO title="Help Center | GigsConnect Support" canonical="https://gigsconnect.africa/help" />
+
       
       {/* Reading Progress Indicator */}
       <div className="fixed top-0 left-0 w-full h-1 bg-gray-200 z-50">

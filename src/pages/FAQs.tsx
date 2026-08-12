@@ -1,6 +1,8 @@
+import { SEO } from '../components/SEO';
 import React, { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
+
 
 interface FAQ {
   q: string;
@@ -18,17 +20,17 @@ const faqData: FAQCategory[] = [
     faqs: [
       { q: "What is GigsConnect?", a: "GigsConnect is a platform connecting creators, musicians, and talent across Africa with opportunities, brands, and clients." },
       { q: "Who can join GigsConnect?", a: "Anyone involved in the creative industry—musicians, bands, vocalists, producers, as well as clients or brands looking to hire talent." },
-      { q: "Is GigsConnect free to join?", a: "Yes, you can create a basic profile, browse opportunities, and apply for gigs for free. We also offer premium plans with enhanced features for growing your career." },
-      { q: "How do I create an account?", a: "Click the 'Join Free' button on the homepage, fill in your basic details, and follow the onboarding steps to set up your profile." },
+      { q: "Is GigsConnect free to join?", a: <>Yes, you can create a basic profile, browse opportunities, and apply for gigs for free. We also offer <Link to="/pricing" className="text-brand-purple hover:underline">premium plans</Link> with enhanced features for growing your career.</> },
+      { q: "How do I create an account?", a: <>Click the <Link to="/signup" className="text-brand-purple hover:underline">Join Free</Link> button on the homepage, fill in your basic details, and follow the onboarding steps to set up your profile.</> },
       { q: "What can I do after creating an account?", a: "You can complete your portfolio, post updates to the community feed, apply for gigs, and network with other professionals." }
     ]
   },
   {
     title: "Creators",
     faqs: [
-      { q: "How do I create my creator profile?", a: "Once registered, navigate to 'Edit Profile' to add your skills, upload media to your portfolio, and set your location." },
+      { q: "How do I create my creator profile?", a: <>Once registered, navigate to <Link to="/edit-profile" className="text-brand-purple hover:underline">Edit Profile</Link> to add your skills, upload media to your portfolio, and set your location.</> },
       { q: "How do I showcase my work?", a: "You can upload videos, audio files, and images directly to your profile's portfolio section." },
-      { q: "How do I find gigs?", a: "Use the 'Browse Gigs' page to search and filter opportunities by category, location, and budget." },
+      { q: "How do I find gigs?", a: <>Use the <Link to="/browse" className="text-brand-purple hover:underline">Browse Gigs</Link> page to search and filter opportunities by category, location, and budget.</> },
       { q: "How do I apply for a gig?", a: "Click on any gig that interests you, review the requirements, and click 'Apply Now'. You can include a custom message and highlight specific portfolio pieces." },
       { q: "Can I connect with other creators?", a: "Yes, you can follow other creators, like and comment on their posts in the community feed, and soon, you'll be able to message them directly." },
       { q: "How does creator verification work?", a: "Verification is coming soon. Verified creators will receive a special badge showing they have passed our vetting process." }
@@ -77,6 +79,8 @@ const FAQItem: React.FC<{ faq: FAQ }> = ({ faq }) => {
 
   return (
     <div className="border border-gray-100 dark:border-gray-800 rounded-2xl mb-4 overflow-hidden bg-white dark:bg-brand-dark-card transition-all duration-300">
+      <SEO title="GigsConnect FAQs | Frequently Asked Questions" canonical="https://gigsconnect.africa/faqs" />
+
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="w-full px-6 py-5 flex items-center justify-between text-left focus:outline-none focus:ring-2 focus:ring-brand-purple focus:ring-inset"

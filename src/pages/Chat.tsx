@@ -1,3 +1,4 @@
+import { SEO } from '../components/SEO';
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Send, MoreVertical } from 'lucide-react';
@@ -260,6 +261,8 @@ const Chat: React.FC = () => {
   if (loading) {
     return (
       <div className="pt-main min-h-screen bg-brand-gray dark:bg-brand-black flex flex-col justify-center items-center">
+      <SEO title="Chat | GigsConnect" noindex={true} />
+
         <div className="w-8 h-8 border-4 border-brand-purple border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
@@ -386,6 +389,7 @@ const Chat: React.FC = () => {
 
 import { toast as sonnerToast } from 'sonner';
 import { useNavigate as useFrozenNavigate } from 'react-router-dom';
+
 
 const FrozenComponent: React.FC = () => {
   const navigate = useFrozenNavigate();
