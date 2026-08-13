@@ -117,7 +117,7 @@ const Landing: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#faf9fc] selection:bg-brand-purple/30 selection:text-brand-purple-dark font-sans text-brand-black">
-      <SEO title="GigsConnect Africa | Connecting Talent with Opportunity" />
+      <SEO title="GigsConnect" />
       <Helmet>
         <script type="application/ld+json">{JSON.stringify(organizationSchema)}</script>
         <script type="application/ld+json">{JSON.stringify(websiteSchema)}</script>

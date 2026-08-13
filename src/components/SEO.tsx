@@ -23,7 +23,7 @@ export const SEO: React.FC<SEOProps> = ({
   const defaultDescription = 'GigsConnect is the premier platform connecting African creators, freelancers, and talent with top gig opportunities, collaborations, and brands.';
   const defaultImage = 'https://gigsconnect.africa/default-og-image.jpg'; // We can update this based on existing assets if needed
 
-  const seoTitle = title ? `\${title} | \${siteName}` : defaultTitle;
+  const seoTitle = title ? title.includes(siteName) ? title : `${title} | ${siteName}` : defaultTitle;
   const seoDescription = description || defaultDescription;
   const seoImage = image || defaultImage;
 
