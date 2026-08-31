@@ -1,15 +1,41 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
 import { CheckCircle2, ShieldAlert, Zap, Lock, CreditCard, ChevronRight, Check, Star, Crown } from 'lucide-react';
 import { useSubscription } from '../context/SubscriptionContext';
 import { toast } from 'sonner';
+import { supabase } from '../services/supabaseClient';
+import { subscriptionService } from '../services/subscriptionService';
 
 export const PricingSection: React.FC = () => {
-  const { plans, subscription, isLoading } = useSubscription();
+  const { plans, subscription, isLoading, refreshSubscription } = useSubscription();
   const navigate = useNavigate();
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState<number | null>(null);
+
+  
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    if (searchParams.has('reference') || searchParams.has('trxref')) {
+      toast.success('Payment successful! Your plan is being updated.');
+      
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, '', newUrl);
+
+      // Initial refresh
+      refreshSubscription();
+      
+      // Poll a few times in case the webhook is slightly delayed
+      let attempts = 0;
+      const interval = setInterval(() => {
+        attempts++;
+        refreshSubscription();
+        if (attempts >= 2) {
+          clearInterval(interval);
+        }
+      }, 2500);
+    }
+  }, [refreshSubscription]);
 
   const handleUpgradeClick = (planId: number) => {
     setSelectedPlanId(planId);
@@ -217,24 +243,53 @@ export const PricingSection: React.FC = () => {
                         <h4 className="text-xs font-black uppercase tracking-widest text-gray-500 dark:text-gray-400">Payment Methods</h4>
                         
                         <div className="space-y-3">
-                          {['Paystack', 'Flutterwave', 'Stripe'].map((gateway) => (
-                            <div key={gateway} className="flex items-center justify-between p-4 rounded-2xl border border-gray-100 dark:border-[#27272A] bg-[#FAFAFA] dark:bg-[#121214] opacity-70 grayscale cursor-not-allowed">
-                              <div className="flex items-center gap-3">
-                                <CreditCard className="w-5 h-5 text-gray-400" />
-                                <span className="font-bold text-brand-black dark:text-white">{gateway}</span>
+                          {['Paystack', 'Flutterwave', 'Stripe'].map((gateway) => {
+                            const isLive = gateway === 'Paystack';
+                            return (
+                              <div key={gateway} className={`flex items-center justify-between p-4 rounded-2xl border ${isLive ? 'border-brand-purple/50 bg-brand-purple/5' : 'border-gray-100 dark:border-[#27272A] bg-[#FAFAFA] dark:bg-[#121214] opacity-70 grayscale cursor-not-allowed'}`}>
+                                <div className="flex items-center gap-3">
+                                  <CreditCard className={`w-5 h-5 ${isLive ? 'text-brand-purple' : 'text-gray-400'}`} />
+                                  <span className="font-bold text-brand-black dark:text-white">{gateway}</span>
+                                </div>
+                                {!isLive ? (
+                                  <span className="text-[10px] font-black uppercase tracking-wider text-brand-purple bg-brand-purple/10 px-2 py-1 rounded-md">
+                                    Coming Soon
+                                  </span>
+                                ) : (
+                                  <span className="text-[10px] font-black uppercase tracking-wider text-green-600 bg-green-500/10 px-2 py-1 rounded-md">
+                                    Active
+                                  </span>
+                                )}
                               </div>
-                              <span className="text-[10px] font-black uppercase tracking-wider text-brand-purple bg-brand-purple/10 px-2 py-1 rounded-md">
-                                Coming Soon
-                              </span>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       </div>
 
                       <div className="flex flex-col gap-3">
                         <button 
-                          onClick={() => {
-                            toast.info('Payment integration coming soon.');
+                          onClick={async () => {
+                            try {
+                              const { data: { user } } = await supabase.auth.getUser();
+                              if (!user) {
+                                toast.error('You must be logged in to upgrade.');
+                                navigate('/login');
+                                return;
+                              }
+                              
+                              const loadingId = toast.loading('Initializing payment...');
+                              try {
+                                const authUrl = await subscriptionService.initiatePayment(user.id, targetPlan.id);
+                                window.location.href = authUrl;
+                              } catch (err: any) {
+                                toast.error(err.message || 'Failed to initialize payment.');
+                              } finally {
+                                toast.dismiss(loadingId);
+                              }
+                            } catch (err) {
+                              console.error(err);
+                              toast.error('An error occurred.');
+                            }
                           }}
                           className="w-full py-4 bg-brand-purple text-white font-black rounded-2xl hover:bg-brand-purple-hover active:scale-95 transition-all shadow-lg shadow-brand-purple/20"
                         >

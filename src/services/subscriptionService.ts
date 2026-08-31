@@ -68,6 +68,23 @@ export const subscriptionService = {
     return data;
   },
 
+  async initiatePayment(userId: string, planId: number): Promise<string> {
+    const { data, error } = await supabase.functions.invoke('paystack-initialize', {
+      body: { user_id: userId, plan_id: planId }
+    });
+
+    if (error) {
+      console.error('paystack-initialize error:', error);
+      throw new Error('Unable to initialize payment. Please try again.');
+    }
+
+    if (!data?.authorization_url) {
+      throw new Error('No authorization URL received from payment provider.');
+    }
+
+    return data.authorization_url;
+  },
+
   async ensureStarterSubscription(userId: string): Promise<Subscription | null> {
     try {
       const actualUserId = userId;
@@ -80,11 +97,11 @@ export const subscriptionService = {
       const starterPlan = await this.getStarterPlan();
       if (!starterPlan) throw new Error('Starter plan not found in database');
 
-      // Create new starter subscription payload (without the 'pro' workaround)
+      // Create new starter subscription payload
       const newSubData = {
         user_id: actualUserId,
         plan_id: starterPlan.id,
-        plan_name: 'pro', // Bypass legacy check constraint
+        plan_name: 'starter',
         status: 'active',
         billing_cycle: 'monthly',
         payment_status: 'free',
@@ -104,10 +121,10 @@ export const subscriptionService = {
         throw new Error('Unable to create your subscription at this time. Please try again later.');
       }
 
-      // Update the profile for backward compatibility to consistently use 'starter'
+      // Update the profile to use 'free' to satisfy the constraint
       await supabase
         .from('profiles')
-        .update({ subscription_plan: 'starter' })
+        .update({ subscription_plan: 'free' })
         .eq('id', actualUserId);
 
       // Return a constructed subscription object in memory since we bypassed .select()

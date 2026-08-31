@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
 import { subscriptionService, Subscription, SubscriptionPlan } from '../services/subscriptionService';
 import { useAuth } from './AuthContext';
 
