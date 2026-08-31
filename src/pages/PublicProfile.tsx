@@ -52,7 +52,6 @@ import { communityService } from '../services/communityService';
 import { supabase } from '../services/supabaseClient';
 import { useAuth } from '../context/AuthContext';
 import VerificationBadge from '../components/VerificationBadge';
-import { PremiumBadge } from '../components/PremiumBadge';
 import FollowListModal from '../components/FollowListModal';
 import PostCard from '../components/PostCard';
 import ProfileCompletionWidget from '../components/ProfileCompletionWidget';
@@ -841,24 +840,15 @@ const PublicProfile: React.FC = () => {
               
               {/* Creator Name & Username */}
               <div className="mb-3">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-center sm:justify-start gap-2 flex-wrap">
+                <div className="flex flex-col items-center sm:flex-row sm:items-center justify-center sm:justify-start gap-2 flex-wrap">
                   <h1 className="text-2xl sm:text-3xl font-black text-brand-black dark:text-brand-white tracking-tight leading-tight truncate">
                     {profile.full_name || 'Anonymous Creator'}
                   </h1>
-                  {profile.verification_status === 'verified' && (
-                    <span title="Verified Creator" className="inline-flex items-center justify-center bg-blue-500 text-white rounded-full p-1 shadow-sm shrink-0">
-                      <CheckCircle2 className="w-4 h-4" />
-                    </span>
-                  )}
-                  {profile.active_subscription ? (
-                    <PremiumBadge planName={profile.active_subscription.plan?.name || profile.active_subscription.plan_name} />
-                  ) : (
-                    <PremiumBadge planName={profile.subscription_plan || 'Starter'} />
-                  )}
+
                 </div>
 
                 {usernameHandle && (
-                  <p className="text-sm font-bold text-gray-400 dark:text-gray-500 mt-0.5">
+                  <p className="text-sm font-medium text-gray-400 dark:text-gray-500 mt-0.5">
                     {usernameHandle}
                   </p>
                 )}
@@ -866,7 +856,7 @@ const PublicProfile: React.FC = () => {
 
               {/* Creator Categories / Role */}
               {(dynamicCategories.length > 0 || profile.role) && (
-                <div className="mb-3 flex flex-wrap justify-center sm:justify-start gap-2">
+                <div className="mb-2 flex flex-wrap justify-center sm:justify-start gap-2">
                   {(dynamicCategories.length > 0 ? dynamicCategories : (profile.role ? [profile.role] : [])).map((cat: string) => (
                     <span key={cat} className="px-3 py-1 rounded-full bg-brand-purple/10 text-brand-purple text-xs font-bold uppercase tracking-widest">
                       {cat}
@@ -877,7 +867,7 @@ const PublicProfile: React.FC = () => {
 
               {/* Skills Chips */}
               {(dynamicSkills.length > 0 || (profile.skills && profile.skills.length > 0)) && (
-                <div className="mb-4 flex flex-wrap justify-center sm:justify-start gap-2">
+                <div className="mb-3 flex flex-wrap justify-center sm:justify-start gap-2">
                   {(dynamicSkills.length > 0 ? dynamicSkills : profile.skills).slice(0, 6).map((skill: string) => (
                     <span key={skill} className="px-3.5 py-1 bg-[#F9FAFB] dark:bg-[#161618] rounded-full text-xs font-bold text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-[#27272A] shadow-sm">
                       {skill}
@@ -893,12 +883,12 @@ const PublicProfile: React.FC = () => {
                   <span>{profile.city_town || profile.city ? `${profile.city_town || profile.city}, ${profile.country || ''}` : profile.country || 'Global Creator'}</span>
                 </div>
                 
-                <div className="flex items-center gap-1.5">
-                  <span className="relative flex h-2.5 w-2.5">
+                <div className="flex items-center gap-1.5 px-3 py-1 bg-emerald-50 dark:bg-emerald-950/40 rounded-full border border-emerald-100 dark:border-emerald-900/30">
+                  <span className="relative flex h-2 w-2">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                   </span>
-                  <span className="text-emerald-600 dark:text-emerald-400 font-bold">Available for gigs</span>
+                  <span className="text-emerald-700 dark:text-emerald-400 text-xs font-bold uppercase tracking-widest">Available for gigs</span>
                 </div>
               </div>
 

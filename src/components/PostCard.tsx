@@ -1,4 +1,3 @@
-import { PremiumBadge } from './PremiumBadge';
 import React, { useState, useRef, useEffect } from 'react';
 import { Heart, MessageCircle, Send, MoreHorizontal, Trash2, X, Loader2, Bookmark, BadgeCheck, Play, Copy, Shield, Flag } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -309,9 +308,7 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
               {post.user?.verification_status?.toLowerCase() === 'verified' && (
                 <BadgeCheck className="w-3.5 h-3.5 text-brand-purple" />
               )}
-              {post.user?.subscription_plan && post.user?.subscription_plan !== 'starter' && (
-                <PremiumBadge planName={post.user.subscription_plan} className="scale-75 origin-left" />
-              )}
+
             </div>
             <span className="text-[12px] text-gray-500 font-medium">
               {formattedDate} {post.user?.city && post.user?.country ? `• ${post.user.city}, ${post.user.country}` : ''}

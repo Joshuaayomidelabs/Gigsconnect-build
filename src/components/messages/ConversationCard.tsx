@@ -4,7 +4,6 @@ import { toast } from 'sonner';
 import { motion } from 'motion/react';
 import { Image as ImageIcon, Video, Mic, FileText, Briefcase, Music } from 'lucide-react';
 import VerificationBadge from '../VerificationBadge';
-import { PremiumBadge } from '../PremiumBadge';
 import { ConversationInboxItem } from '../../services/messagesService';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -73,7 +72,7 @@ export const ConversationCard: React.FC<ConversationCardProps> = ({ conversation
               {conversation.full_name}
             </h3>
             {conversation.is_verified && <VerificationBadge />}
-            {conversation.subscription_tier === 'pro' && <PremiumBadge />}
+
           </div>
           <span className="text-xs text-gray-500 shrink-0 ml-2">
             {formattedTime}
