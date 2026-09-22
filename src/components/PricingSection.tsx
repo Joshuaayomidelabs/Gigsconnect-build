@@ -3,12 +3,14 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
 import { CheckCircle2, ShieldAlert, Zap, Lock, CreditCard, ChevronRight, Check, Star, Crown } from 'lucide-react';
 import { useSubscription } from '../context/SubscriptionContext';
+import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
 import { supabase } from '../services/supabaseClient';
 import { subscriptionService } from '../services/subscriptionService';
 
 export const PricingSection: React.FC = () => {
   const { plans, subscription, isLoading, refreshSubscription } = useSubscription();
+  const { refreshProfile } = useAuth();
   const navigate = useNavigate();
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState<number | null>(null);
@@ -24,12 +26,14 @@ export const PricingSection: React.FC = () => {
 
       // Initial refresh
       refreshSubscription();
-      
+      refreshProfile();
+
       // Poll a few times in case the webhook is slightly delayed
       let attempts = 0;
       const interval = setInterval(() => {
         attempts++;
         refreshSubscription();
+        refreshProfile();
         if (attempts >= 2) {
           clearInterval(interval);
         }

@@ -35,7 +35,7 @@ import {
   VolumeX,
   Radio,
   FileText,
-  MoreVertical,
+  MoreVertical, MoreHorizontal,
   Shield,
   Flag,
   Share2,
@@ -810,11 +810,11 @@ const PublicProfile: React.FC = () => {
 
       {/* 2. CREATOR PROFILE HEADER CARD */}
       <div className="max-w-4xl mx-auto px-4 sm:px-8 relative -mt-16 sm:-mt-20 z-10">
-        <div id="profile-card" className="bg-white dark:bg-brand-dark-card rounded-[2.25rem] shadow-xl border border-gray-100 dark:border-[#1F1F23]/80 p-6 sm:p-10 mb-8 relative">
+                <div id="profile-card" className="bg-white dark:bg-brand-dark-card rounded-[2.25rem] shadow-xl border border-gray-100 dark:border-[#1F1F23]/80 p-6 sm:p-10 mb-8 relative">
           
-          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 sm:gap-10">
+          <div className="flex flex-col items-center text-center">
             {/* Avatar block with gradient ring & badge */}
-            <div id="user-avatar" className="relative group/avatar">
+            <div id="user-avatar" className="relative group/avatar mb-4">
               <div className="w-32 h-32 sm:w-36 sm:h-36 rounded-full border-4 border-white dark:border-brand-dark-card shadow-xl overflow-hidden bg-[#FAFAFA] dark:bg-[#0F0F12] flex-shrink-0 flex items-center justify-center relative transition-transform duration-300 group-hover/avatar:scale-[1.02] ring-4 ring-brand-purple/20">
                 {profile.avatar_url ? (
                   <img 
@@ -834,56 +834,42 @@ const PublicProfile: React.FC = () => {
                 </div>
               )}
             </div>
-
+            
             {/* Creator Identity Details */}
-            <div className="text-center sm:text-left flex-1 min-w-0 w-full flex flex-col justify-center pt-2">
+            <div className="w-full flex flex-col items-center justify-center">
               
               {/* Creator Name & Username */}
-              <div className="mb-3">
-                <div className="flex flex-col items-center sm:flex-row sm:items-center justify-center sm:justify-start gap-2 flex-wrap">
-                  <h1 className="text-2xl sm:text-3xl font-black text-brand-black dark:text-brand-white tracking-tight leading-tight truncate">
-                    {profile.full_name || 'Anonymous Creator'}
-                  </h1>
-
-                </div>
-
+              <div className="mb-4">
+                <h1 className="text-2xl sm:text-3xl font-black text-brand-black dark:text-brand-white tracking-tight leading-tight truncate">
+                  {profile.full_name || 'Anonymous Creator'}
+                </h1>
                 {usernameHandle && (
-                  <p className="text-sm font-medium text-gray-400 dark:text-gray-500 mt-0.5">
+                  <p className="text-sm font-medium text-gray-400 dark:text-gray-500 mt-1">
                     {usernameHandle}
                   </p>
                 )}
               </div>
 
-              {/* Creator Categories / Role */}
-              {(dynamicCategories.length > 0 || profile.role) && (
-                <div className="mb-2 flex flex-wrap justify-center sm:justify-start gap-2">
-                  {(dynamicCategories.length > 0 ? dynamicCategories : (profile.role ? [profile.role] : [])).map((cat: string) => (
-                    <span key={cat} className="px-3 py-1 rounded-full bg-brand-purple/10 text-brand-purple text-xs font-bold uppercase tracking-widest">
-                      {cat}
-                    </span>
-                  ))}
-                </div>
+              {/* Bio Summary */}
+              {profile.bio && (
+                <p className="mb-5 text-sm sm:text-base text-gray-600 dark:text-gray-300 line-clamp-3 leading-relaxed italic max-w-2xl">
+                  "{profile.bio}"
+                </p>
               )}
 
-              {/* Skills Chips */}
-              {(dynamicSkills.length > 0 || (profile.skills && profile.skills.length > 0)) && (
-                <div className="mb-3 flex flex-wrap justify-center sm:justify-start gap-2">
-                  {(dynamicSkills.length > 0 ? dynamicSkills : profile.skills).slice(0, 6).map((skill: string) => (
-                    <span key={skill} className="px-3.5 py-1 bg-[#F9FAFB] dark:bg-[#161618] rounded-full text-xs font-bold text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-[#27272A] shadow-sm">
-                      {skill}
-                    </span>
-                  ))}
-                </div>
-              )}
-
-              {/* Location & Availability */}
-              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3 sm:gap-6 text-sm font-semibold text-gray-500 dark:text-gray-400">
-                <div className="flex items-center gap-1.5">
-                  <MapPin className="w-4 h-4 text-brand-purple shrink-0" />
-                  <span>{profile.city_town || profile.city ? `${profile.city_town || profile.city}, ${profile.country || ''}` : profile.country || 'Global Creator'}</span>
-                </div>
+              {/* Role & Availability Row */}
+              <div className="mb-3 flex flex-wrap justify-center items-center gap-2">
+                {(dynamicCategories.length > 0 || profile.role) && (
+                  <>
+                    {(dynamicCategories.length > 0 ? dynamicCategories : (profile.role ? [profile.role] : [])).slice(0, 1).map((cat: string) => (
+                      <span key={cat} className="px-4 py-1.5 rounded-full bg-brand-purple/10 text-brand-purple text-xs font-bold uppercase tracking-widest">
+                        {cat}
+                      </span>
+                    ))}
+                  </>
+                )}
                 
-                <div className="flex items-center gap-1.5 px-3 py-1 bg-emerald-50 dark:bg-emerald-950/40 rounded-full border border-emerald-100 dark:border-emerald-900/30">
+                <div className="flex items-center gap-2 px-4 py-1.5 bg-emerald-50 dark:bg-emerald-950/40 rounded-full border border-emerald-100 dark:border-emerald-900/30">
                   <span className="relative flex h-2 w-2">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
@@ -892,34 +878,43 @@ const PublicProfile: React.FC = () => {
                 </div>
               </div>
 
-              {/* Bio Summary */}
-              {profile.bio && (
-                <p className="mt-4 text-xs sm:text-sm text-gray-600 dark:text-gray-300 line-clamp-3 leading-relaxed font-medium">
-                  {profile.bio}
-                </p>
+              {/* Location */}
+              <div className="mb-4 flex items-center justify-center gap-1.5 text-sm font-medium text-gray-500 dark:text-gray-400">
+                <MapPin className="w-4 h-4 text-brand-purple shrink-0" />
+                <span>{profile.city_town || profile.city ? `${profile.city_town || profile.city}, ${profile.country || ''}` : profile.country || 'Global Creator'}</span>
+              </div>
+
+              {/* Skills Chips */}
+              {(dynamicSkills.length > 0 || (profile.skills && profile.skills.length > 0)) && (
+                <div className="mb-6 flex flex-wrap justify-center gap-2 max-w-2xl">
+                  {(dynamicSkills.length > 0 ? dynamicSkills : profile.skills).slice(0, 5).map((skill: string) => (
+                    <span key={skill} className="px-3.5 py-1 bg-[#F9FAFB] dark:bg-[#161618] rounded-full text-xs font-bold text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-[#27272A] shadow-sm">
+                      {skill}
+                    </span>
+                  ))}
+                </div>
               )}
 
               {/* Social Links Bar */}
-              {renderSocialLinks()}
+              <div className="mb-6">
+                {renderSocialLinks()}
+              </div>
 
             </div>
           </div>
 
           {/* 3. AUTHENTIC STATS AREA */}
-          <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center justify-around gap-4 sm:gap-8 border-t border-b border-gray-100 dark:border-[#1F1F23]/80 py-5 my-6">
+          <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-12 border-t border-b border-gray-100 dark:border-[#1F1F23]/80 py-5 mb-8">
             
             {/* Real Followers Count */}
             <div 
               className="flex flex-col items-center cursor-pointer group/stat p-2 rounded-2xl hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
               onClick={() => setShowFollowersModal(true)}
             >
-              <div className="flex items-center gap-1.5">
-                <User className="w-4 h-4 text-brand-purple" />
-                <span className="text-xl font-black text-brand-black dark:text-brand-white group-hover/stat:text-brand-purple transition-colors">
-                  {stats.followers >= 1000 ? (stats.followers / 1000).toFixed(1) + 'K' : stats.followers}
-                </span>
-              </div>
-              <span className="text-[10px] font-black uppercase tracking-wider text-gray-500 mt-0.5">Followers</span>
+              <span className="text-2xl font-black text-brand-black dark:text-brand-white group-hover/stat:text-brand-purple transition-colors">
+                {stats.followers >= 1000 ? (stats.followers / 1000).toFixed(1) + 'K' : stats.followers}
+              </span>
+              <span className="text-[10px] font-black uppercase tracking-wider text-gray-500 mt-1">Followers</span>
             </div>
             
             {/* Real Following Count */}
@@ -927,57 +922,37 @@ const PublicProfile: React.FC = () => {
               className="flex flex-col items-center cursor-pointer group/stat p-2 rounded-2xl hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
               onClick={() => setShowFollowingModal(true)}
             >
-              <div className="flex items-center gap-1.5">
-                <UserCheck className="w-4 h-4 text-indigo-500" />
-                <span className="text-xl font-black text-brand-black dark:text-brand-white group-hover/stat:text-brand-purple transition-colors">
-                  {stats.following >= 1000 ? (stats.following / 1000).toFixed(1) + 'K' : stats.following}
-                </span>
-              </div>
-              <span className="text-[10px] font-black uppercase tracking-wider text-gray-500 mt-0.5">Following</span>
+              <span className="text-2xl font-black text-brand-black dark:text-brand-white group-hover/stat:text-brand-purple transition-colors">
+                {stats.following >= 1000 ? (stats.following / 1000).toFixed(1) + 'K' : stats.following}
+              </span>
+              <span className="text-[10px] font-black uppercase tracking-wider text-gray-500 mt-1">Following</span>
             </div>
 
             {/* Real Portfolio Items Count */}
             <div className="flex flex-col items-center p-2">
-              <div className="flex items-center gap-1.5">
-                <LayoutGrid className="w-4 h-4 text-sky-500" />
-                <span className="text-xl font-black text-brand-black dark:text-brand-white">
-                  {profile.portfolio_media?.length || 0}
-                </span>
-              </div>
-              <span className="text-[10px] font-black uppercase tracking-wider text-gray-500 mt-0.5">Portfolio Work</span>
+              <span className="text-2xl font-black text-brand-black dark:text-brand-white">
+                {profile.portfolio_media?.length || 0}
+              </span>
+              <span className="text-[10px] font-black uppercase tracking-wider text-gray-500 mt-1">Portfolio</span>
             </div>
 
             {/* Real Completed Gigs (ONLY shown if > 0) */}
             {completedGigsCount > 0 && (
               <div className="flex flex-col items-center p-2">
-                <div className="flex items-center gap-1.5">
-                  <Briefcase className="w-4 h-4 text-emerald-500" />
-                  <span className="text-xl font-black text-brand-black dark:text-brand-white">{completedGigsCount}</span>
-                </div>
-                <span className="text-[10px] font-black uppercase tracking-wider text-gray-500 mt-0.5">Gigs Completed</span>
-              </div>
-            )}
-
-            {/* Real Rating (ONLY shown if > 0) */}
-            {typeof profile?.rating === 'number' && profile.rating > 0 && (
-              <div className="flex flex-col items-center p-2">
-                <div className="flex items-center gap-1.5">
-                  <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
-                  <span className="text-xl font-black text-brand-black dark:text-brand-white">{profile.rating}</span>
-                </div>
-                <span className="text-[10px] font-black uppercase tracking-wider text-gray-500 mt-0.5">Rating</span>
+                <span className="text-2xl font-black text-brand-black dark:text-brand-white">{completedGigsCount}</span>
+                <span className="text-[10px] font-black uppercase tracking-wider text-gray-500 mt-1">Gigs</span>
               </div>
             )}
           </div>
           
           {/* 4. ACTION BUTTONS */}
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex flex-row justify-center gap-3">
             {!isOwnProfile ? (
               <>
                 <button 
                   onClick={handleFollowToggle}
                   disabled={isTogglingFollow}
-                  className={`flex-1 h-12 flex items-center justify-center gap-2 rounded-xl font-bold text-sm transition-all shadow-md active:scale-95 cursor-pointer ${
+                  className={`flex-1 max-w-[200px] h-12 flex items-center justify-center gap-2 rounded-full font-bold text-sm transition-all shadow-md active:scale-95 cursor-pointer ${
                     isFollowing
                       ? 'bg-gray-100 dark:bg-[#1F1F23] text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-[#27272A] hover:bg-red-50 dark:hover:bg-red-950/20 hover:text-red-600 hover:border-red-200'
                       : 'bg-brand-purple text-white hover:bg-brand-purple-hover shadow-brand-purple/20'
@@ -1001,23 +976,22 @@ const PublicProfile: React.FC = () => {
                 <button 
                   onClick={handleMessageClick}
                   disabled={isCreatingConversation}
-                  className="flex-1 h-12 flex items-center justify-center gap-2 rounded-xl bg-brand-black dark:bg-white text-white dark:text-brand-black font-bold text-sm transition-all hover:opacity-90 shadow-md active:scale-95 cursor-pointer"
+                  className="w-12 h-12 shrink-0 flex items-center justify-center rounded-full bg-gray-100 dark:bg-[#1F1F23] text-brand-black dark:text-white hover:bg-gray-200 dark:hover:bg-[#27272A] transition-all shadow-sm active:scale-95 cursor-pointer"
+                  title="Message"
                 >
-                  <MessageCircle className="w-4 h-4" />
-                  <span>Message</span>
+                  <MessageCircle className="w-5 h-5" />
                 </button>
 
-                <div className="relative">
+                <div className="relative shrink-0">
                   <button
                     onClick={() => setShowProfileMenu(!showProfileMenu)}
-                    className="h-12 w-12 flex items-center justify-center rounded-xl bg-gray-100 dark:bg-[#1F1F23] text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-[#27272A] transition-all cursor-pointer"
+                    className="w-12 h-12 flex items-center justify-center rounded-full bg-gray-100 dark:bg-[#1F1F23] text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-[#27272A] transition-all cursor-pointer"
                     title="More options"
                   >
-                    <MoreVertical className="w-5 h-5" />
+                    <MoreHorizontal className="w-5 h-5" />
                   </button>
-
                   {showProfileMenu && (
-                    <div className="absolute right-0 bottom-14 w-48 bg-white dark:bg-[#1A1A1E] rounded-2xl shadow-2xl border border-gray-100 dark:border-[#2A2A2F] py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                    <div className="absolute right-0 top-14 w-48 bg-white dark:bg-[#1A1A1E] rounded-2xl shadow-2xl border border-gray-100 dark:border-[#2A2A2F] py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
                       <button
                         onClick={() => {
                           setShowProfileMenu(false);
@@ -1056,12 +1030,12 @@ const PublicProfile: React.FC = () => {
                 </div>
               </>
             ) : (
-              <div className="flex flex-1 flex-col sm:flex-row gap-3">
+              <>
                 <button 
                   onClick={() => navigate('/edit-profile')}
-                  className="flex-1 h-12 flex items-center justify-center gap-2 rounded-xl bg-gray-100 dark:bg-[#1F1F23] text-brand-black dark:text-white font-bold text-sm transition-all hover:bg-gray-200 dark:hover:bg-[#27272A] active:scale-95 cursor-pointer"
+                  className="flex-1 max-w-[200px] h-12 flex items-center justify-center gap-2 rounded-full bg-brand-purple text-white font-bold text-sm transition-all hover:bg-brand-purple-hover active:scale-95 shadow-md shadow-brand-purple/20 cursor-pointer"
                 >
-                  <Edit3 className="w-4 h-4 text-brand-purple" />
+                  <Edit3 className="w-4 h-4" />
                   Edit Profile
                 </button>
                 <button 
@@ -1069,16 +1043,15 @@ const PublicProfile: React.FC = () => {
                     setActiveTab('portfolio');
                     setShowAddModal(true);
                   }}
-                  className="flex-1 h-12 flex items-center justify-center gap-2 rounded-xl bg-brand-purple text-white font-bold text-sm transition-all hover:bg-brand-purple-hover active:scale-95 shadow-md shadow-brand-purple/20 cursor-pointer"
+                  className="flex-1 max-w-[200px] h-12 flex items-center justify-center gap-2 rounded-full bg-gray-100 dark:bg-[#1F1F23] text-brand-black dark:text-white font-bold text-sm transition-all hover:bg-gray-200 dark:hover:bg-[#27272A] active:scale-95 cursor-pointer shadow-sm"
                 >
-                  <Plus className="w-4 h-4" />
+                  <Plus className="w-4 h-4 text-brand-purple" />
                   Upload Work
                 </button>
-              </div>
+              </>
             )}
           </div>
         </div>
-
         {isOwnProfile && <ProfileCompletionWidget profile={profile} onOpenPortfolio={() => {
           setActiveTab('portfolio');
           setShowAddModal(true);

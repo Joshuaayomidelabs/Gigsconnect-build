@@ -124,7 +124,7 @@ serve(async (req) => {
       // hardcoded id → name mapping, so it stays correct if plans are added/reordered)
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({ subscription_plan: planName })
+        .update({ subscription_plan: planName, verification_status: 'verified' })
         .eq('id', user_id);
 
       if (profileError) {
