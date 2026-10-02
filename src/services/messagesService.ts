@@ -72,7 +72,6 @@ export const getOrCreateDirectConversation = async (otherUserId: string): Promis
 };
 
 export const fetchConversations = async (): Promise<ConversationInboxItem[]> => {
-
   const { data, error } = await supabase
     .from('conversation_inbox')
     .select('*')
@@ -82,31 +81,12 @@ export const fetchConversations = async (): Promise<ConversationInboxItem[]> => 
     throw error;
   }
   
-  // if view doesn't have avatar_url etc, we might fetch it?
-  // Let's just return the data first. If we need to fetch missing data, we can do it here.
-  const inboxItems = data as ConversationInboxItem[];
-  
-  // Let's fetch missing profile info in bulk if we need to.
-  // We'll check the first item to see if it's missing avatar_url.
-  if (inboxItems.length > 0 && typeof inboxItems[0].avatar_url === 'undefined') {
-      const userIds = inboxItems.map(item => item.other_user_id);
-      const { data: profiles, error: profErr } = await supabase
-          .from('profiles')
-          .select('id, avatar_url, is_verified, subscription_tier')
-          .in('id', userIds);
-          
-      if (profiles && !profErr) {
-          const profileMap = new Map(profiles.map(p => [p.id, p]));
-          for (const item of inboxItems) {
-              const prof = profileMap.get(item.other_user_id);
-              if (prof) {
-                  item.avatar_url = prof.avatar_url;
-                  item.is_verified = prof.is_verified;
-                  item.subscription_tier = prof.subscription_tier;
-              }
-          }
-      }
-  }
+  const inboxItems = (data || []).map((row: any) => ({
+    ...row,
+    avatar_url: row.avatar_url ?? row.profile_photo,
+    is_verified: row.is_verified ?? (String(row.verification_status || '').toLowerCase() === 'verified'),
+    subscription_tier: row.subscription_tier ?? row.subscription_plan
+  })) as ConversationInboxItem[];
   
   return inboxItems;
 };

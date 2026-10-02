@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNotificationContext } from '../context/NotificationContext';
 import { notificationsService } from '../services/notificationsService';
 import { supabase } from '../services/supabaseClient';
+import { getOrCreateDirectConversation } from '../services/messagesService';
 
 const NotificationDropdown: React.FC = () => {
   const { user } = useAuth();
@@ -197,12 +198,20 @@ const NotificationDropdown: React.FC = () => {
                         
                         {notif.type === 'gig_application' && (
                           <button 
-                            onClick={() => {
+                            onClick={async () => {
                               handleMarkAsRead(notif.id);
                               setIsOpen(false);
-                              toast('Messaging is coming soon.', {
-                                description: "We're working on bringing messaging to GigsConnect."
-                              });
+                              if (!notif.actor?.id) {
+                                toast.error('Could not find applicant details.');
+                                return;
+                              }
+                              try {
+                                const conversationId = await getOrCreateDirectConversation(notif.actor.id);
+                                navigate(`/messages/${conversationId}`);
+                              } catch (err) {
+                                console.error('Error starting conversation:', err);
+                                toast.error('Could not start conversation. Please try again.');
+                              }
                             }}
                             className="text-[10px] font-bold text-brand-purple border border-brand-purple px-3 py-1.5 rounded-lg hover:bg-brand-purple-soft transition-all"
                           >

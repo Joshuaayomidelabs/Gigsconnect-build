@@ -43,7 +43,7 @@ const faqData: FAQCategory[] = [
       { q: "Who can post a gig?", a: "Any registered user can post a gig by navigating to 'Post a Gig' and filling out the details." },
       { q: "How does a client select a creator?", a: "Clients review applications in their dashboard, view applicant portfolios, and can change application statuses (e.g., Shortlisted, Accepted)." },
       { q: "Can I manage my gig applications?", a: "Yes, you can track the status of all your applications in the 'My Applications' section." },
-      { q: "What happens after I am selected?", a: "The client will contact you to discuss further details and arrangements. Direct messaging is coming soon to make this process seamless." }
+      { q: "What happens after I am selected?", a: "The client will contact you to discuss further details and arrangements. You can message the client directly on GigsConnect to discuss details." }
     ]
   },
   {

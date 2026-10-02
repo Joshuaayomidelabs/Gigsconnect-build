@@ -532,7 +532,7 @@ const Landing: React.FC = () => {
               { 
                 title: "Direct Messaging", 
                 img: "/assets/illustrations/landing/chat-pana.svg", 
-                desc: "Connect directly with clients and collaborators (inbox rolling out)." 
+                desc: "Connect directly with clients and collaborators." 
               },
               { 
                 title: "Portfolio Showcases", 
