@@ -10,14 +10,19 @@
   --color-brand-purple-dark: #4F23D6;
   --color-brand-purple-light: #9D7AFF;
   --color-brand-purple-soft: #F5F2FF;
+  --color-brand-purple-hover: #5925E6;
+  --color-brand-purple-active: #4F23D6;
+  --color-brand-500: #6C3BFF;
   
   --color-brand-blue: #6C3BFF; /* Aligning blue with purple for consistency */
   --color-brand-blue-dark: #4F23D6;
   
   --color-brand-black: #000000;
   --color-brand-dark: #121212;
+  --color-brand-dark-card: #0A0A0A;
   --color-brand-gray: #F8F9FC;
   --color-brand-gray-dark: #4B5563;
+  --color-brand-light: #F8F9FC;
   
   --color-brand-white: #FFFFFF;
 

@@ -1,65 +1,68 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { Home, Search, Plus, Bell, User } from 'lucide-react';
+import { Home, Search, Plus, MessageCircle, User } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { profilesService } from '../services/profilesService';
 import { useNotificationContext } from '../context/NotificationContext';
+import { profilesService } from '../services/profilesService';
 import CreateHubModal from './CreateHubModal';
 
 const BottomNav: React.FC = () => {
   const location = useLocation();
-  const { user } = useAuth();
-  const [profile, setProfile] = useState<any>(null);
-  const { unreadCount } = useNotificationContext();
+  const { user, profile: authProfile } = useAuth();
+  const { unreadMessagesCount } = useNotificationContext();
+  const [profile, setProfile] = useState<any>(authProfile);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   useEffect(() => {
+    if (authProfile) {
+      setProfile(authProfile);
+      return;
+    }
+
     const fetchProfile = async () => {
       if (user) {
         const { data } = await profilesService.getProfile(user.id);
-        setProfile(data);
+        if (data) setProfile(data);
       } else {
         setProfile(null);
       }
     };
     fetchProfile();
-  }, [user]);
+  }, [user, authProfile]);
+
+  const profilePath = user?.id ? `/profile/${user.id}` : '/edit-profile';
 
   const navItems = [
-    { icon: <Home />, label: 'Home', path: '/overview' },
-    { icon: <Search />, label: 'Explore', path: '/browse' },
-    { icon: <Plus />, label: 'Create', path: '/post', isAction: true },
-    { 
-      icon: <Bell />, 
-      label: 'Alerts', 
-      path: '/notifications',
-      badge: unreadCount
-    },
+    { icon: <Home className="w-5 h-5" />, label: 'Home', path: '/overview' },
+    { icon: <Search className="w-5 h-5" />, label: 'Explore', path: '/browse' },
+    { icon: <Plus className="w-6 h-6 stroke-[2.5px]" />, label: 'Create', path: '/post', isAction: true },
+    { icon: <MessageCircle className="w-5 h-5" />, label: 'Messages', path: '/messages' },
     { 
       icon: profile?.avatar_url ? (
-        <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+        <img src={profile.avatar_url} alt="Profile" className="w-full h-full object-cover rounded-full" referrerPolicy="no-referrer" />
       ) : (
-        <User />
+        <User className="w-5 h-5" />
       ), 
       label: 'Profile', 
-      path: '/edit-profile',
+      path: profilePath,
       isProfile: true,
-      matchPrefix: true // matches /edit-profile, /create-profile etc if needed
     },
   ];
 
-  const checkIsActive = (itemPath: string, matchPrefix?: boolean) => {
+  const checkIsActive = (itemPath: string) => {
     if (itemPath === '/overview') return location.pathname === '/overview';
-    if (matchPrefix) {
-      if (itemPath === '/edit-profile' && (location.pathname.startsWith('/edit-profile') || location.pathname.startsWith('/profile/'))) return true;
+    if (itemPath === '/browse') return location.pathname.startsWith('/browse');
+    if (itemPath === '/messages') return location.pathname.startsWith('/messages') || location.pathname.startsWith('/chat');
+    if (user?.id && itemPath.includes(user.id)) {
+      return location.pathname.startsWith(`/profile/${user.id}`) || location.pathname.startsWith('/edit-profile');
     }
     return location.pathname.startsWith(itemPath);
   };
 
   return (
     <>
-      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-brand-white dark:bg-brand-black/95 backdrop-blur-2xl border-t border-brand-gray dark:border-brand-dark-card px-2 pb-[env(safe-area-inset-bottom)] pt-2 lg:hidden transition-colors shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
-        <div className="max-w-md mx-auto flex items-center justify-between h-14 px-2">
+      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-brand-black/95 backdrop-blur-2xl border-t border-gray-100 dark:border-brand-dark-card px-2 pb-[env(safe-area-inset-bottom)] pt-1.5 lg:hidden transition-colors shadow-[0_-4px_25px_rgba(0,0,0,0.06)]">
+        <div className="max-w-md mx-auto flex items-center justify-between h-14 px-1">
           {navItems.map((item) => {
             if (item.isAction) {
               return (
@@ -69,8 +72,8 @@ const BottomNav: React.FC = () => {
                   className="relative -top-5 flex flex-col items-center justify-center flex-1 h-full"
                   aria-label="Create Post or Gig"
                 >
-                  <div className="w-12 h-12 rounded-full bg-brand-purple flex items-center justify-center text-brand-white shadow-lg shadow-brand-purple/30 border-4 border-brand-white dark:border-brand-black active:scale-95 transition-all duration-300">
-                    {React.cloneElement(item.icon as React.ReactElement, { className: 'w-6 h-6 stroke-[2.5px]' })}
+                  <div className="w-12 h-12 rounded-full bg-brand-purple flex items-center justify-center text-white shadow-lg shadow-brand-purple/30 border-4 border-white dark:border-brand-black active:scale-95 transition-all duration-300">
+                    {item.icon}
                   </div>
                   <span className="text-[10px] font-bold text-brand-purple mt-1 opacity-90">
                     {item.label}
@@ -79,41 +82,40 @@ const BottomNav: React.FC = () => {
               );
             }
 
-            const isActive = checkIsActive(item.path, item.matchPrefix);
+            const isActive = checkIsActive(item.path);
             
             return (
               <NavLink
                 key={item.path}
                 to={item.path}
-                className="flex flex-col items-center justify-center gap-1 group relative flex-1 h-full"
+                className="flex flex-col items-center justify-center gap-0.5 group relative flex-1 h-full"
               >
-                <div className={`relative p-1.5 rounded-xl transition-all duration-300 ${
+                <div className={`relative px-3 py-1 rounded-full transition-all duration-300 flex items-center justify-center ${
                   isActive 
-                    ? 'text-brand-purple' 
+                    ? 'bg-brand-purple/10 dark:bg-brand-purple/20 text-brand-purple' 
                     : 'text-gray-400 dark:text-gray-500 hover:text-brand-purple'
-                } ${item.isProfile ? 'w-8 h-8 flex items-center justify-center' : ''}`}>
+                } ${item.isProfile ? 'w-8 h-8 p-0' : ''}`}>
                   
                   {item.isProfile ? (
-                    <div className={`w-full h-full rounded-full overflow-hidden flex items-center justify-center ${isActive ? 'ring-2 ring-brand-purple ring-offset-1 dark:ring-offset-brand-black' : ''}`}>
+                    <div className={`w-7 h-7 rounded-full overflow-hidden flex items-center justify-center transition-all ${
+                      isActive ? 'ring-2 ring-brand-purple ring-offset-2 dark:ring-offset-brand-black' : ''
+                    }`}>
                       {item.icon}
                     </div>
                   ) : (
                     React.cloneElement(item.icon as React.ReactElement, { 
-                      className: `w-6 h-6 transition-transform duration-300 ${isActive ? 'scale-110 stroke-[2.5px]' : 'scale-100'}` 
+                      className: `w-5 h-5 transition-transform duration-300 ${isActive ? 'scale-105 stroke-[2.5px]' : 'scale-100'}` 
                     })
                   )}
-
-                  {item.badge && item.badge > 0 ? (
-                    <span className="absolute -top-0.5 -right-0.5 inline-flex items-center justify-center w-4 h-4 text-[9px] font-bold text-white bg-red-500 rounded-full border-2 border-white dark:border-brand-black">
-                      {item.badge > 99 ? '99+' : item.badge}
-                    </span>
-                  ) : null}
+                  {item.path === '/messages' && unreadMessagesCount > 0 && (
+                    <span className="absolute top-0 right-2 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white dark:ring-brand-black shadow-sm" />
+                  )}
                 </div>
                 
-                <span className={`text-[10px] font-semibold transition-all duration-300 ${
+                <span className={`text-[10px] transition-all duration-200 ${
                   isActive 
-                    ? 'text-brand-purple opacity-100' 
-                    : 'text-gray-400 dark:text-gray-500 opacity-80'
+                    ? 'font-bold text-brand-purple' 
+                    : 'font-medium text-gray-400 dark:text-gray-500'
                 }`}>
                   {item.label}
                 </span>

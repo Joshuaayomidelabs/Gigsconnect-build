@@ -1,5 +1,4 @@
 import { SEO } from '../components/SEO';
-import { SubscriptionCard } from '../components/SubscriptionCard';
 import React, { useState, useEffect } from 'react';
 import { Camera, Loader2, Save, MapPin, User, Briefcase, Globe, Edit3, Phone, CheckCircle2, Facebook, Instagram, Twitter, Linkedin, Music2, Video, Image as ImageIcon, Trash2, Plus, ExternalLink, Play, ShieldCheck, Upload, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -382,7 +381,8 @@ const EditProfile: React.FC = () => {
   }
 
   return (
-    <div className="pt-main pb-32 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto min-h-screen bg-brand-gray dark:bg-brand-black transition-colors duration-500">
+    <div className="pt-main pb-24 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto min-h-screen bg-brand-gray dark:bg-brand-black transition-colors duration-500">
+      <SEO title="Edit Profile | GigsConnect" noindex={true} />
       <AnimatePresence mode="wait">
         {!isEditing ? (
           <motion.div
@@ -417,10 +417,6 @@ const EditProfile: React.FC = () => {
               </motion.div>
             )}
 
-            <section className="mb-8">
-              <h2 className="text-xl font-bold text-brand-black dark:text-brand-white mb-4">Subscription</h2>
-              <SubscriptionCard />
-            </section>
             <div className="bg-brand-white dark:bg-brand-dark-card rounded-[2.5rem] shadow-xl border border-brand-gray dark:border-brand-black overflow-hidden transition-colors">
               {/* Header/Cover Placeholder */}
               <div className="h-32 bg-gradient-to-r from-brand-purple to-brand-purple-dark opacity-10" />

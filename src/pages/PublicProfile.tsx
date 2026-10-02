@@ -42,6 +42,7 @@ import {
   Edit3,
   Award,
   Sparkles,
+  Calendar,
   Check
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -49,11 +50,14 @@ import { toast } from 'sonner';
 import { profilesService } from '../services/profilesService';
 import { followsService } from '../services/followsService';
 import { communityService } from '../services/communityService';
+import { gigsService } from '../services/gigsService';
 import { supabase } from '../services/supabaseClient';
 import { useAuth } from '../context/AuthContext';
 import VerificationBadge from '../components/VerificationBadge';
 import FollowListModal from '../components/FollowListModal';
 import PostCard from '../components/PostCard';
+import GigCard from '../components/GigCard';
+import GigDetailsModal from '../components/GigDetailsModal';
 import ProfileCompletionWidget from '../components/ProfileCompletionWidget';
 import { useModeration } from '../hooks/useModeration';
 import { openExternalLink } from '../lib/openExternalLink';
@@ -91,7 +95,7 @@ const PortfolioMediaCard: React.FC<PortfolioMediaCardProps> = ({
 
   return (
     <div 
-      className={`relative aspect-square rounded-2xl overflow-hidden bg-gray-100 dark:bg-[#121214] border border-gray-200 dark:border-[#1F1F23]/80 group shadow-sm transition-all duration-300 hover:scale-[1.02] hover:shadow-md cursor-pointer ${
+      className={`relative aspect-square rounded-xl overflow-hidden bg-gray-100 dark:bg-[#121214] border border-gray-200 dark:border-[#1F1F23]/80 group shadow-sm transition-all duration-300 hover:scale-[1.02] hover:shadow-md cursor-pointer ${
         item.is_featured ? 'ring-2 md:ring-4 ring-brand-purple ring-offset-2 dark:ring-offset-[#09090B]' : ''
       }`}
       onClick={() => onSelect({ type: item.type, url: item.url })}
@@ -197,6 +201,7 @@ const PublicProfile: React.FC = () => {
   const [dynamicCategories, setDynamicCategories] = useState<string[]>([]);
   const [dynamicSkills, setDynamicSkills] = useState<string[]>([]);
   const [completedGigsCount, setCompletedGigsCount] = useState<number>(0);
+  const [postedGigsCount, setPostedGigsCount] = useState<number>(0);
   
   // Social Stats State
   const [stats, setStats] = useState({ followers: 0, following: 0 });
@@ -204,8 +209,8 @@ const PublicProfile: React.FC = () => {
   const [isCreatingConversation, setIsCreatingConversation] = useState(false);
   const [isTogglingFollow, setIsTogglingFollow] = useState(false);
   
-  // Content Tab State
-  const [activeTab, setActiveTab] = useState<'portfolio' | 'about' | 'posts'>('portfolio');
+  // Content Tab State (Portfolio, Posts, Gigs, About)
+  const [activeTab, setActiveTab] = useState<'portfolio' | 'posts' | 'gigs' | 'about'>('portfolio');
   const [showFollowersModal, setShowFollowersModal] = useState(false);
   const [showFollowingModal, setShowFollowingModal] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState<{type: string, url: string} | null>(null);
@@ -213,6 +218,11 @@ const PublicProfile: React.FC = () => {
   // Social feed posts state
   const [posts, setPosts] = useState<any[]>([]);
   const [isLoadingPosts, setIsLoadingPosts] = useState(false);
+
+  // Gigs Tab State
+  const [userGigs, setUserGigs] = useState<any[]>([]);
+  const [isLoadingGigs, setIsLoadingGigs] = useState(false);
+  const [selectedGigModal, setSelectedGigModal] = useState<any | null>(null);
 
   // Portfolio States
   const [showAddModal, setShowAddModal] = useState(false);
@@ -516,8 +526,9 @@ const PublicProfile: React.FC = () => {
         }
         
         let realCompletedGigsCount = 0;
+        let realPostedGigsCount = 0;
         try {
-          const [appCountRes, gigCountRes] = await Promise.all([
+          const [appCountRes, gigCountRes, postedGigsRes] = await Promise.all([
             supabase
               .from('applications')
               .select('*', { count: 'exact', head: true })
@@ -527,10 +538,12 @@ const PublicProfile: React.FC = () => {
               .from('gigs')
               .select('*', { count: 'exact', head: true })
               .eq('poster_id', userId)
-              .in('status', ['completed', 'Completed'])
+              .in('status', ['completed', 'Completed']),
+            gigsService.getMyGigsCount(userId)
           ]);
 
           realCompletedGigsCount = (appCountRes.count || 0) + (gigCountRes.count || 0);
+          realPostedGigsCount = postedGigsRes.count || 0;
         } catch (e) {
           console.error("Error fetching completed gigs count:", e);
         }
@@ -545,6 +558,7 @@ const PublicProfile: React.FC = () => {
           setDynamicCategories(fetchedCategories);
           setDynamicSkills(fetchedSkills);
           setCompletedGigsCount(realCompletedGigsCount);
+          setPostedGigsCount(realPostedGigsCount);
         }
 
         if (currentUser && !isOwnProfile) {
@@ -604,12 +618,53 @@ const PublicProfile: React.FC = () => {
     }
   }, [activeTab, userId, currentUser]);
 
-  // Real-time Follow / Unfollow Handler
-  
+  // Fetch gigs when Gigs tab is active
+  useEffect(() => {
+    if (activeTab === 'gigs' && userGigs.length === 0 && (profile?.id || userId)) {
+      const fetchGigs = async () => {
+        const targetId = profile?.id || userId;
+        setIsLoadingGigs(true);
+        try {
+          const { data, error } = await gigsService.getMyGigs(targetId);
+          if (!error && data) {
+            setUserGigs(data);
+          }
+        } catch (err) {
+          console.error("Error loading user gigs:", err);
+        } finally {
+          setIsLoadingGigs(false);
+        }
+      };
+      fetchGigs();
+    }
+  }, [activeTab, profile?.id, userId, userGigs.length]);
+
+  // Direct Messaging Click Handler (Task 1)
   const handleMessageClick = async () => {
-    toast('Messaging is coming soon.', {
-      description: "We're working on bringing messaging to GigsConnect."
-    });
+    if (!currentUser) {
+      notifyError("Please sign in to message creators.");
+      navigate('/login');
+      return;
+    }
+
+    const targetId = profile?.id || userId;
+    if (!targetId || targetId === currentUser.id) return;
+
+    if (isUserBlocked(targetId)) {
+      notifyError("You have blocked this creator. Unblock them first to send a message.");
+      return;
+    }
+
+    setIsCreatingConversation(true);
+    try {
+      const conversationId = await getOrCreateDirectConversation(targetId);
+      navigate(`/messages/${conversationId}`);
+    } catch (err: any) {
+      console.error("Error starting conversation:", err);
+      handleError(err, "Could not start conversation");
+    } finally {
+      setIsCreatingConversation(false);
+    }
   };
 
   const handleFollowToggle = async () => {
@@ -770,18 +825,19 @@ const PublicProfile: React.FC = () => {
     : (profile.full_name ? `@${profile.full_name.toLowerCase().replace(/\s+/g, '')}` : '');
 
   return (
-    <div className="bg-[#FAFAFA] dark:bg-[#09090B] min-h-screen pt-16 sm:pt-20 pb-16 transition-colors duration-500 font-sans">
+    <div className="bg-[#FAFAFA] dark:bg-[#09090B] min-h-screen pt-[calc(4.5rem+env(safe-area-inset-top))] pb-16 transition-colors duration-500 font-sans">
       
-      {/* 1. TOP COVER BANNER */}
-      <div id="profile-cover" className="h-52 sm:h-64 bg-gradient-to-br from-[#8B5CF6]/90 via-[#6D28D9]/95 to-[#4C1D95]/95 w-full relative overflow-hidden">
+      {/* 1. TOP COVER BANNER (Task 2 & Task 6) */}
+      <div id="profile-cover" className="h-36 sm:h-44 bg-gradient-to-br from-[#8B5CF6]/90 via-[#6D28D9]/95 to-[#4C1D95]/95 w-full relative overflow-hidden">
         <div className="absolute inset-x-0 bottom-0 top-1/4 bg-radial-gradient from-transparent to-black/20 pointer-events-none" />
-        <div className="absolute top-10 left-10 w-44 h-44 rounded-full bg-brand-purple/20 blur-3xl" />
-        <div className="absolute right-20 bottom-5 w-60 h-60 rounded-full bg-indigo-500/25 blur-3xl" />
+        <div className="absolute top-6 left-10 w-44 h-44 rounded-full bg-brand-purple/20 blur-3xl" />
+        <div className="absolute right-20 bottom-0 w-60 h-60 rounded-full bg-indigo-500/25 blur-3xl" />
         
-        <div className="max-w-5xl mx-auto px-4 sm:px-8 h-full flex items-start justify-between pt-6 relative z-10">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-start justify-between pt-4 sm:pt-6 relative z-10">
           <button 
             onClick={() => navigate(-1)}
-            className="flex items-center justify-center w-11 h-11 bg-black/20 backdrop-blur-md rounded-2xl text-white border border-white/10 hover:bg-black/40 active:scale-95 transition-all shadow-sm shadow-black/10 z-10 cursor-pointer"
+            className="flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 bg-black/20 backdrop-blur-md rounded-2xl text-white border border-white/10 hover:bg-black/40 active:scale-95 transition-all shadow-sm shadow-black/10 z-10 cursor-pointer"
+            aria-label="Go back"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
@@ -792,7 +848,7 @@ const PublicProfile: React.FC = () => {
                 navigator.clipboard.writeText(window.location.href);
                 toast.success("Profile link copied to clipboard!");
               }}
-              className="flex items-center justify-center w-11 h-11 bg-black/20 backdrop-blur-md rounded-2xl text-white border border-white/10 hover:bg-black/40 active:scale-95 transition-all shadow-sm shadow-black/10 z-10 cursor-pointer"
+              className="flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 bg-black/20 backdrop-blur-md rounded-2xl text-white border border-white/10 hover:bg-black/40 active:scale-95 transition-all shadow-sm shadow-black/10 z-10 cursor-pointer"
               title="Share profile"
             >
               <Share2 className="w-5 h-5" />
@@ -808,14 +864,14 @@ const PublicProfile: React.FC = () => {
         </div>
       </div>
 
-      {/* 2. CREATOR PROFILE HEADER CARD */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-8 relative -mt-16 sm:-mt-20 z-10">
-                <div id="profile-card" className="bg-white dark:bg-brand-dark-card rounded-[2.25rem] shadow-xl border border-gray-100 dark:border-[#1F1F23]/80 p-6 sm:p-10 mb-8 relative">
+      {/* 2. CREATOR PROFILE HEADER CARD (Task 2) */}
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative -mt-12 sm:-mt-16 z-10">
+        <div id="profile-card" className="bg-white dark:bg-brand-dark-card rounded-[2rem] sm:rounded-[2.25rem] shadow-xl border border-gray-100 dark:border-[#1F1F23]/80 p-5 sm:p-8 mb-8 relative">
           
-          <div className="flex flex-col items-center text-center">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-5 sm:gap-6">
             {/* Avatar block with gradient ring & badge */}
-            <div id="user-avatar" className="relative group/avatar mb-4">
-              <div className="w-32 h-32 sm:w-36 sm:h-36 rounded-full border-4 border-white dark:border-brand-dark-card shadow-xl overflow-hidden bg-[#FAFAFA] dark:bg-[#0F0F12] flex-shrink-0 flex items-center justify-center relative transition-transform duration-300 group-hover/avatar:scale-[1.02] ring-4 ring-brand-purple/20">
+            <div id="user-avatar" className="relative group/avatar shrink-0">
+              <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-full border-4 border-white dark:border-brand-dark-card shadow-xl overflow-hidden bg-[#FAFAFA] dark:bg-[#0F0F12] flex items-center justify-center relative transition-transform duration-300 group-hover/avatar:scale-[1.02] ring-4 ring-brand-purple/20">
                 {profile.avatar_url ? (
                   <img 
                     src={profile.avatar_url} 
@@ -824,71 +880,83 @@ const PublicProfile: React.FC = () => {
                     referrerPolicy="no-referrer" 
                   />
                 ) : (
-                  <User className="w-14 h-14 text-gray-300 dark:text-gray-700" />
+                  <User className="w-12 h-12 sm:w-14 sm:h-14 text-gray-300 dark:text-gray-700" />
                 )}
               </div>
               
               {profile.verification_status === 'verified' && (
-                <div className="absolute bottom-1 right-1 z-20 bg-brand-purple text-white p-1.5 rounded-full border-4 border-white dark:border-brand-dark-card shadow" title="Verified Creator">
-                  <BadgeCheck className="w-5 h-5 text-white fill-current" />
+                <div className="absolute bottom-1 right-1 z-20 bg-brand-purple text-white p-1 rounded-full border-2 border-white dark:border-brand-dark-card shadow" title="Verified Creator">
+                  <BadgeCheck className="w-4 h-4 sm:w-5 sm:h-5 text-white fill-current" />
                 </div>
               )}
             </div>
             
             {/* Creator Identity Details */}
-            <div className="w-full flex flex-col items-center justify-center">
+            <div className="flex-1 min-w-0 w-full">
               
               {/* Creator Name & Username */}
-              <div className="mb-4">
-                <h1 className="text-2xl sm:text-3xl font-black text-brand-black dark:text-brand-white tracking-tight leading-tight truncate">
-                  {profile.full_name || 'Anonymous Creator'}
-                </h1>
+              <div className="mb-2.5">
+                <div className="flex items-center justify-center sm:justify-start gap-2 flex-wrap">
+                  <h1 className="text-2xl sm:text-3xl font-black text-brand-black dark:text-brand-white tracking-tight leading-tight truncate">
+                    {profile.full_name || 'Anonymous Creator'}
+                  </h1>
+                  <VerificationBadge verificationStatus={profile.verification_status} />
+                </div>
                 {usernameHandle && (
-                  <p className="text-sm font-medium text-gray-400 dark:text-gray-500 mt-1">
+                  <p className="text-sm font-medium text-gray-400 dark:text-gray-500 mt-0.5">
                     {usernameHandle}
                   </p>
                 )}
               </div>
 
-              {/* Bio Summary */}
+              {/* Bio Summary (2-3 lines) */}
               {profile.bio && (
-                <p className="mb-5 text-sm sm:text-base text-gray-600 dark:text-gray-300 line-clamp-3 leading-relaxed italic max-w-2xl">
-                  "{profile.bio}"
+                <p className="mb-3.5 text-sm sm:text-base text-gray-600 dark:text-gray-300 line-clamp-3 leading-relaxed font-normal">
+                  {profile.bio}
                 </p>
               )}
 
-              {/* Role & Availability Row */}
-              <div className="mb-3 flex flex-wrap justify-center items-center gap-2">
-                {(dynamicCategories.length > 0 || profile.role) && (
-                  <>
-                    {(dynamicCategories.length > 0 ? dynamicCategories : (profile.role ? [profile.role] : [])).slice(0, 1).map((cat: string) => (
-                      <span key={cat} className="px-4 py-1.5 rounded-full bg-brand-purple/10 text-brand-purple text-xs font-bold uppercase tracking-widest">
-                        {cat}
-                      </span>
-                    ))}
-                  </>
+              {/* Location + Joined + Availability Row */}
+              <div className="mb-3.5 flex flex-wrap items-center justify-center sm:justify-start gap-3 sm:gap-4 text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-medium">
+                {(profile.city_town || profile.city || profile.country) && (
+                  <div className="flex items-center gap-1.5">
+                    <MapPin className="w-4 h-4 text-brand-purple shrink-0" />
+                    <span>{profile.city_town || profile.city ? `${profile.city_town || profile.city}, ${profile.country || ''}` : profile.country}</span>
+                  </div>
                 )}
-                
-                <div className="flex items-center gap-2 px-4 py-1.5 bg-emerald-50 dark:bg-emerald-950/40 rounded-full border border-emerald-100 dark:border-emerald-900/30">
+
+                {profile.created_at && (
+                  <div className="flex items-center gap-1.5">
+                    <Calendar className="w-4 h-4 text-brand-purple shrink-0" />
+                    <span>Joined {new Date(profile.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
+                  </div>
+                )}
+
+                <div className="flex items-center gap-1.5 px-3 py-1 bg-emerald-50 dark:bg-emerald-950/40 rounded-full border border-emerald-100 dark:border-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-xs font-bold">
                   <span className="relative flex h-2 w-2">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                   </span>
-                  <span className="text-emerald-700 dark:text-emerald-400 text-xs font-bold uppercase tracking-widest">Available for gigs</span>
+                  <span>Available for gigs</span>
                 </div>
               </div>
 
-              {/* Location */}
-              <div className="mb-4 flex items-center justify-center gap-1.5 text-sm font-medium text-gray-500 dark:text-gray-400">
-                <MapPin className="w-4 h-4 text-brand-purple shrink-0" />
-                <span>{profile.city_town || profile.city ? `${profile.city_town || profile.city}, ${profile.country || ''}` : profile.country || 'Global Creator'}</span>
-              </div>
+              {/* Role & Dynamic Category tag */}
+              {(dynamicCategories.length > 0 || profile.role) && (
+                <div className="mb-3 flex flex-wrap justify-center sm:justify-start items-center gap-2">
+                  {(dynamicCategories.length > 0 ? dynamicCategories : (profile.role ? [profile.role] : [])).slice(0, 2).map((cat: string) => (
+                    <span key={cat} className="px-3 py-1 rounded-full bg-brand-purple/10 dark:bg-brand-purple/20 text-brand-purple text-xs font-bold uppercase tracking-wider">
+                      {cat}
+                    </span>
+                  ))}
+                </div>
+              )}
 
               {/* Skills Chips */}
               {(dynamicSkills.length > 0 || (profile.skills && profile.skills.length > 0)) && (
-                <div className="mb-6 flex flex-wrap justify-center gap-2 max-w-2xl">
+                <div className="mb-3.5 flex flex-wrap justify-center sm:justify-start gap-1.5 sm:gap-2">
                   {(dynamicSkills.length > 0 ? dynamicSkills : profile.skills).slice(0, 5).map((skill: string) => (
-                    <span key={skill} className="px-3.5 py-1 bg-[#F9FAFB] dark:bg-[#161618] rounded-full text-xs font-bold text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-[#27272A] shadow-sm">
+                    <span key={skill} className="px-3 py-1 bg-[#F9FAFB] dark:bg-[#161618] rounded-full text-xs font-bold text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-[#27272A] shadow-sm">
                       {skill}
                     </span>
                   ))}
@@ -896,65 +964,105 @@ const PublicProfile: React.FC = () => {
               )}
 
               {/* Social Links Bar */}
-              <div className="mb-6">
+              <div className="mb-2 flex justify-center sm:justify-start">
                 {renderSocialLinks()}
               </div>
 
             </div>
           </div>
 
-          {/* 3. AUTHENTIC STATS AREA */}
-          <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-12 border-t border-b border-gray-100 dark:border-[#1F1F23]/80 py-5 mb-8">
-            
-            {/* Real Followers Count */}
-            <div 
-              className="flex flex-col items-center cursor-pointer group/stat p-2 rounded-2xl hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
-              onClick={() => setShowFollowersModal(true)}
-            >
-              <span className="text-2xl font-black text-brand-black dark:text-brand-white group-hover/stat:text-brand-purple transition-colors">
-                {stats.followers >= 1000 ? (stats.followers / 1000).toFixed(1) + 'K' : stats.followers}
-              </span>
-              <span className="text-[10px] font-black uppercase tracking-wider text-gray-500 mt-1">Followers</span>
-            </div>
-            
-            {/* Real Following Count */}
-            <div 
-              className="flex flex-col items-center cursor-pointer group/stat p-2 rounded-2xl hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
-              onClick={() => setShowFollowingModal(true)}
-            >
-              <span className="text-2xl font-black text-brand-black dark:text-brand-white group-hover/stat:text-brand-purple transition-colors">
-                {stats.following >= 1000 ? (stats.following / 1000).toFixed(1) + 'K' : stats.following}
-              </span>
-              <span className="text-[10px] font-black uppercase tracking-wider text-gray-500 mt-1">Following</span>
-            </div>
+          {/* 3. AUTHENTIC STATS AREA (Task 3) */}
+          <div className="w-full bg-[#FAFAFA] dark:bg-[#121214] border border-gray-100 dark:border-[#1F1F23] rounded-2xl p-3 sm:p-4 my-6">
+            <div className="flex items-center divide-x divide-gray-200 dark:divide-[#27272A] text-center">
+              {/* Real Followers Count */}
+              <button 
+                type="button"
+                onClick={() => setShowFollowersModal(true)}
+                className="flex-1 flex flex-col items-center py-1 group/stat hover:opacity-80 transition-opacity cursor-pointer"
+              >
+                <span className="text-xl sm:text-2xl font-black text-brand-black dark:text-brand-white group-hover/stat:text-brand-purple transition-colors">
+                  {stats.followers >= 1000 ? (stats.followers / 1000).toFixed(1) + 'K' : stats.followers}
+                </span>
+                <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-gray-500 dark:text-gray-400 mt-0.5">
+                  Followers
+                </span>
+              </button>
+              
+              {/* Real Following Count */}
+              <button 
+                type="button"
+                onClick={() => setShowFollowingModal(true)}
+                className="flex-1 flex flex-col items-center py-1 group/stat hover:opacity-80 transition-opacity cursor-pointer"
+              >
+                <span className="text-xl sm:text-2xl font-black text-brand-black dark:text-brand-white group-hover/stat:text-brand-purple transition-colors">
+                  {stats.following >= 1000 ? (stats.following / 1000).toFixed(1) + 'K' : stats.following}
+                </span>
+                <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-gray-500 dark:text-gray-400 mt-0.5">
+                  Following
+                </span>
+              </button>
 
-            {/* Real Portfolio Items Count */}
-            <div className="flex flex-col items-center p-2">
-              <span className="text-2xl font-black text-brand-black dark:text-brand-white">
-                {profile.portfolio_media?.length || 0}
-              </span>
-              <span className="text-[10px] font-black uppercase tracking-wider text-gray-500 mt-1">Portfolio</span>
-            </div>
+              {/* Real Gigs Count (posted count) - hidden if 0 */}
+              {postedGigsCount > 0 && (
+                <button 
+                  type="button"
+                  onClick={() => setActiveTab('gigs')}
+                  className="flex-1 flex flex-col items-center py-1 group/stat hover:opacity-80 transition-opacity cursor-pointer"
+                >
+                  <span className="text-xl sm:text-2xl font-black text-brand-black dark:text-brand-white group-hover/stat:text-brand-purple transition-colors">
+                    {postedGigsCount}
+                  </span>
+                  <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-gray-500 dark:text-gray-400 mt-0.5">
+                    Gigs
+                  </span>
+                </button>
+              )}
 
-            {/* Real Completed Gigs (ONLY shown if > 0) */}
-            {completedGigsCount > 0 && (
-              <div className="flex flex-col items-center p-2">
-                <span className="text-2xl font-black text-brand-black dark:text-brand-white">{completedGigsCount}</span>
-                <span className="text-[10px] font-black uppercase tracking-wider text-gray-500 mt-1">Gigs</span>
-              </div>
-            )}
+              {/* Real Completed Gigs (ONLY shown if > 0) */}
+              {completedGigsCount > 0 && (
+                <div className="flex-1 flex flex-col items-center py-1">
+                  <span className="text-xl sm:text-2xl font-black text-brand-black dark:text-brand-white">
+                    {completedGigsCount}
+                  </span>
+                  <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-gray-500 dark:text-gray-400 mt-0.5">
+                    Completed
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
           
-          {/* 4. ACTION BUTTONS */}
-          <div className="flex flex-row justify-center gap-3">
-            {!isOwnProfile ? (
+          {/* 4. ACTION BUTTONS (Task 4) */}
+          <div className="flex flex-row items-center justify-center sm:justify-start gap-3">
+            {isOwnProfile ? (
+              <>
+                <button 
+                  onClick={() => navigate('/edit-profile')}
+                  className="flex-1 sm:flex-initial sm:min-w-[180px] h-12 flex items-center justify-center gap-2 rounded-full bg-[#F5F2FF] dark:bg-brand-purple/15 text-brand-purple font-bold text-sm transition-all hover:bg-brand-purple/20 active:scale-95 shadow-sm cursor-pointer"
+                >
+                  <Edit3 className="w-4 h-4" />
+                  <span>Edit Profile</span>
+                </button>
+
+                <button 
+                  onClick={() => {
+                    navigator.clipboard.writeText(window.location.href);
+                    toast.success("Profile link copied to clipboard!");
+                  }}
+                  className="w-12 h-12 shrink-0 flex items-center justify-center rounded-full bg-gray-100 dark:bg-[#1F1F23] text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-[#27272A] transition-all shadow-sm active:scale-95 cursor-pointer"
+                  title="Share profile"
+                >
+                  <Share2 className="w-5 h-5" />
+                </button>
+              </>
+            ) : (
               <>
                 <button 
                   onClick={handleFollowToggle}
                   disabled={isTogglingFollow}
-                  className={`flex-1 max-w-[200px] h-12 flex items-center justify-center gap-2 rounded-full font-bold text-sm transition-all shadow-md active:scale-95 cursor-pointer ${
+                  className={`flex-1 sm:flex-initial sm:min-w-[150px] h-12 flex items-center justify-center gap-2 rounded-full font-bold text-sm transition-all shadow-md active:scale-95 cursor-pointer ${
                     isFollowing
-                      ? 'bg-gray-100 dark:bg-[#1F1F23] text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-[#27272A] hover:bg-red-50 dark:hover:bg-red-950/20 hover:text-red-600 hover:border-red-200'
+                      ? 'bg-gray-100 dark:bg-[#1F1F23] text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-[#27272A] hover:bg-red-50 dark:hover:bg-red-950/20 hover:text-red-600'
                       : 'bg-brand-purple text-white hover:bg-brand-purple-hover shadow-brand-purple/20'
                   }`}
                 >
@@ -976,10 +1084,28 @@ const PublicProfile: React.FC = () => {
                 <button 
                   onClick={handleMessageClick}
                   disabled={isCreatingConversation}
-                  className="w-12 h-12 shrink-0 flex items-center justify-center rounded-full bg-gray-100 dark:bg-[#1F1F23] text-brand-black dark:text-white hover:bg-gray-200 dark:hover:bg-[#27272A] transition-all shadow-sm active:scale-95 cursor-pointer"
+                  className="h-12 px-5 shrink-0 flex items-center justify-center gap-2 rounded-full border-2 border-brand-purple text-brand-purple hover:bg-brand-purple/5 dark:hover:bg-brand-purple/10 font-bold text-sm transition-all active:scale-95 cursor-pointer disabled:opacity-50"
                   title="Message"
                 >
-                  <MessageCircle className="w-5 h-5" />
+                  {isCreatingConversation ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <>
+                      <MessageCircle className="w-4 h-4" />
+                      <span>Message</span>
+                    </>
+                  )}
+                </button>
+
+                <button 
+                  onClick={() => {
+                    navigator.clipboard.writeText(window.location.href);
+                    toast.success("Profile link copied to clipboard!");
+                  }}
+                  className="w-12 h-12 shrink-0 flex items-center justify-center rounded-full bg-gray-100 dark:bg-[#1F1F23] text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-[#27272A] transition-all shadow-sm active:scale-95 cursor-pointer"
+                  title="Share profile"
+                >
+                  <Share2 className="w-5 h-5" />
                 </button>
 
                 <div className="relative shrink-0">
@@ -1029,26 +1155,6 @@ const PublicProfile: React.FC = () => {
                   )}
                 </div>
               </>
-            ) : (
-              <>
-                <button 
-                  onClick={() => navigate('/edit-profile')}
-                  className="flex-1 max-w-[200px] h-12 flex items-center justify-center gap-2 rounded-full bg-brand-purple text-white font-bold text-sm transition-all hover:bg-brand-purple-hover active:scale-95 shadow-md shadow-brand-purple/20 cursor-pointer"
-                >
-                  <Edit3 className="w-4 h-4" />
-                  Edit Profile
-                </button>
-                <button 
-                  onClick={() => {
-                    setActiveTab('portfolio');
-                    setShowAddModal(true);
-                  }}
-                  className="flex-1 max-w-[200px] h-12 flex items-center justify-center gap-2 rounded-full bg-gray-100 dark:bg-[#1F1F23] text-brand-black dark:text-white font-bold text-sm transition-all hover:bg-gray-200 dark:hover:bg-[#27272A] active:scale-95 cursor-pointer shadow-sm"
-                >
-                  <Plus className="w-4 h-4 text-brand-purple" />
-                  Upload Work
-                </button>
-              </>
             )}
           </div>
         </div>
@@ -1057,59 +1163,77 @@ const PublicProfile: React.FC = () => {
           setShowAddModal(true);
         }} />}
 
-        {/* 5. CONTENT NAVIGATION TABS */}
-        <div className="sticky top-[4.2rem] sm:top-[5rem] z-30 bg-[#FAFAFA]/90 dark:bg-[#09090B]/90 backdrop-blur-md py-4 border-b border-gray-100 dark:border-[#1F1F23] mb-6">
-          <div className="flex items-center justify-around">
+        {/* 5. CONTENT NAVIGATION TABS (Task 5) */}
+        <div className="sticky top-16 z-30 bg-[#FAFAFA]/95 dark:bg-[#09090B]/95 backdrop-blur-md py-3 border-b border-gray-100 dark:border-[#1F1F23] mb-6 -mx-4 px-4 sm:mx-0 sm:px-0">
+          <div className="flex items-center justify-around sm:justify-start sm:gap-8 overflow-x-auto no-scrollbar">
             <button
               onClick={() => setActiveTab('portfolio')}
-              className={`flex items-center gap-1.5 py-1.5 px-3 rounded-xl text-xs font-black uppercase tracking-wider relative transition-colors duration-300 cursor-pointer ${
+              className={`flex items-center gap-1.5 py-2 px-3 text-xs sm:text-sm font-bold relative transition-colors duration-200 cursor-pointer whitespace-nowrap ${
                 activeTab === 'portfolio' 
                   ? 'text-brand-purple' 
-                  : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
               }`}
             >
               <LayoutGrid className="w-4 h-4" />
-              Portfolio ({profile.portfolio_media?.length || 0})
+              <span>Portfolio ({profile.portfolio_media?.length || 0})</span>
               {activeTab === 'portfolio' && (
                 <motion.div 
-                  layoutId="activeTabUnderline" 
-                  className="absolute -bottom-4 left-0 right-0 h-[3px] bg-brand-purple rounded-full" 
-                />
-              )}
-            </button>
-
-            <button
-              onClick={() => setActiveTab('about')}
-              className={`flex items-center gap-1.5 py-1.5 px-3 rounded-xl text-xs font-black uppercase tracking-wider relative transition-colors duration-300 cursor-pointer ${
-                activeTab === 'about' 
-                  ? 'text-brand-purple' 
-                  : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
-              }`}
-            >
-              <User className="w-4 h-4" />
-              About & Skills
-              {activeTab === 'about' && (
-                <motion.div 
-                  layoutId="activeTabUnderline" 
-                  className="absolute -bottom-4 left-0 right-0 h-[3px] bg-brand-purple rounded-full" 
+                  layoutId="activeProfileTabUnderline" 
+                  className="absolute -bottom-3 left-0 right-0 h-[3px] bg-brand-purple rounded-full" 
                 />
               )}
             </button>
 
             <button
               onClick={() => setActiveTab('posts')}
-              className={`flex items-center gap-1.5 py-1.5 px-3 rounded-xl text-xs font-black uppercase tracking-wider relative transition-colors duration-300 cursor-pointer ${
+              className={`flex items-center gap-1.5 py-2 px-3 text-xs sm:text-sm font-bold relative transition-colors duration-200 cursor-pointer whitespace-nowrap ${
                 activeTab === 'posts' 
                   ? 'text-brand-purple' 
-                  : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
               }`}
             >
               <FileText className="w-4 h-4" />
-              Posts
+              <span>Posts</span>
               {activeTab === 'posts' && (
                 <motion.div 
-                  layoutId="activeTabUnderline" 
-                  className="absolute -bottom-4 left-0 right-0 h-[3px] bg-brand-purple rounded-full" 
+                  layoutId="activeProfileTabUnderline" 
+                  className="absolute -bottom-3 left-0 right-0 h-[3px] bg-brand-purple rounded-full" 
+                />
+              )}
+            </button>
+
+            <button
+              onClick={() => setActiveTab('gigs')}
+              className={`flex items-center gap-1.5 py-2 px-3 text-xs sm:text-sm font-bold relative transition-colors duration-200 cursor-pointer whitespace-nowrap ${
+                activeTab === 'gigs' 
+                  ? 'text-brand-purple' 
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
+              }`}
+            >
+              <Briefcase className="w-4 h-4" />
+              <span>Gigs {postedGigsCount > 0 ? `(${postedGigsCount})` : ''}</span>
+              {activeTab === 'gigs' && (
+                <motion.div 
+                  layoutId="activeProfileTabUnderline" 
+                  className="absolute -bottom-3 left-0 right-0 h-[3px] bg-brand-purple rounded-full" 
+                />
+              )}
+            </button>
+
+            <button
+              onClick={() => setActiveTab('about')}
+              className={`flex items-center gap-1.5 py-2 px-3 text-xs sm:text-sm font-bold relative transition-colors duration-200 cursor-pointer whitespace-nowrap ${
+                activeTab === 'about' 
+                  ? 'text-brand-purple' 
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
+              }`}
+            >
+              <User className="w-4 h-4" />
+              <span>About</span>
+              {activeTab === 'about' && (
+                <motion.div 
+                  layoutId="activeProfileTabUnderline" 
+                  className="absolute -bottom-3 left-0 right-0 h-[3px] bg-brand-purple rounded-full" 
                 />
               )}
             </button>
@@ -1175,7 +1299,121 @@ const PublicProfile: React.FC = () => {
             </div>
           )}
 
-          {/* TAB 2: ABOUT & SKILLS */}
+          {/* TAB 2: COMMUNITY POSTS */}
+          {activeTab === 'posts' && (
+            <div className="space-y-6">
+              <h3 className="text-lg font-black text-brand-black dark:text-brand-white uppercase tracking-wider flex items-center gap-2 mb-2">
+                <FileText className="w-5 h-5 text-brand-purple" />
+                Latest Feed Updates
+              </h3>
+
+              {isLoadingPosts ? (
+                <div className="space-y-4">
+                  {[1, 2].map(n => (
+                    <div key={n} className="bg-white dark:bg-brand-dark-card p-6 rounded-3xl animate-pulse border border-gray-100 dark:border-[#1F1F23]/80 space-y-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-800" />
+                        <div className="space-y-2">
+                          <div className="h-3.5 w-32 bg-gray-200 dark:bg-gray-800 rounded" />
+                          <div className="h-3 w-16 bg-gray-200 dark:bg-gray-800 rounded" />
+                        </div>
+                      </div>
+                      <div className="h-20 bg-gray-200 dark:bg-gray-800 rounded-2xl" />
+                    </div>
+                  ))}
+                </div>
+              ) : posts.length > 0 ? (
+                <div className="space-y-4 max-w-[600px] mx-auto">
+                  {posts.map((post) => (
+                    <PostCard 
+                      key={post.id} 
+                      post={post} 
+                      onDelete={(deletedId) => {
+                        setPosts(prev => prev.filter(p => p.id !== deletedId));
+                      }}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-white dark:bg-brand-dark-card rounded-3xl p-12 text-center border border-gray-150 dark:border-[#1F1F23]">
+                  <Radio className="w-10 h-10 text-gray-400 dark:text-gray-600 mx-auto mb-3" />
+                  <p className="text-gray-600 dark:text-gray-400 font-bold text-sm">No updates posted on feed yet.</p>
+                  {isOwnProfile && (
+                    <button
+                      onClick={() => navigate('/dashboard')}
+                      className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 bg-brand-purple text-white hover:bg-brand-purple-hover font-bold rounded-xl transition-all cursor-pointer"
+                    >
+                      Create first post
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB 3: GIGS (Task 5) */}
+          {activeTab === 'gigs' && (() => {
+            const visibleUserGigs = userGigs.filter(gig => !isUserBlocked(gig.poster_id));
+            return (
+              <div className="space-y-6 animate-in fade-in duration-200">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-black text-brand-black dark:text-brand-white uppercase tracking-wider flex items-center gap-2">
+                    <Briefcase className="w-5 h-5 text-brand-purple" />
+                    Posted Gigs ({visibleUserGigs.length})
+                  </h3>
+                  {isOwnProfile && (
+                    <button
+                      onClick={() => navigate('/post-gig', { state: { initialMode: 'gig' } })}
+                      className="flex items-center gap-1.5 px-4 py-2 bg-brand-purple text-white text-xs font-bold rounded-xl shadow-md hover:bg-brand-purple-hover active:scale-95 transition-all cursor-pointer"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Post a Gig
+                    </button>
+                  )}
+                </div>
+
+                {isLoadingGigs ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {[1, 2].map(n => (
+                      <div key={n} className="h-64 bg-white dark:bg-brand-dark-card rounded-2xl p-5 border border-gray-100 dark:border-brand-dark-card animate-pulse" />
+                    ))}
+                  </div>
+                ) : visibleUserGigs.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                    {visibleUserGigs.map(gig => (
+                      <GigCard
+                        key={gig.id}
+                        gig={gig}
+                        onViewDetails={(g) => setSelectedGigModal(g)}
+                        onApply={(id) => navigate(`/gig/${id}`)}
+                        showApply={!isOwnProfile}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="bg-white dark:bg-brand-dark-card rounded-3xl p-12 text-center border border-gray-150 dark:border-[#1F1F23]">
+                    <Briefcase className="w-12 h-12 text-gray-300 dark:text-gray-700 mx-auto mb-3" />
+                    <h4 className="text-lg font-bold text-brand-black dark:text-brand-white mb-1">No gigs posted yet</h4>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 max-w-sm mx-auto">
+                      {isOwnProfile 
+                        ? "You haven't posted any gigs yet. Tap below to create your first listing." 
+                        : "This creator hasn't posted any gigs yet."}
+                    </p>
+                    {isOwnProfile && (
+                      <button
+                        onClick={() => navigate('/post-gig', { state: { initialMode: 'gig' } })}
+                        className="mt-5 inline-flex items-center gap-2 px-6 py-3 bg-brand-purple text-white font-bold rounded-2xl hover:bg-brand-purple-hover active:scale-95 transition-all shadow-md shadow-brand-purple/10 cursor-pointer"
+                      >
+                        <Plus className="w-4 h-4" /> Post a Gig
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+
+          {/* TAB 4: ABOUT & SKILLS */}
           {activeTab === 'about' && (
             <div className="space-y-6 animate-in fade-in duration-200">
               {/* Bio Card */}
@@ -1240,58 +1478,6 @@ const PublicProfile: React.FC = () => {
                   </p>
                 </div>
               </div>
-            </div>
-          )}
-
-          {/* TAB 3: COMMUNITY POSTS */}
-          {activeTab === 'posts' && (
-            <div className="space-y-6">
-              <h3 className="text-lg font-black text-brand-black dark:text-brand-white uppercase tracking-wider flex items-center gap-2 mb-2">
-                <FileText className="w-5 h-5 text-brand-purple" />
-                Latest Feed Updates
-              </h3>
-
-              {isLoadingPosts ? (
-                <div className="space-y-4">
-                  {[1, 2].map(n => (
-                    <div key={n} className="bg-white dark:bg-brand-dark-card p-6 rounded-3xl animate-pulse border border-gray-100 dark:border-[#1F1F23]/80 space-y-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-800" />
-                        <div className="space-y-2">
-                          <div className="h-3.5 w-32 bg-gray-200 dark:bg-gray-800 rounded" />
-                          <div className="h-3 w-16 bg-gray-200 dark:bg-gray-800 rounded" />
-                        </div>
-                      </div>
-                      <div className="h-20 bg-gray-200 dark:bg-gray-800 rounded-2xl" />
-                    </div>
-                  ))}
-                </div>
-              ) : posts.length > 0 ? (
-                <div className="space-y-4 max-w-[600px] mx-auto">
-                  {posts.map((post) => (
-                    <PostCard 
-                      key={post.id} 
-                      post={post} 
-                      onDelete={(deletedId) => {
-                        setPosts(prev => prev.filter(p => p.id !== deletedId));
-                      }}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="bg-white dark:bg-brand-dark-card rounded-3xl p-12 text-center border border-gray-150 dark:border-[#1F1F23]">
-                  <Radio className="w-10 h-10 text-gray-400 dark:text-gray-600 mx-auto mb-3" />
-                  <p className="text-gray-600 dark:text-gray-400 font-bold text-sm">No updates posted on feed yet.</p>
-                  {isOwnProfile && (
-                    <button
-                      onClick={() => navigate('/dashboard')}
-                      className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 bg-brand-purple text-white hover:bg-brand-purple-hover font-bold rounded-xl transition-all cursor-pointer"
-                    >
-                      Create first post
-                    </button>
-                  )}
-                </div>
-              )}
             </div>
           )}
 

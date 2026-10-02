@@ -33,7 +33,7 @@ export default function GigsFeed({
           ))}
         </div>
       ) : (
-        <div>
+        <div className="space-y-4">
           {gigs.slice(0, visibleCount).map((gig, i) => (
             <motion.div
               key={`gig-${gig.id}`}
@@ -41,6 +41,7 @@ export default function GigsFeed({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ delay: (i % 8) * 0.05 }}
+              className="w-full"
             >
               <GigCard 
                 gig={gig} 

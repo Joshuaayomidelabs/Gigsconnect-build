@@ -4,14 +4,14 @@ import { Music, Mic2, Disc, Radio, Guitar, Piano, Drum, Headphones } from 'lucid
 import { Link } from 'react-router-dom';
 
 const categories = [
-  { name: 'Vocalists', icon: Mic2, count: '1.2k+', color: 'bg-brand-purple' },
-  { name: 'Producers', icon: Disc, count: '800+', color: 'bg-brand-purple/80' },
-  { name: 'Instrumentalists', icon: Guitar, count: '2.5k+', color: 'bg-brand-purple/60' },
-  { name: 'DJs', icon: Radio, count: '400+', color: 'bg-brand-purple/40' },
-  { name: 'Songwriters', icon: Music, count: '600+', color: 'bg-brand-purple/90' },
-  { name: 'Mixing/Mastering', icon: Headphones, count: '300+', color: 'bg-brand-purple/70' },
-  { name: 'Pianists', icon: Piano, count: '450+', color: 'bg-brand-purple/50' },
-  { name: 'Drummers', icon: Drum, count: '550+', color: 'bg-brand-purple/30' },
+  { name: 'Vocalists', icon: Mic2, color: 'bg-brand-purple' },
+  { name: 'Producers', icon: Disc, color: 'bg-brand-purple/80' },
+  { name: 'Instrumentalists', icon: Guitar, color: 'bg-brand-purple/60' },
+  { name: 'DJs', icon: Radio, color: 'bg-brand-purple/40' },
+  { name: 'Songwriters', icon: Music, color: 'bg-brand-purple/90' },
+  { name: 'Mixing/Mastering', icon: Headphones, color: 'bg-brand-purple/70' },
+  { name: 'Pianists', icon: Piano, color: 'bg-brand-purple/50' },
+  { name: 'Drummers', icon: Drum, color: 'bg-brand-purple/30' },
 ];
 
 const Categories: React.FC = () => {
@@ -54,12 +54,9 @@ const Categories: React.FC = () => {
                 <div className={`w-16 h-16 ${cat.color} rounded-2xl flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-500`}>
                   <cat.icon className="w-8 h-8 text-white" />
                 </div>
-                <h3 className="text-xl font-black text-brand-black dark:text-white mb-2 group-hover:text-brand-purple transition-colors">
+                <h3 className="text-xl font-black text-brand-black dark:text-white group-hover:text-brand-purple transition-colors">
                   {cat.name}
                 </h3>
-                <p className="text-sm font-bold text-gray-400">
-                  {cat.count} Professionals
-                </p>
               </Link>
             </motion.div>
           ))}

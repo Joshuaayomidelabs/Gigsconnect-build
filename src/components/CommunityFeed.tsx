@@ -153,9 +153,9 @@ export default function CommunityFeed() {
 
   if (loading) {
     return (
-      <div className="flex flex-col pb-12 w-full sm:max-w-[600px] mx-auto">
+      <div className="flex flex-col pb-12 w-full space-y-4">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="relative w-full sm:max-w-[600px] mx-auto mb-10 sm:mb-14">
+          <div key={i} className="relative w-full mb-4">
             <div className="bg-white dark:bg-[#0F0F12]/90 sm:backdrop-blur-3xl sm:rounded-[40px] sm:border border-gray-200/50 dark:border-[#1F1F23]/80 sm:shadow-[0_8px_30px_rgb(0,0,0,0.04)] sm:dark:shadow-[0_8px_30px_rgb(0,0,0,0.3)] overflow-hidden flex flex-col relative z-0 animate-pulse border-y border-gray-200 dark:border-[#1F1F23]">
               <div className="flex items-center gap-3 px-4 sm:px-6 pt-5 pb-3">
                 <div className="w-[44px] h-[44px] rounded-full bg-gray-200 dark:bg-[#1A1A1E]"></div>
@@ -201,7 +201,7 @@ export default function CommunityFeed() {
   }
 
   return (
-    <div className="flex flex-col pb-12 w-full sm:max-w-[600px] mx-auto">
+    <div className="flex flex-col pb-12 w-full">
       <Virtuoso
         useWindowScroll
         data={posts}

@@ -50,7 +50,7 @@ export const Settings: React.FC = () => {
             <div>
               <h2 className="text-xl font-black text-brand-black dark:text-white flex items-center gap-2 mb-1">
                 <CreditCard className="w-6 h-6 text-brand-purple" />
-                Subscription Plan
+                Subscription
               </h2>
               <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Manage your billing and plan limits.</p>
             </div>

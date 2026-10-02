@@ -19,8 +19,8 @@ export const SEO: React.FC<SEOProps> = ({
   noindex = false 
 }) => {
   const siteName = 'GigsConnect';
-  const defaultTitle = 'GigsConnect Africa | Connecting Talent with Opportunity';
-  const defaultDescription = 'GigsConnect is the premier platform connecting African creators, freelancers, and talent with top gig opportunities, collaborations, and brands.';
+  const defaultTitle = 'GigsConnect: Where African Creators Connect, Collaborate and Earn';
+  const defaultDescription = 'GigsConnect is where African creators collaborate, get hired and earn. Join 5,000+ creators sharing their work and finding gigs.';
   const defaultImage = 'https://gigsconnect.africa/default-og-image.jpg'; // We can update this based on existing assets if needed
 
   const seoTitle = title ? title.includes(siteName) ? title : `${title} | ${siteName}` : defaultTitle;

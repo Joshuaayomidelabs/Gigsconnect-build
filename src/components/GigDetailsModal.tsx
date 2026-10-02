@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
-import { X, MapPin, Calendar, Banknote, Shield, CheckCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { X, MapPin, Calendar, CheckCircle, ChevronDown, ChevronUp, ArrowRight, ShieldCheck } from 'lucide-react';
 import { formatCurrency, formatDate } from '../utils/helpers';
+import VerificationBadge from './VerificationBadge';
+import { getCategoryConfig } from '../utils/categoryStyles';
 
 interface GigDetailsModalProps {
   gig: any;
@@ -20,6 +22,9 @@ const GigDetailsModal: React.FC<GigDetailsModalProps> = ({ gig, isOpen, onClose,
 
   const creator = gig.poster_id;
   const isLongDescription = gig.description && gig.description.length > 250;
+  const mediaUrl = gig.image_url || gig.image || gig.media_url || gig.media || gig.cover_image;
+  const categoryConfig = getCategoryConfig(gig.gig_category);
+  const CategoryIcon = categoryConfig.icon;
 
   return (
     <AnimatePresence>
@@ -39,48 +44,70 @@ const GigDetailsModal: React.FC<GigDetailsModalProps> = ({ gig, isOpen, onClose,
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
-            className="relative w-full max-w-2xl bg-brand-white dark:bg-brand-dark-card rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]"
+            className="relative w-full max-w-2xl bg-white dark:bg-brand-dark-card rounded-2xl shadow-2xl border border-gray-100 dark:border-brand-dark-card overflow-hidden flex flex-col max-h-[90vh]"
           >
-            {/* Close Button */}
-            <button
-              onClick={onClose}
-              className="absolute top-4 right-4 z-10 p-2 rounded-full bg-brand-gray dark:bg-brand-black text-gray-500 hover:text-brand-black dark:hover:text-brand-white transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
+            {/* Category Gradient Header (or image if gig has one) with Close Button */}
+            <div className="relative w-full overflow-hidden shrink-0">
+              {mediaUrl ? (
+                <div className="aspect-[21/9] w-full bg-gray-100 dark:bg-brand-black">
+                  <img 
+                    src={mediaUrl} 
+                    alt={gig.title} 
+                    className="w-full h-full object-cover" 
+                  />
+                </div>
+              ) : (
+                <div className={`h-36 sm:h-44 w-full bg-gradient-to-br ${categoryConfig.gradient} flex items-center justify-center`}>
+                  <CategoryIcon className="w-14 h-14 sm:w-16 sm:h-16 stroke-[1.75] opacity-90 transition-transform hover:scale-105 duration-300" />
+                </div>
+              )}
+
+              {/* Close Button */}
+              <button
+                onClick={onClose}
+                aria-label="Close"
+                className="absolute top-3.5 right-3.5 z-10 p-2 rounded-full bg-white/80 dark:bg-brand-black/80 backdrop-blur-md text-brand-black dark:text-brand-white hover:bg-white dark:hover:bg-brand-black transition-all shadow-sm active:scale-95"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
 
             {/* Header Section */}
-            <div className="p-6 sm:p-8 border-b border-brand-gray dark:border-brand-black">
-              <div className="flex flex-wrap gap-2 mb-3">
-                <span className="px-3 py-1 bg-brand-purple/10 text-brand-purple text-xs font-bold uppercase tracking-wider rounded-full">
-                  {gig.gig_category}
+            <div className="p-5 sm:p-6 border-b border-gray-100 dark:border-brand-dark-card shrink-0">
+              <div className="flex flex-wrap items-center gap-2 mb-2.5">
+                <span className="px-3 py-1 bg-brand-purple/10 dark:bg-brand-purple/20 border border-brand-purple/20 text-brand-purple text-xs font-bold rounded-full">
+                  {gig.gig_category || 'Gig'}
                 </span>
-                {gig.verified && (
-                  <span className="px-3 py-1 bg-green-500/10 text-green-600 dark:text-green-400 text-xs font-bold uppercase tracking-wider rounded-full flex items-center gap-1">
-                    <Shield className="w-3 h-3" />
-                    Verified
-                  </span>
-                )}
+                <span className="px-3 py-1 bg-brand-purple/10 dark:bg-brand-purple/20 text-brand-purple text-xs font-black rounded-full">
+                  {formatCurrency(gig.budget || 0, gig.currency || 'USD')}
+                </span>
+                <span className="px-3 py-1 bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-300 text-xs font-semibold rounded-full flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-brand-purple" />
+                  {gig.location || 'Remote'}
+                </span>
               </div>
-              <h2 className="text-2xl sm:text-3xl font-black text-brand-black dark:text-brand-white tracking-tight leading-tight pr-8">
+              <h2 className="text-xl sm:text-2xl font-black text-brand-black dark:text-brand-white tracking-tight leading-tight">
                 {gig.title}
               </h2>
             </div>
 
             {/* Scrollable Content */}
-            <div className="flex-grow overflow-y-auto p-6 sm:p-8 space-y-6 custom-scrollbar">
+            <div className="flex-grow overflow-y-auto p-5 sm:p-6 space-y-6 custom-scrollbar">
               
               {/* Compact Poster Info & Key Stats */}
-              <div className="flex flex-col sm:flex-row gap-6 justify-between items-start sm:items-center bg-brand-gray dark:bg-brand-black/50 p-4 rounded-2xl border border-brand-gray dark:border-brand-black">
+              <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center bg-gray-50 dark:bg-brand-black/50 p-4 rounded-2xl border border-gray-100 dark:border-brand-black">
                 {/* Poster */}
                 <div 
-                  className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+                  className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity min-w-0"
                   onClick={() => {
                     const profileId = creator?.id || creator?.user_id;
-                    if (profileId) navigate(`/profile/${profileId}`);
+                    if (profileId) {
+                      onClose();
+                      navigate(`/profile/${profileId}`);
+                    }
                   }}
                 >
-                  <div className="w-10 h-10 rounded-full bg-brand-purple/10 border border-brand-purple/20 overflow-hidden flex items-center justify-center flex-shrink-0">
+                  <div className="w-10 h-10 rounded-full bg-brand-purple/10 border border-brand-purple/20 overflow-hidden flex items-center justify-center shrink-0">
                     {creator?.avatar_url ? (
                       <img 
                         src={creator.avatar_url} 
@@ -94,39 +121,28 @@ const GigDetailsModal: React.FC<GigDetailsModalProps> = ({ gig, isOpen, onClose,
                       </div>
                     )}
                   </div>
-                  <div>
-                    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Posted by</p>
-                    <h4 className="text-sm font-black text-brand-black dark:text-brand-white">{creator?.full_name || 'Anonymous'}</h4>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Posted by</p>
+                    <div className="text-sm font-bold text-brand-black dark:text-brand-white flex items-center gap-1 truncate">
+                      <span className="truncate">{creator?.full_name || 'Anonymous'}</span>
+                      <VerificationBadge verificationStatus={creator?.verification_status} />
+                    </div>
                   </div>
                 </div>
 
-                {/* Stats Row */}
-                <div className="flex flex-wrap gap-4 sm:gap-6">
-                  <div className="flex items-center gap-2">
-                    <Banknote className="w-4 h-4 text-brand-purple" />
-                    <span className="text-sm font-bold text-brand-black dark:text-brand-white">
-                      {formatCurrency(gig.budget || 0, gig.currency || 'USD')}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-brand-purple" />
-                    <span className="text-sm font-bold text-brand-black dark:text-brand-white">
-                      {gig.location}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
+                {/* Deadline */}
+                {gig.deadline && (
+                  <div className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-300 font-semibold shrink-0">
                     <Calendar className="w-4 h-4 text-brand-purple" />
-                    <span className="text-sm font-bold text-brand-black dark:text-brand-white">
-                      {gig.deadline ? formatDate(gig.deadline) : 'TBD'}
-                    </span>
+                    <span>Deadline: {formatDate(gig.deadline)}</span>
                   </div>
-                </div>
+                )}
               </div>
 
               {/* Description with Read More */}
               <div>
-                <h3 className="text-sm font-black text-gray-500 uppercase tracking-widest mb-2">
-                  Description
+                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">
+                  About this gig
                 </h3>
                 <div className="relative">
                   <p className={`text-brand-black dark:text-gray-300 text-sm sm:text-base leading-relaxed whitespace-pre-wrap ${!isDescriptionExpanded && isLongDescription ? 'line-clamp-4' : ''}`}>
@@ -147,34 +163,63 @@ const GigDetailsModal: React.FC<GigDetailsModalProps> = ({ gig, isOpen, onClose,
                   )}
                 </div>
               </div>
+
+              {/* Skills required ONLY if gig has a skills array with items */}
+              {Array.isArray(gig.skills) && gig.skills.length > 0 && (
+                <div>
+                  <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                    Skills required
+                  </h3>
+                  <div className="flex flex-wrap gap-1.5">
+                    {gig.skills.map((skill: string, index: number) => (
+                      <span 
+                        key={index}
+                        className="px-3 py-1 bg-brand-purple/10 dark:bg-brand-purple/20 text-brand-purple text-xs font-semibold rounded-full"
+                      >
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* Compact Footer Actions */}
-            <div className="p-4 sm:p-6 bg-brand-gray dark:bg-brand-black/80 border-t border-brand-gray dark:border-brand-black flex justify-end gap-3">
-              <button
-                onClick={onClose}
-                className="px-6 py-2.5 rounded-xl border border-gray-300 dark:border-gray-700 text-brand-black dark:text-brand-white font-bold hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-sm"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => !isApplied && onApply(gig.id)}
-                disabled={isApplied}
-                className={`px-8 py-2.5 rounded-xl font-black text-sm transition-all flex items-center justify-center gap-2 ${
-                  isApplied
-                    ? 'bg-gray-200 dark:bg-gray-800 text-gray-500 cursor-not-allowed'
-                    : 'bg-brand-purple text-white hover:bg-brand-purple-dark active:scale-95 shadow-md shadow-brand-purple/20'
-                }`}
-              >
-                {isApplied ? (
-                  <>
-                    <CheckCircle className="w-4 h-4" />
-                    Applied
-                  </>
-                ) : (
-                  'Accept Gig'
-                )}
-              </button>
+            {/* Prominent Full-Width Apply Button in #6C3BFF */}
+            <div className="p-4 sm:p-5 bg-gray-50 dark:bg-brand-black/80 border-t border-gray-100 dark:border-brand-dark-card flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+              <div className="hidden sm:flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 font-medium">
+                <ShieldCheck className="w-4 h-4 text-brand-purple shrink-0" />
+                <span>Your profile will be shared with the poster.</span>
+              </div>
+              
+              <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
+                <button
+                  onClick={onClose}
+                  className="px-4 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-700 text-brand-black dark:text-brand-white font-bold hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors text-xs active:scale-95"
+                >
+                  Close
+                </button>
+                <button
+                  onClick={() => !isApplied && onApply(gig.id)}
+                  disabled={isApplied}
+                  className={`flex-1 sm:flex-initial px-6 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-2 active:scale-95 ${
+                    isApplied
+                      ? 'bg-gray-100 dark:bg-zinc-800 text-gray-400 dark:text-zinc-500 cursor-not-allowed'
+                      : 'bg-brand-purple text-white hover:bg-brand-purple-hover shadow-md'
+                  }`}
+                >
+                  {isApplied ? (
+                    <>
+                      <CheckCircle className="w-4 h-4 text-green-500" />
+                      Applied
+                    </>
+                  ) : (
+                    <>
+                      Apply Now
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </motion.div>
         </div>

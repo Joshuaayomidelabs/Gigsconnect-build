@@ -63,6 +63,7 @@ const Chat: React.FC = () => {
         
         try {
           await markConversationRead(conversationId);
+          window.dispatchEvent(new CustomEvent('messages-read'));
         } catch (e) {
           console.warn("Failed to mark as read", e);
         }
@@ -194,7 +195,9 @@ const Chat: React.FC = () => {
           
           // If we received a message from them, mark as read
           if (newMsg.sender_id !== user.id) {
-            markConversationRead(conversationId).catch(console.warn);
+            markConversationRead(conversationId)
+              .then(() => window.dispatchEvent(new CustomEvent('messages-read')))
+              .catch(console.warn);
           }
         }
       })

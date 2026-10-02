@@ -1,12 +1,10 @@
 import { SEO } from '../components/SEO';
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Loader2, ArrowLeft, CheckCircle, ShieldCheck } from 'lucide-react';
+import { Loader2, ArrowLeft, ShieldCheck, Lock, AlertCircle } from 'lucide-react';
 import { supabase } from '../services/supabaseClient';
 import PasswordInput from '../components/PasswordInput';
-import Logo from '../components/Logo';
 import { getFriendlyErrorMessage } from '../utils/errorHandler';
-
 
 const ResetPassword: React.FC = () => {
   const navigate = useNavigate();
@@ -79,9 +77,8 @@ const ResetPassword: React.FC = () => {
           refreshToken = params.get('refresh_token') || '';
         }
 
-        // If we extracted the oauth values, securely establish a Supabase Auth session manually
+        // If we extracted the tokens, establish session
         if (accessToken && refreshToken) {
-          console.log('Detected recovery tokens, logging in...');
           const { error: sessionError } = await supabase.auth.setSession({
             access_token: accessToken,
             refresh_token: refreshToken,
@@ -92,7 +89,6 @@ const ResetPassword: React.FC = () => {
             setHasSession(true);
           }
         } else {
-          // If no token was found in the hash, check Supabase auth once more (give listener a split second)
           const { data: { session: currentSession } } = await supabase.auth.getSession();
           if (currentSession) {
             if (mounted) setHasSession(true);
@@ -153,7 +149,6 @@ const ResetPassword: React.FC = () => {
     setGlobalError(null);
 
     try {
-      // Call Supabase updateUser to assign the new password
       const { error: updateError } = await supabase.auth.updateUser({
         password: password
       });
@@ -171,53 +166,66 @@ const ResetPassword: React.FC = () => {
 
   if (isInitializing) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-brand-gray dark:bg-brand-black transition-colors">
-      <SEO title="Reset Password | GigsConnect" noindex={true} />
-
+      <div className="min-h-[100dvh] bg-gradient-to-br from-[#FAF8FF] via-[#F4EFFF] to-[#EDE5FF] dark:from-[#09080E] dark:via-[#0F0B18] dark:to-[#160E27] flex flex-col justify-center items-center px-4">
+        <SEO title="Reset Password | GigsConnect" noindex={true} />
         <div className="text-center">
-          <Loader2 className="w-12 h-12 text-brand-purple animate-spin mx-auto mb-4" />
-          <p className="text-gray-500 dark:text-gray-400 font-medium font-sans">Verifying link authenticity...</p>
+          <Loader2 className="w-10 h-10 text-brand-purple animate-spin mx-auto mb-3" />
+          <p className="text-xs sm:text-sm font-semibold text-gray-500 dark:text-gray-400">Verifying link authenticity...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-brand-gray dark:bg-brand-black flex flex-col font-sans transition-colors duration-500">
-      {/* Minimal Header */}
-      <div className="pt-8 px-6 flex justify-center sm:justify-start max-w-md mx-auto w-full">
-        <Link to="/" className="inline-flex items-center gap-2 group">
-          <Logo iconClassName="w-8 h-8" />
-          <h1 className="text-2xl font-black text-brand-black dark:text-brand-white tracking-tighter">
-            Gigs<span className="text-brand-purple">Connect</span>
-          </h1>
-        </Link>
+    <div className="min-h-[100dvh] bg-gradient-to-br from-[#FAF8FF] via-[#F4EFFF] to-[#EDE5FF] dark:from-[#09080E] dark:via-[#0F0B18] dark:to-[#160E27] flex flex-col justify-center items-center px-4 py-8 pt-[calc(5rem+env(safe-area-inset-top))] pb-[calc(2.5rem+env(safe-area-inset-bottom))] transition-colors duration-300 relative overflow-y-auto">
+      <SEO title="Reset Password | GigsConnect" noindex={true} />
+
+      {/* Ambient background glow */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-brand-purple/10 dark:bg-brand-purple/20 blur-[130px] rounded-full pointer-events-none" />
       </div>
 
-      <main className="flex-grow flex flex-col justify-center items-center px-4 py-8 sm:px-6 lg:px-8 bg-gray-50/50">
-        <div className="w-full max-w-[440px] bg-white p-6 sm:p-10 rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100/80">
-          
-        <div className="w-full max-w-md mx-auto" id="reset-password-container">
+      <div className="w-full max-w-md my-auto">
+        {/* Centered Logo & Branding */}
+        <div className="flex flex-col items-center text-center mb-6">
+          <Link to="/" className="group flex flex-col items-center">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white dark:bg-brand-dark-card shadow-md border border-gray-100 dark:border-white/10 flex items-center justify-center p-2 mb-3 ring-4 ring-brand-purple/10 dark:ring-brand-purple/20 group-hover:scale-105 transition-transform duration-200">
+              <img 
+                src="/assets/branding/logo.svg" 
+                alt="GigsConnect Logo" 
+                className="w-full h-full object-contain rounded-xl"
+              />
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-black text-brand-black dark:text-brand-white tracking-tight">
+              Gigs<span className="text-brand-purple">Connect</span>
+            </h1>
+          </Link>
+          <p className="text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400 mt-1 tracking-wide">
+            Create, Collaborate, Earn
+          </p>
+        </div>
+
+        {/* Card */}
+        <div className="bg-white dark:bg-brand-dark-card rounded-3xl p-6 sm:p-8 md:p-9 shadow-xl shadow-brand-purple/5 border border-gray-100 dark:border-white/10 transition-colors">
           {!isSuccess ? (
             <>
-              <div className="mb-8">
-                <h2 className="text-2xl font-bold text-[#111827] tracking-tight leading-tight">
+              <div className="mb-6 text-center">
+                <h2 className="text-2xl font-black text-brand-black dark:text-brand-white tracking-tight">
                   New Password
                 </h2>
-                <p className="mt-2 text-sm text-gray-500">
-                  Please pick a strong, secure password that you don't use elsewhere.
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  Create a secure password for your account
                 </p>
               </div>
 
               {!hasSession && (
-                <div className="mb-6 p-4 rounded-xl bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20 text-center">
-                  <p className="text-sm font-bold text-red-600 mb-4 h-auto leading-relaxed">
+                <div className="mb-5 p-4 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 text-center">
+                  <p className="text-xs sm:text-sm font-semibold text-red-600 dark:text-red-400 mb-3">
                     {globalError || 'Your password recovery token could not be verified.'}
                   </p>
                   <Link
                     to="/forgot-password"
-                    id="btn-retry-reset"
-                    className="inline-flex h-12 px-6 items-center justify-center bg-brand-purple text-brand-white font-bold text-sm rounded-xl hover:bg-brand-purple-hover"
+                    className="inline-flex h-10 px-5 items-center justify-center bg-brand-purple text-white font-bold text-xs rounded-xl hover:bg-brand-purple-hover"
                   >
                     Request a new link
                   </Link>
@@ -225,7 +233,7 @@ const ResetPassword: React.FC = () => {
               )}
 
               {hasSession && (
-                <form className="space-y-5" onSubmit={handleSubmit} id="reset-password-form">
+                <form className="space-y-4" onSubmit={handleSubmit}>
                   <PasswordInput
                     label="New Password"
                     name="password"
@@ -236,6 +244,7 @@ const ResetPassword: React.FC = () => {
                     showStrength={password.length > 0}
                     strengthValue={strength.value}
                     strengthLabel={strength.label}
+                    leadingIcon={<Lock className="w-4 h-4" />}
                     required
                     disabled={isLoading}
                   />
@@ -247,13 +256,15 @@ const ResetPassword: React.FC = () => {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     error={errorFields.confirmPassword}
+                    leadingIcon={<Lock className="w-4 h-4" />}
                     required
                     disabled={isLoading}
                   />
 
                   {globalError && (
-                    <div className="text-xs font-bold text-red-600 bg-red-50 dark:bg-red-900/20 p-4 rounded-xl border border-red-100 dark:border-red-900/40 text-center">
-                      {globalError}
+                    <div className="p-3 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 text-xs font-semibold text-red-600 dark:text-red-400 flex items-start gap-2">
+                      <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                      <span>{globalError}</span>
                     </div>
                   )}
 
@@ -261,47 +272,53 @@ const ResetPassword: React.FC = () => {
                     <button
                       type="submit"
                       disabled={isLoading}
-                      id="btn-submit-reset"
-                      className="flex w-full h-[56px] justify-center items-center rounded-xl bg-[#7C3AED] text-white text-base font-semibold hover:bg-[#6D28D9] hover:-translate-y-0.5 hover:shadow-lg hover:shadow-[#7C3AED]/25 active:scale-[0.98] active:translate-y-0 transition-all duration-300 disabled:opacity-75 disabled:cursor-not-allowed gap-2"
+                      className="w-full h-12 sm:h-13 flex justify-center items-center rounded-xl bg-brand-purple hover:bg-brand-purple-hover text-white text-sm sm:text-base font-bold shadow-md shadow-brand-purple/20 active:scale-[0.99] transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer gap-2"
                     >
                       {isLoading ? (
                         <>
-                          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                          Updating Password...
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span>Updating Password...</span>
                         </>
                       ) : (
-                        'Update Password'
+                        <span>Update Password</span>
                       )}
                     </button>
                   </div>
                 </form>
               )}
+
+              <div className="mt-6 pt-5 border-t border-gray-100 dark:border-white/10 text-center">
+                <Link 
+                  to="/login" 
+                  className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-brand-purple hover:underline transition-all"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  Back to Log In
+                </Link>
+              </div>
             </>
           ) : (
-            <div className="text-center py-8">
-              <div className="w-16 h-16 bg-brand-purple/10 dark:bg-brand-purple/20 text-brand-purple rounded-full flex items-center justify-center mx-auto mb-6">
-                <ShieldCheck className="w-10 h-10" />
+            <div className="text-center py-4">
+              <div className="w-16 h-16 bg-brand-purple/10 dark:bg-brand-purple/20 text-brand-purple rounded-full flex items-center justify-center mx-auto mb-4 ring-8 ring-brand-purple/5">
+                <ShieldCheck className="w-8 h-8" />
               </div>
-              <h2 className="text-3xl font-black tracking-tight text-brand-black dark:text-brand-white mb-3">
+              <h2 className="text-2xl font-black tracking-tight text-brand-black dark:text-brand-white mb-2">
                 Password updated
               </h2>
-              <p className="text-sm font-bold text-gray-500 dark:text-gray-400 max-w-sm mx-auto mb-8 leading-relaxed">
+              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 max-w-sm mx-auto mb-6 leading-relaxed">
                 Your credentials have been securely updated. You can now log into your GigsConnect account using your new password.
               </p>
               
               <Link
                 to="/login"
-                id="btn-goto-login-success"
-                className="w-full max-w-xs mx-auto h-[56px] flex justify-center items-center rounded-xl bg-[#7C3AED] text-white text-base font-semibold hover:bg-[#6D28D9] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:scale-[0.98] active:translate-y-0"
+                className="w-full h-12 inline-flex justify-center items-center rounded-xl bg-brand-purple text-white text-xs sm:text-sm font-bold hover:bg-brand-purple-hover shadow-md shadow-brand-purple/20 transition-all cursor-pointer"
               >
                 Sign In
               </Link>
             </div>
           )}
         </div>
-      
-        </div>
-      </main>
+      </div>
     </div>
   );
 };

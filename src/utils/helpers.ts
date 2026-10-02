@@ -1,19 +1,26 @@
 export const formatCurrency = (amount: number, currency: string = 'USD') => {
-  const currencyCode = currency.toUpperCase();
+  const currencyCode = (currency || 'USD').toUpperCase();
   
-  // Use Intl.NumberFormat for thousand separators and standard formatting
-  const formatter = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: currencyCode,
-    currencyDisplay: 'narrowSymbol',
-    maximumFractionDigits: 0
-  });
+  // Ensure NGN always displays with the ₦ symbol
+  if (currencyCode === 'NGN') {
+    const formattedAmount = new Intl.NumberFormat('en-US', {
+      maximumFractionDigits: 0
+    }).format(amount);
+    return `₦${formattedAmount}`;
+  }
 
+  // Use Intl.NumberFormat for thousand separators and standard formatting
   try {
+    const formatter = new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currencyCode,
+      currencyDisplay: 'narrowSymbol',
+      maximumFractionDigits: 0
+    });
     return formatter.format(amount);
   } catch (e) {
     // Fallback if currency code is not supported by Intl
-    const symbol = currencyCode === 'NGN' ? '₦' : currencyCode === 'USD' ? '$' : currencyCode + ' ';
+    const symbol = currencyCode === 'USD' ? '$' : currencyCode + ' ';
     const formattedAmount = new Intl.NumberFormat('en-US', {
       maximumFractionDigits: 0
     }).format(amount);

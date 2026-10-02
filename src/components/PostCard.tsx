@@ -281,7 +281,7 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
   const isLongText = post.text && post.text.length > (isTextOnly ? 250 : 100);
 
   return (
-    <div className="w-full sm:max-w-[600px] mx-auto mb-6 sm:mb-8 group/post">
+    <div className="w-full mb-6 group/post">
       <div className="bg-white dark:bg-[#0F0F12] sm:rounded-2xl border-y sm:border border-gray-200 dark:border-[#1F1F23] flex flex-col relative z-0 overflow-hidden shadow-sm">
         
         {/* HEADER */}

@@ -162,7 +162,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile: initialProfile, user
 
   if (isLoadingProfile) {
     return (
-      <div className="bg-brand-white dark:bg-brand-dark-card rounded-[2.5rem] p-6 shadow-md border border-brand-gray dark:border-brand-black flex flex-col items-center text-center animate-pulse">
+      <div className="bg-white dark:bg-brand-dark-card rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-brand-dark-card flex flex-col items-center text-center animate-pulse">
         <div className="w-20 h-20 rounded-full bg-gray-200 dark:bg-gray-800 mb-4"></div>
         <div className="h-5 w-32 bg-gray-200 dark:bg-gray-800 rounded mb-2"></div>
         <div className="h-3 w-20 bg-gray-200 dark:bg-gray-800 rounded mb-5"></div>
@@ -188,7 +188,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile: initialProfile, user
   const displayAvatar = localProfile.avatar_url;
 
   return (
-    <div className="bg-brand-white dark:bg-brand-dark-card rounded-[2.5rem] p-5 sm:p-6 shadow-md border border-brand-gray dark:border-brand-black flex flex-col items-center text-center transition-colors overflow-hidden">
+    <div className="bg-white dark:bg-brand-dark-card rounded-2xl p-5 sm:p-6 shadow-sm border border-gray-100 dark:border-brand-dark-card flex flex-col items-center text-center transition-all overflow-hidden">
       <div className="relative mb-4 mx-auto w-20 h-20 flex-shrink-0 flex items-center justify-center">
         <div className="w-full h-full rounded-full bg-brand-purple/5 dark:bg-brand-purple/10 border-4 border-brand-white dark:border-brand-black overflow-hidden shadow-md relative z-10">
           {displayAvatar ? (

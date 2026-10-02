@@ -110,3 +110,17 @@ export const fetchConversations = async (): Promise<ConversationInboxItem[]> => 
   
   return inboxItems;
 };
+
+export const getUnreadMessagesCount = async (_userId?: string): Promise<number> => {
+  try {
+    const { data, error } = await supabase
+      .from('conversation_inbox')
+      .select('unread_count');
+
+    if (error || !data) return 0;
+    return data.reduce((acc: number, curr: any) => acc + (Number(curr.unread_count) || 0), 0);
+  } catch (err) {
+    console.error('Failed to get unread messages count:', err);
+    return 0;
+  }
+};

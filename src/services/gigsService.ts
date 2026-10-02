@@ -3,13 +3,9 @@ import { notificationsService } from './notificationsService';
 
 export const gigsService = {
   async getAllGigs() {
-    const threeDaysAgo = new Date();
-    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
-    
     const { data, error } = await supabase
       .from('gigs')
       .select('*, poster_id(*)')
-      .gte('created_at', threeDaysAgo.toISOString())
       .order('created_at', { ascending: false })
       .limit(100);
     return { data, error };
@@ -68,6 +64,14 @@ export const gigsService = {
       .eq('poster_id', userId)
       .order('created_at', { ascending: false });
     return { data, error };
+  },
+
+  async getMyGigsCount(userId: string) {
+    const { count, error } = await supabase
+      .from('gigs')
+      .select('*', { count: 'exact', head: true })
+      .eq('poster_id', userId);
+    return { count: count || 0, error };
   },
 
   async searchGigsAndUsers(searchTerm: string) {

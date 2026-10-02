@@ -9,5 +9,10 @@ export const GIG_CATEGORIES = [
   'Songwriting',
   'Mixing & Mastering',
   'Music Lessons',
+  'Design',
+  'Film & Video',
+  'Writing',
+  'Tech & Programming',
+  'Fashion',
   'Other'
 ];

@@ -10,9 +10,11 @@ import { SearchInput } from '../components/messages/SearchInput';
 import { handleError } from '../utils/errorHandler';
 import { supabase } from '../services/supabaseClient';
 import { useAuth } from '../context/AuthContext';
+import { useNotificationContext } from '../context/NotificationContext';
 
 const Messages: React.FC = () => {
   const { user } = useAuth();
+  const { refreshUnreadMessagesCount } = useNotificationContext();
   const [conversations, setConversations] = useState<ConversationInboxItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -39,19 +41,23 @@ const Messages: React.FC = () => {
 
   useEffect(() => {
     loadConversations();
+    refreshUnreadMessagesCount();
     
     if (!user) return;
     
     // Subscribe to multiple tables
     const channel = supabase.channel('inbox_updates')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, (payload) => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, (_payload) => {
         loadConversations(false, true);
+        refreshUnreadMessagesCount();
       })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'conversation_participants' }, (payload) => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'conversation_participants' }, (_payload) => {
         loadConversations(false, true);
+        refreshUnreadMessagesCount();
       })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'conversations' }, (payload) => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'conversations' }, (_payload) => {
         loadConversations(false, true);
+        refreshUnreadMessagesCount();
       })
       .subscribe((status) => {
         if (status === 'CHANNEL_ERROR') {

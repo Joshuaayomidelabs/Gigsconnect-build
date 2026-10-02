@@ -6,6 +6,8 @@ import { Network } from '@capacitor/network';
 import TopNav from './components/TopNav';
 import Footer from './components/Footer';
 import BottomNav from './components/BottomNav';
+import DesktopSidebar from './components/DesktopSidebar';
+import AppSplashScreen from './components/AppSplashScreen';
 import Landing from './pages/Landing';
 
 import ProtectedRoute from './components/ProtectedRoute';
@@ -198,14 +200,7 @@ const App: React.FC = () => {
   }, [user?.id, navigate]);
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-brand-gray dark:bg-brand-black transition-colors">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-brand-purple border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-500 dark:text-gray-400 font-medium">Loading GigsConnect...</p>
-        </div>
-      </div>
-    );
+    return <AppSplashScreen message="Loading GigsConnect..." />;
   }
 
   if (error) {
@@ -237,8 +232,13 @@ const App: React.FC = () => {
         <div className="flex flex-col min-h-screen bg-brand-gray dark:bg-brand-black transition-colors">
           <Toaster position="top-right" richColors />
           <TopNav />
-          <main className={`flex-grow ${showBottomNav ? 'pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0' : ''}`}>
-            <React.Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-brand-gray dark:bg-brand-black"><div className="w-12 h-12 border-4 border-brand-purple border-t-transparent rounded-full animate-spin"></div></div>}>
+          {showBottomNav && <DesktopSidebar />}
+          <main className={`flex-grow ${showBottomNav ? 'pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0 lg:pl-64' : ''}`}>
+            <React.Suspense fallback={
+              <div className="min-h-[60vh] flex items-center justify-center">
+                <div className="w-12 h-12 border-4 border-brand-purple border-t-transparent rounded-full animate-spin" />
+              </div>
+            }>
             <Routes>
               <Route path="/" element={<Landing />} />
               <Route path="/login" element={<Login />} />

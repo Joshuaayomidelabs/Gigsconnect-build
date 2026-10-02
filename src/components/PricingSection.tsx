@@ -65,17 +65,17 @@ export const PricingSection: React.FC = () => {
         <motion.h1 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-4xl sm:text-5xl font-black text-brand-black dark:text-brand-white tracking-tight mb-6"
+          className="text-4xl sm:text-5xl font-black text-brand-black dark:text-brand-white tracking-tight mb-4"
         >
-          Upgrade Your <span className="text-brand-purple">Experience</span>
+          Get <span className="text-brand-purple">Verified</span> & Stand Out
         </motion.h1>
         <motion.p 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="text-lg sm:text-xl text-gray-600 dark:text-gray-400 font-medium leading-relaxed"
+          className="text-base sm:text-lg text-gray-600 dark:text-gray-400 font-medium leading-relaxed max-w-2xl mx-auto"
         >
-          Whether you're just starting out or scaling an agency, GigsConnect has a plan tailored for your ambition.
+          Pro and Premium are paid subscription plans for official account verification. Get an authentic verified badge on your profile, increase your visibility in search, and build instant trust with clients.
         </motion.p>
       </div>
 

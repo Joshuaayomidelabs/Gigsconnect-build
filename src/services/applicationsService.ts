@@ -148,6 +148,14 @@ export const applicationsService = {
     return { data, error };
   },
 
+  async getMyApplicationsCount(userId: string) {
+    const { count, error } = await supabase
+      .from('applications')
+      .select('*', { count: 'exact', head: true })
+      .eq('applicant_id', userId);
+    return { count: count || 0, error };
+  },
+
   async getApplicationsForGig(gigId: string) {
     const { data, error } = await supabase
       .from('applications')

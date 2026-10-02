@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { Notification, notificationsService } from '../services/notificationsService';
+import { getUnreadMessagesCount } from '../services/messagesService';
 import { useAuth } from './AuthContext';
 import { supabase } from '../services/supabaseClient';
 import { toast } from 'sonner';
@@ -8,10 +9,12 @@ import { getFriendlyErrorMessage } from '../utils/errorHandler';
 interface NotificationContextType {
   notifications: Notification[];
   unreadCount: number;
+  unreadMessagesCount: number;
   isLoading: boolean;
   error: string | null;
   markAsRead: (id: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
+  refreshUnreadMessagesCount: () => Promise<void>;
   setNotifications: React.Dispatch<React.SetStateAction<Notification[]>>;
 }
 
@@ -21,6 +24,7 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -37,6 +41,19 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
       return;
     }
     setUnreadCount(count || 0);
+  };
+
+  const refreshUnreadMessagesCount = async () => {
+    if (!user?.id) {
+      setUnreadMessagesCount(0);
+      return;
+    }
+    try {
+      const total = await getUnreadMessagesCount(user.id);
+      setUnreadMessagesCount(total);
+    } catch (err) {
+      console.error('Failed to fetch unread messages count:', err);
+    }
   };
 
   useEffect(() => {
@@ -61,6 +78,7 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
           setNotifications(data);
         }
         await refreshNotificationCount();
+        await refreshUnreadMessagesCount();
       } catch (err: any) {
         console.error("Unexpected notification error:", err);
         setError(getFriendlyErrorMessage(err));
@@ -71,7 +89,14 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
 
     fetchNotifications();
 
-    // Subscribe to real-time updates
+    const handleMessagesUpdated = () => {
+      refreshUnreadMessagesCount();
+    };
+
+    window.addEventListener('messages-updated', handleMessagesUpdated);
+    window.addEventListener('messages-read', handleMessagesUpdated);
+
+    // Subscribe to real-time updates for notifications
     const subscription = notificationsService.subscribeToNotifications(user.id, (newNotif) => {
       setNotifications(prev => {
         // Avoid duplicates
@@ -91,6 +116,8 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
     });
 
     return () => {
+      window.removeEventListener('messages-updated', handleMessagesUpdated);
+      window.removeEventListener('messages-read', handleMessagesUpdated);
       subscription.unsubscribe();
     };
   }, [user?.id]);
@@ -123,10 +150,12 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
     <NotificationContext.Provider value={{ 
       notifications, 
       unreadCount, 
+      unreadMessagesCount,
       isLoading, 
       error, 
       markAsRead, 
       markAllAsRead,
+      refreshUnreadMessagesCount,
       setNotifications
     }}>
       {children}

@@ -1,15 +1,12 @@
 import { SEO } from '../components/SEO';
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Loader2, ArrowLeft, Mail, CheckCircle } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Loader2, ArrowLeft, Mail, CheckCircle, AlertCircle } from 'lucide-react';
 import { supabase } from '../services/supabaseClient';
 import { Capacitor } from '@capacitor/core';
-import Logo from '../components/Logo';
 import { getFriendlyErrorMessage } from '../utils/errorHandler';
 
-
 const ForgotPassword: React.FC = () => {
-  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -55,51 +52,63 @@ const ForgotPassword: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-brand-gray dark:bg-brand-black flex flex-col font-sans transition-colors duration-500">
+    <div className="min-h-[100dvh] bg-gradient-to-br from-[#FAF8FF] via-[#F4EFFF] to-[#EDE5FF] dark:from-[#09080E] dark:via-[#0F0B18] dark:to-[#160E27] flex flex-col justify-center items-center px-4 py-8 pt-[calc(5rem+env(safe-area-inset-top))] pb-[calc(2.5rem+env(safe-area-inset-bottom))] transition-colors duration-300 relative overflow-y-auto">
       <SEO title="Reset Password | GigsConnect" noindex={true} />
 
-      {/* Minimal Header */}
-      <div className="pt-8 px-6 flex justify-center sm:justify-start max-w-md mx-auto w-full">
-        <Link to="/" className="inline-flex items-center gap-2 group">
-          <Logo iconClassName="w-8 h-8" />
-          <h1 className="text-2xl font-black text-brand-black dark:text-brand-white tracking-tighter">
-            Gigs<span className="text-brand-purple">Connect</span>
-          </h1>
-        </Link>
+      {/* Ambient background glow */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-brand-purple/10 dark:bg-brand-purple/20 blur-[130px] rounded-full pointer-events-none" />
       </div>
 
-      <main className="flex-grow flex flex-col justify-center items-center px-4 py-8 sm:px-6 lg:px-8 bg-gray-50/50">
-        <div className="w-full max-w-[440px] bg-white p-6 sm:p-10 rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100/80">
-          
-        <div className="w-full max-w-md mx-auto">
+      <div className="w-full max-w-md my-auto">
+        {/* Centered Logo & Branding */}
+        <div className="flex flex-col items-center text-center mb-6">
+          <Link to="/" className="group flex flex-col items-center">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white dark:bg-brand-dark-card shadow-md border border-gray-100 dark:border-white/10 flex items-center justify-center p-2 mb-3 ring-4 ring-brand-purple/10 dark:ring-brand-purple/20 group-hover:scale-105 transition-transform duration-200">
+              <img 
+                src="/assets/branding/logo.svg" 
+                alt="GigsConnect Logo" 
+                className="w-full h-full object-contain rounded-xl"
+              />
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-black text-brand-black dark:text-brand-white tracking-tight">
+              Gigs<span className="text-brand-purple">Connect</span>
+            </h1>
+          </Link>
+          <p className="text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400 mt-1 tracking-wide">
+            Create, Collaborate, Earn
+          </p>
+        </div>
+
+        {/* Card */}
+        <div className="bg-white dark:bg-brand-dark-card rounded-3xl p-6 sm:p-8 md:p-9 shadow-xl shadow-brand-purple/5 border border-gray-100 dark:border-white/10 transition-colors">
           {!isSuccess ? (
             <>
-              <div className="mb-8">
-                <Link 
-                  to="/login" 
-                  className="inline-flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-brand-purple dark:text-gray-400 dark:hover:text-brand-purple transition-colors mb-4 group"
-                  id="forgot-password-back"
-                >
-                  <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                  Back to sign in
-                </Link>
-                <h2 className="text-2xl font-bold text-[#111827] tracking-tight leading-tight">
+              <div className="mb-6 text-center">
+                <h2 className="text-2xl font-black text-brand-black dark:text-brand-white tracking-tight">
                   Reset password
                 </h2>
-                <p className="mt-2 text-sm text-gray-500">
-                  Enter your email address to receive a secure link to reset your account credentials.
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  Enter your email address to receive a secure recovery link
                 </p>
               </div>
 
-              <form className="space-y-4" onSubmit={handleSubmit} id="forgot-password-form">
+              {error && (
+                <div className="mb-5 p-3.5 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 text-xs sm:text-sm font-medium flex items-start gap-2.5">
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                  <span>{error}</span>
+                </div>
+              )}
+
+              <form className="space-y-4" onSubmit={handleSubmit}>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    Email address <span className="text-red-500">*</span>
+                  <label className="block text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+                    Email address
                   </label>
-                  <div className="relative">
-                    <span className="absolute inset-y-0 left-0 flex items-center pl-5 text-gray-400 dark:text-gray-500">
-                      <Mail className="w-5 h-5" />
-                    </span>
+                  <div className="relative group">
+                    <div className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 dark:text-gray-500 group-focus-within:text-brand-purple transition-colors">
+                      <Mail className="w-4 h-4" />
+                    </div>
                     <input
                       name="email"
                       type="email"
@@ -109,68 +118,77 @@ const ForgotPassword: React.FC = () => {
                         setEmail(e.target.value);
                         if (error) setError(null);
                       }}
-                      className={`block w-full h-[54px] rounded-xl border-0 pl-12 pr-5 text-base text-brand-black dark:text-brand-white shadow-sm ring-1 ring-inset ${
-                        error ? 'ring-red-300 focus:ring-red-500' : 'ring-brand-purple/10 focus:ring-brand-purple'
-                      } placeholder:text-gray-400 focus:ring-2 focus:ring-inset transition-all duration-200 bg-white dark:bg-brand-dark-card focus:bg-white dark:focus:bg-brand-dark-card`}
+                      className={`block w-full h-12 sm:h-[52px] rounded-xl border-0 pl-11 pr-4 text-sm sm:text-base text-gray-900 dark:text-white shadow-sm ring-1 ring-inset ${
+                        error 
+                          ? 'ring-red-400 focus:ring-red-500' 
+                          : 'ring-gray-200 dark:ring-white/10 focus:ring-brand-purple dark:focus:ring-brand-purple group-hover:ring-gray-300 dark:group-hover:ring-white/20'
+                      } placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-inset transition-all duration-200 bg-white dark:bg-[#141418]`}
                       placeholder="you@example.com"
                       disabled={isLoading}
                     />
                   </div>
-                  {error && <p className="mt-2 text-xs font-bold text-red-600 ml-1">{error}</p>}
                 </div>
 
                 <div className="pt-2">
                   <button
                     type="submit"
                     disabled={isLoading}
-                    id="btn-send-reset-link"
-                    className="flex w-full h-[56px] justify-center items-center rounded-xl bg-[#7C3AED] text-white text-base font-semibold hover:bg-[#6D28D9] hover:-translate-y-0.5 hover:shadow-lg hover:shadow-[#7C3AED]/25 active:scale-[0.98] active:translate-y-0 transition-all duration-300 disabled:opacity-75 disabled:cursor-not-allowed gap-2"
+                    className="w-full h-12 sm:h-13 flex justify-center items-center rounded-xl bg-brand-purple hover:bg-brand-purple-hover text-white text-sm sm:text-base font-bold shadow-md shadow-brand-purple/20 active:scale-[0.99] transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer gap-2"
                   >
                     {isLoading ? (
                       <>
-                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                        Sending Link...
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Sending Link...</span>
                       </>
                     ) : (
-                      'Send Reset Link'
+                      <span>Send Reset Link</span>
                     )}
                   </button>
                 </div>
               </form>
+
+              <div className="mt-6 pt-5 border-t border-gray-100 dark:border-white/10 text-center">
+                <Link 
+                  to="/login" 
+                  className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-brand-purple hover:underline transition-all"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  Back to Log In
+                </Link>
+              </div>
             </>
           ) : (
-            <div className="text-center py-8">
-              <div className="w-16 h-16 bg-brand-purple/10 dark:bg-brand-purple/20 text-brand-purple rounded-full flex items-center justify-center mx-auto mb-6">
-                <CheckCircle className="w-10 h-10" />
+            <div className="text-center py-4">
+              <div className="w-16 h-16 bg-brand-purple/10 dark:bg-brand-purple/20 text-brand-purple rounded-full flex items-center justify-center mx-auto mb-4 ring-8 ring-brand-purple/5">
+                <CheckCircle className="w-8 h-8" />
               </div>
-              <h2 className="text-3xl font-black tracking-tight text-brand-black dark:text-brand-white mb-3">
+              <h2 className="text-2xl font-black tracking-tight text-brand-black dark:text-brand-white mb-2">
                 Check your inbox
               </h2>
-              <p className="text-sm font-bold text-gray-500 dark:text-gray-400 max-w-sm mx-auto mb-8 leading-relaxed">
-                We have sent a secure password reset link to <span className="text-brand-black dark:text-brand-white font-black">{email}</span>. Please click the link inside the email to complete the reset.
+              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 max-w-sm mx-auto mb-6 leading-relaxed">
+                We sent a secure password reset link to{' '}
+                <span className="text-brand-black dark:text-brand-white font-bold">{email}</span>. Click the link to reset your password.
               </p>
               
-              <div className="space-y-4 max-w-xs mx-auto">
+              <div className="space-y-3">
                 <button
                   type="button"
                   onClick={() => setIsSuccess(false)}
-                  className="w-full h-[56px] inline-flex justify-center items-center rounded-xl border border-[#7C3AED]/20 text-[#7C3AED] font-semibold text-base hover:bg-[#7C3AED]/5 transition-all duration-200"
+                  className="w-full h-11 inline-flex justify-center items-center rounded-xl border border-brand-purple/20 text-brand-purple font-semibold text-xs sm:text-sm hover:bg-brand-purple/5 transition-all cursor-pointer"
                 >
                   Resend recovery email
                 </button>
                 <Link
                   to="/login"
-                  className="w-full h-[56px] inline-flex justify-center items-center rounded-xl bg-[#7C3AED] text-white text-base font-semibold hover:bg-[#6D28D9] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:scale-[0.98] active:translate-y-0"
+                  className="w-full h-12 inline-flex justify-center items-center rounded-xl bg-brand-purple text-white text-xs sm:text-sm font-bold hover:bg-brand-purple-hover shadow-md shadow-brand-purple/20 transition-all cursor-pointer"
                 >
-                  Return to login
+                  Return to Log In
                 </Link>
               </div>
             </div>
           )}
         </div>
-      
-        </div>
-      </main>
+      </div>
     </div>
   );
 };
