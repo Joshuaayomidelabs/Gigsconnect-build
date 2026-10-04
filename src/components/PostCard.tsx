@@ -143,14 +143,16 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
       const fetchPreview = async () => {
         const { data } = await communityService.getComments(post.id, user?.id);
         if (data) {
-          // Sort by newest and take top 2 for preview showing first level only
-          const sorted = [...data].filter(c => !c.parent_id).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+          // Sort by newest and take top 2 for preview showing first level only, excluding blocked users
+          const sorted = [...data]
+            .filter(c => !c.parent_id && !isUserBlocked(c.user_id))
+            .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
           setPreviewComments(sorted.slice(0, 2));
         }
       }
       fetchPreview();
     }
-  }, [commentsCount, post.id, user?.id]);
+  }, [commentsCount, post.id, user?.id, isUserBlocked]);
 
   useEffect(() => {
     if (!videoRef.current) return;
@@ -513,7 +515,7 @@ export default function PostCard({ post, onDelete }: PostCardProps) {
               View all {commentsCount} comments
             </button>
             <div className="flex flex-col gap-1 mt-1">
-              {previewComments.map(c => (
+              {previewComments.filter(c => !isUserBlocked(c.user_id)).map(c => (
                 <div key={c.id} className="text-[14px] flex gap-2 w-full text-gray-900 dark:text-white leading-tight">
                   <span className="font-bold shrink-0">{c.user?.full_name || 'Anonymous User'}</span>
                   <span className="truncate">{renderTextWithMentions(c.content)}</span>

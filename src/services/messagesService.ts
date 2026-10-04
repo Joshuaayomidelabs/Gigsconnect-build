@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient';
+import { moderationService } from './moderationService';
 
 export interface ConversationInboxItem {
   conversation_id: string;
@@ -91,14 +92,27 @@ export const fetchConversations = async (): Promise<ConversationInboxItem[]> => 
   return inboxItems;
 };
 
-export const getUnreadMessagesCount = async (_userId?: string): Promise<number> => {
+export const getUnreadMessagesCount = async (userId?: string): Promise<number> => {
   try {
     const { data, error } = await supabase
       .from('conversation_inbox')
-      .select('unread_count');
+      .select('other_user_id, unread_count');
 
     if (error || !data) return 0;
-    return data.reduce((acc: number, curr: any) => acc + (Number(curr.unread_count) || 0), 0);
+
+    let blockedIds: string[] = [];
+    if (userId) {
+      const { data: bData } = await moderationService.getBlockedUsers(userId);
+      if (bData && Array.isArray(bData)) {
+        blockedIds = bData;
+      }
+    }
+
+    const filtered = blockedIds.length > 0
+      ? data.filter((curr: any) => !blockedIds.includes(curr.other_user_id))
+      : data;
+
+    return filtered.reduce((acc: number, curr: any) => acc + (Number(curr.unread_count) || 0), 0);
   } catch (err) {
     console.error('Failed to get unread messages count:', err);
     return 0;

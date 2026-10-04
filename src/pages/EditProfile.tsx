@@ -5,6 +5,8 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase } from '../services/supabaseClient';
 import { profilesService } from '../services/profilesService';
+import { deleteMyAccount } from '../services/accountService';
+import { useSubscription } from '../context/SubscriptionContext';
 import { motion, AnimatePresence } from 'motion/react';
 import imageCompression from 'browser-image-compression';
 import { checkVideoConstraints } from '../utils/validation';
@@ -21,6 +23,7 @@ interface PortfolioItem {
 
 const EditProfile: React.FC = () => {
   const navigate = useNavigate();
+  const { subscription, plans } = useSubscription();
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
@@ -305,8 +308,8 @@ const EditProfile: React.FC = () => {
   };
 
   const handleAccountDelete = async () => {
-    if (deleteConfirmText !== "DELETE MY ACCOUNT") {
-      notifyError("Please type the confirmation text exactly.");
+    if (deleteConfirmText !== "DELETE" || isDeletingAccount) {
+      notifyError("Please type DELETE to confirm.");
       return;
     }
 
@@ -316,30 +319,37 @@ const EditProfile: React.FC = () => {
       
       const { data: { session } } = await supabase.auth.getSession();
       if (!session || !session.user) {
+        toast.dismiss(toastId);
         notifyError("You must be logged in to delete your account.");
+        setIsDeletingAccount(false);
         return;
       }
 
-      const result = await profilesService.deleteAccount(session.user.id);
+      const result = await deleteMyAccount();
       
-      if (!result.success || result.error) {
-        throw result.error || new Error("Failed to delete account database records.");
+      if (!result.success) {
+        toast.dismiss(toastId);
+        notifyError(result.error || "Failed to delete account. Please try again.");
+        setIsDeletingAccount(false);
+        return;
       }
 
-      await supabase.auth.signOut();
+      // On success: local sign out, remove fcm token, dispatch event and redirect
+      await supabase.auth.signOut({ scope: 'local' });
+      localStorage.removeItem('gigsconnect_fcm_token');
       
       // Dispatch profile updated so other components clean up state
       window.dispatchEvent(new CustomEvent('profile-updated'));
 
-      toast.success("Your GigsConnect account has been deleted.", { id: toastId });
+      toast.success("Your account has been deleted.", { id: toastId });
+      setShowAccountDeleteConfirm(false);
+      setDeleteConfirmText('');
       navigate("/");
     } catch (err: any) {
       console.error(err);
-      handleError(err, "Operation Error");
+      notifyError("An unexpected error occurred while deleting your account.");
     } finally {
       setIsDeletingAccount(false);
-      setShowAccountDeleteConfirm(false);
-      setDeleteConfirmText('');
     }
   };
 
@@ -369,6 +379,11 @@ const EditProfile: React.FC = () => {
       setIsLoading(false);
     }
   };
+
+  const activePlanId = subscription?.plan_id || plans.find(p => p.name.toLowerCase() === 'starter')?.id;
+  const activePlan = plans.find(p => p.id === activePlanId) || subscription?.plan;
+  const planName = activePlan?.name || subscription?.plan_name || '';
+  const isPaidPlan = planName.toLowerCase() === 'pro' || planName.toLowerCase() === 'premium';
 
   if (isFetching) {
     return (
@@ -1070,27 +1085,38 @@ const EditProfile: React.FC = () => {
               
               <div className="space-y-4 mb-6">
                 <p className="text-gray-600 dark:text-gray-400 font-medium leading-relaxed text-sm">
-                  This action is <span className="text-red-600 font-bold">permanent and irreversible</span>. Once completed:
+                  This action is <span className="text-red-600 font-bold">permanent and cannot be undone</span>. The following data will be permanently removed:
                 </p>
                 
-                <ul className="list-disc pl-5 text-xs text-gray-500 dark:text-gray-400 space-y-1.5 leading-normal font-medium">
-                  <li>Your public bio and profile details will be cleared.</li>
-                  <li>All your uploaded portfolio images and videos will be unlinked.</li>
-                  <li>Any active gigs posted by you will be permanently removed.</li>
-                  <li>Your comments, bookmarks, and likes will be cleaned up.</li>
+                <ul className="list-disc pl-5 text-xs text-gray-600 dark:text-gray-400 space-y-1.5 leading-normal font-medium">
+                  <li>Your profile</li>
+                  <li>Your posts, comments, and likes</li>
+                  <li>Gigs you posted and your applications</li>
+                  <li>Chats (they are also removed for the other person)</li>
+                  <li>All uploaded files and portfolio media</li>
+                  <li>Subscription records</li>
                 </ul>
 
+                {isPaidPlan && (
+                  <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 text-amber-800 dark:text-amber-300 flex items-start gap-2.5">
+                    <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                    <p className="text-xs font-bold leading-relaxed">
+                      You have an active {planName} plan. Deleting your account ends it and there are no refunds.
+                    </p>
+                  </div>
+                )}
+
                 <p className="text-sm font-bold text-brand-black dark:text-brand-white mt-4">
-                  To confirm deletion, please type <span className="text-red-600">DELETE MY ACCOUNT</span> in the box below:
+                  To confirm deletion, please type <span className="text-red-600 font-mono">DELETE</span> in the box below:
                 </p>
 
                 <input 
                   type="text"
-                  placeholder="DELETE MY ACCOUNT"
+                  placeholder="DELETE"
                   value={deleteConfirmText}
                   disabled={isDeletingAccount}
                   onChange={(e) => setDeleteConfirmText(e.target.value)}
-                  className="w-full p-4 rounded-xl border border-gray-200 dark:border-brand-black bg-brand-gray dark:bg-brand-black font-semibold text-center text-red-600 dark:text-red-400 tracking-wider placeholder:text-gray-305 focus:ring-2 focus:ring-red-500 outline-none transition-all"
+                  className="w-full p-4 rounded-xl border border-gray-200 dark:border-brand-black bg-brand-gray dark:bg-brand-black font-semibold text-center text-red-600 dark:text-red-400 tracking-wider placeholder:text-gray-400 focus:ring-2 focus:ring-red-500 outline-none transition-all"
                 />
               </div>
 
@@ -1108,12 +1134,12 @@ const EditProfile: React.FC = () => {
                 </button>
                 <button 
                   type="button"
-                  disabled={deleteConfirmText !== "DELETE MY ACCOUNT" || isDeletingAccount}
+                  disabled={deleteConfirmText !== "DELETE" || isDeletingAccount}
                   onClick={handleAccountDelete}
-                  className="flex-1 py-4 px-5 rounded-2xl bg-red-600 text-white text-sm font-bold hover:bg-red-700 disabled:bg-gray-200 dark:disabled:bg-brand-black disabled:text-gray-400 hover:shadow-lg hover:shadow-red-500/10 active:scale-95 transition-all text-center flex items-center justify-center gap-2"
+                  className="flex-1 py-4 px-5 rounded-2xl bg-red-600 text-white text-sm font-bold hover:bg-red-700 disabled:bg-gray-200 dark:disabled:bg-brand-black disabled:text-gray-400 hover:shadow-lg hover:shadow-red-500/10 active:scale-95 transition-all text-center flex items-center justify-center gap-2 cursor-pointer disabled:pointer-events-none"
                 >
                   {isDeletingAccount ? (
-                    <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
+                    <Loader2 className="w-4 h-4 animate-spin text-white" />
                   ) : (
                     'Delete Forever'
                   )}

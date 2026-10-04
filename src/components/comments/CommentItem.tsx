@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Heart, Trash2, Edit2, Loader2, MoreHorizontal } from 'lucide-react';
 import { formatDistanceToNow, parseISO } from 'date-fns';
 import { renderTextWithMentions } from '../../utils/textUtils';
+import { useModeration } from '../../hooks/useModeration';
 
 interface CommentItemProps {
   comment: any;
@@ -26,6 +27,7 @@ export function CommentItem({
   onEdit,
 }: CommentItemProps) {
   const navigate = useNavigate();
+  const { isUserBlocked } = useModeration();
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(comment.content);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -52,7 +54,11 @@ export function CommentItem({
     setIsDeleting(false);
   };
 
-  if (isDeleting) return null;
+  // Hide comment if written by a blocked user
+  if (isDeleting || isUserBlocked(comment.user_id)) return null;
+
+  // Filter out any reply written by a blocked user
+  const visibleReplies = (replies || []).filter(r => !isUserBlocked(r.user_id));
 
   return (
     <div className="flex flex-col gap-3 group">
@@ -153,9 +159,9 @@ export function CommentItem({
         </div>
       </div>
 
-      {replies && replies.length > 0 && (
+      {visibleReplies && visibleReplies.length > 0 && (
         <div className="ml-[44px] flex flex-col gap-3">
-          {replies.map(reply => (
+          {visibleReplies.map(reply => (
             <CommentItem
               key={reply.id}
               comment={reply}

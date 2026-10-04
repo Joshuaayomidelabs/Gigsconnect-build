@@ -527,8 +527,9 @@ const PublicProfile: React.FC = () => {
         
         let realCompletedGigsCount = 0;
         let realPostedGigsCount = 0;
+        let fetchedUserPosts: any[] = [];
         try {
-          const [appCountRes, gigCountRes, postedGigsRes] = await Promise.all([
+          const [appCountRes, gigCountRes, postedGigsRes, userPostsRes] = await Promise.all([
             supabase
               .from('applications')
               .select('*', { count: 'exact', head: true })
@@ -539,17 +540,40 @@ const PublicProfile: React.FC = () => {
               .select('*', { count: 'exact', head: true })
               .eq('poster_id', userId)
               .in('status', ['completed', 'Completed']),
-            gigsService.getMyGigsCount(userId)
+            gigsService.getMyGigsCount(userId),
+            communityService.getUserPosts(userId, currentUser?.id)
           ]);
 
           realCompletedGigsCount = (appCountRes.count || 0) + (gigCountRes.count || 0);
           realPostedGigsCount = postedGigsRes.count || 0;
+          if (userPostsRes && userPostsRes.data) {
+            fetchedUserPosts = userPostsRes.data;
+          }
         } catch (e) {
-          console.error("Error fetching completed gigs count:", e);
+          console.error("Error fetching completed gigs count / posts:", e);
         }
 
         if (typeof profileRes.data?.completed_gigs === 'number' && profileRes.data.completed_gigs > 0) {
           realCompletedGigsCount = Math.max(realCompletedGigsCount, profileRes.data.completed_gigs);
+        }
+
+        const portfolioItemsCount = profileRes.data?.portfolio_media?.length || 0;
+        const postsItemsCount = fetchedUserPosts.length;
+        const gigsItemsCount = realPostedGigsCount;
+
+        // Default tab: open the first tab that has content (Portfolio, then Posts, then Gigs).
+        // If viewer is not profile owner, hide tabs that have zero items (fallback to 'about' if all 3 are empty).
+        let initialTab: 'portfolio' | 'posts' | 'gigs' | 'about' = 'portfolio';
+        if (portfolioItemsCount > 0) {
+          initialTab = 'portfolio';
+        } else if (postsItemsCount > 0) {
+          initialTab = 'posts';
+        } else if (gigsItemsCount > 0) {
+          initialTab = 'gigs';
+        } else if (!isOwnProfile) {
+          initialTab = 'about';
+        } else {
+          initialTab = 'portfolio';
         }
         
         if (isMounted) {
@@ -559,6 +583,8 @@ const PublicProfile: React.FC = () => {
           setDynamicSkills(fetchedSkills);
           setCompletedGigsCount(realCompletedGigsCount);
           setPostedGigsCount(realPostedGigsCount);
+          setPosts(fetchedUserPosts);
+          setActiveTab(initialTab);
         }
 
         if (currentUser && !isOwnProfile) {
@@ -639,6 +665,29 @@ const PublicProfile: React.FC = () => {
     }
   }, [activeTab, profile?.id, userId, userGigs.length]);
 
+  // Guard: if viewer is not owner and active tab is hidden due to having 0 items, switch to the first visible tab
+  useEffect(() => {
+    if (!isOwnProfile && profile) {
+      const hasPortfolio = (profile.portfolio_media?.length || 0) > 0;
+      const hasPosts = posts.length > 0;
+      const hasGigs = postedGigsCount > 0;
+
+      if (activeTab === 'portfolio' && !hasPortfolio) {
+        if (hasPosts) setActiveTab('posts');
+        else if (hasGigs) setActiveTab('gigs');
+        else setActiveTab('about');
+      } else if (activeTab === 'posts' && !hasPosts) {
+        if (hasPortfolio) setActiveTab('portfolio');
+        else if (hasGigs) setActiveTab('gigs');
+        else setActiveTab('about');
+      } else if (activeTab === 'gigs' && !hasGigs) {
+        if (hasPortfolio) setActiveTab('portfolio');
+        else if (hasPosts) setActiveTab('posts');
+        else setActiveTab('about');
+      }
+    }
+  }, [isOwnProfile, profile, posts.length, postedGigsCount, activeTab]);
+
   // Direct Messaging Click Handler (Task 1)
   const handleMessageClick = async () => {
     if (!currentUser) {
@@ -661,7 +710,12 @@ const PublicProfile: React.FC = () => {
       navigate(`/messages/${conversationId}`);
     } catch (err: any) {
       console.error("Error starting conversation:", err);
-      handleError(err, "Could not start conversation");
+      const msg = String(err?.message || err?.details || err || '');
+      if (msg.includes("You cannot message this user") || msg.includes("You cannot send messages in this conversation")) {
+        notifyError("You can't message this user.");
+      } else {
+        handleError(err, "Could not start conversation");
+      }
     } finally {
       setIsCreatingConversation(false);
     }
@@ -1163,82 +1217,104 @@ const PublicProfile: React.FC = () => {
           setShowAddModal(true);
         }} />}
 
-        {/* 5. CONTENT NAVIGATION TABS (Task 5) */}
-        <div className="sticky top-16 z-30 bg-[#FAFAFA]/95 dark:bg-[#09090B]/95 backdrop-blur-md py-3 border-b border-gray-100 dark:border-[#1F1F23] mb-6 -mx-4 px-4 sm:mx-0 sm:px-0">
-          <div className="flex items-center justify-around sm:justify-start sm:gap-8 overflow-x-auto no-scrollbar">
-            <button
-              onClick={() => setActiveTab('portfolio')}
-              className={`flex items-center gap-1.5 py-2 px-3 text-xs sm:text-sm font-bold relative transition-colors duration-200 cursor-pointer whitespace-nowrap ${
-                activeTab === 'portfolio' 
-                  ? 'text-brand-purple' 
-                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
-              }`}
-            >
-              <LayoutGrid className="w-4 h-4" />
-              <span>Portfolio ({profile.portfolio_media?.length || 0})</span>
-              {activeTab === 'portfolio' && (
-                <motion.div 
-                  layoutId="activeProfileTabUnderline" 
-                  className="absolute -bottom-3 left-0 right-0 h-[3px] bg-brand-purple rounded-full" 
-                />
-              )}
-            </button>
+        {/* 5. CONTENT NAVIGATION TABS */}
+        {(() => {
+          const showPortfolioTab = isOwnProfile || (profile?.portfolio_media && profile.portfolio_media.length > 0);
+          const showPostsTab = isOwnProfile || posts.length > 0;
+          const showGigsTab = isOwnProfile || postedGigsCount > 0;
+          const showAboutTab = true;
 
-            <button
-              onClick={() => setActiveTab('posts')}
-              className={`flex items-center gap-1.5 py-2 px-3 text-xs sm:text-sm font-bold relative transition-colors duration-200 cursor-pointer whitespace-nowrap ${
-                activeTab === 'posts' 
-                  ? 'text-brand-purple' 
-                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
-              }`}
-            >
-              <FileText className="w-4 h-4" />
-              <span>Posts</span>
-              {activeTab === 'posts' && (
-                <motion.div 
-                  layoutId="activeProfileTabUnderline" 
-                  className="absolute -bottom-3 left-0 right-0 h-[3px] bg-brand-purple rounded-full" 
-                />
-              )}
-            </button>
+          return (
+            <div className="sticky top-16 z-30 bg-[#FAFAFA]/95 dark:bg-[#09090B]/95 backdrop-blur-md py-2.5 border-b border-gray-100 dark:border-[#1F1F23] mb-6 -mx-4 px-4 sm:mx-0 sm:px-0">
+              <div className="relative">
+                <div className="flex items-center gap-1 sm:gap-6 overflow-x-auto no-scrollbar scroll-smooth pr-6 sm:pr-0">
+                  {showPortfolioTab && (
+                    <button
+                      onClick={() => setActiveTab('portfolio')}
+                      className={`flex items-center gap-1.5 py-2 px-3 text-xs sm:text-sm font-bold relative transition-colors duration-200 cursor-pointer whitespace-nowrap shrink-0 ${
+                        activeTab === 'portfolio' 
+                          ? 'text-brand-purple' 
+                          : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
+                      }`}
+                    >
+                      <LayoutGrid className="w-4 h-4 shrink-0" />
+                      <span>Portfolio{isOwnProfile || (profile.portfolio_media?.length || 0) > 0 ? ` (${profile.portfolio_media?.length || 0})` : ''}</span>
+                      {activeTab === 'portfolio' && (
+                        <motion.div 
+                          layoutId="activeProfileTabUnderline" 
+                          className="absolute -bottom-2.5 left-0 right-0 h-[3px] bg-brand-purple rounded-full" 
+                        />
+                      )}
+                    </button>
+                  )}
 
-            <button
-              onClick={() => setActiveTab('gigs')}
-              className={`flex items-center gap-1.5 py-2 px-3 text-xs sm:text-sm font-bold relative transition-colors duration-200 cursor-pointer whitespace-nowrap ${
-                activeTab === 'gigs' 
-                  ? 'text-brand-purple' 
-                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
-              }`}
-            >
-              <Briefcase className="w-4 h-4" />
-              <span>Gigs {postedGigsCount > 0 ? `(${postedGigsCount})` : ''}</span>
-              {activeTab === 'gigs' && (
-                <motion.div 
-                  layoutId="activeProfileTabUnderline" 
-                  className="absolute -bottom-3 left-0 right-0 h-[3px] bg-brand-purple rounded-full" 
-                />
-              )}
-            </button>
+                  {showPostsTab && (
+                    <button
+                      onClick={() => setActiveTab('posts')}
+                      className={`flex items-center gap-1.5 py-2 px-3 text-xs sm:text-sm font-bold relative transition-colors duration-200 cursor-pointer whitespace-nowrap shrink-0 ${
+                        activeTab === 'posts' 
+                          ? 'text-brand-purple' 
+                          : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
+                      }`}
+                    >
+                      <FileText className="w-4 h-4 shrink-0" />
+                      <span>Posts{posts.length > 0 ? ` (${posts.length})` : ''}</span>
+                      {activeTab === 'posts' && (
+                        <motion.div 
+                          layoutId="activeProfileTabUnderline" 
+                          className="absolute -bottom-2.5 left-0 right-0 h-[3px] bg-brand-purple rounded-full" 
+                        />
+                      )}
+                    </button>
+                  )}
 
-            <button
-              onClick={() => setActiveTab('about')}
-              className={`flex items-center gap-1.5 py-2 px-3 text-xs sm:text-sm font-bold relative transition-colors duration-200 cursor-pointer whitespace-nowrap ${
-                activeTab === 'about' 
-                  ? 'text-brand-purple' 
-                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
-              }`}
-            >
-              <User className="w-4 h-4" />
-              <span>About</span>
-              {activeTab === 'about' && (
-                <motion.div 
-                  layoutId="activeProfileTabUnderline" 
-                  className="absolute -bottom-3 left-0 right-0 h-[3px] bg-brand-purple rounded-full" 
-                />
-              )}
-            </button>
-          </div>
-        </div>
+                  {showGigsTab && (
+                    <button
+                      onClick={() => setActiveTab('gigs')}
+                      className={`flex items-center gap-1.5 py-2 px-3 text-xs sm:text-sm font-bold relative transition-colors duration-200 cursor-pointer whitespace-nowrap shrink-0 ${
+                        activeTab === 'gigs' 
+                          ? 'text-brand-purple' 
+                          : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
+                      }`}
+                    >
+                      <Briefcase className="w-4 h-4 shrink-0" />
+                      <span>Gigs{postedGigsCount > 0 ? ` (${postedGigsCount})` : ''}</span>
+                      {activeTab === 'gigs' && (
+                        <motion.div 
+                          layoutId="activeProfileTabUnderline" 
+                          className="absolute -bottom-2.5 left-0 right-0 h-[3px] bg-brand-purple rounded-full" 
+                        />
+                      )}
+                    </button>
+                  )}
+
+                  {showAboutTab && (
+                    <button
+                      onClick={() => setActiveTab('about')}
+                      className={`flex items-center gap-1.5 py-2 px-3 text-xs sm:text-sm font-bold relative transition-colors duration-200 cursor-pointer whitespace-nowrap shrink-0 ${
+                        activeTab === 'about' 
+                          ? 'text-brand-purple' 
+                          : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
+                      }`}
+                    >
+                      <User className="w-4 h-4 shrink-0" />
+                      <span>About</span>
+                      {activeTab === 'about' && (
+                        <motion.div 
+                          layoutId="activeProfileTabUnderline" 
+                          className="absolute -bottom-2.5 left-0 right-0 h-[3px] bg-brand-purple rounded-full" 
+                        />
+                      )}
+                    </button>
+                  )}
+                </div>
+
+                {/* Subtle right-edge fade on mobile */}
+                <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-[#FAFAFA] dark:from-[#09090B] to-transparent sm:hidden" />
+              </div>
+            </div>
+          );
+        })()}
 
         {/* 6. TABBED CONTENT CONTENT AREA */}
         <div className="min-h-[400px]">
@@ -1251,7 +1327,7 @@ const PublicProfile: React.FC = () => {
                   <LayoutGrid className="w-5 h-5 text-brand-purple" />
                   Portfolio Showcase
                 </h3>
-                {isOwnProfile && (
+                {isOwnProfile && profile.portfolio_media && profile.portfolio_media.length > 0 && (
                   <button
                     id="add-work-btn"
                     onClick={() => setShowAddModal(true)}
@@ -1278,20 +1354,23 @@ const PublicProfile: React.FC = () => {
                   ))}
                 </div>
               ) : (
-                <div className="bg-white dark:bg-brand-dark-card rounded-3xl p-12 text-center border border-gray-150 dark:border-[#1F1F23]">
-                  <LayoutGrid className="w-12 h-12 text-gray-300 dark:text-gray-700 mx-auto mb-3" />
-                  <h4 className="text-lg font-bold text-brand-black dark:text-brand-white mb-1">No portfolio uploaded yet</h4>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 max-w-sm mx-auto">
+                <div className="rounded-3xl p-8 sm:p-12 text-center bg-[#FAF7FF] dark:bg-brand-purple/5 border border-dashed border-brand-purple/30 dark:border-brand-purple/40">
+                  <div className="w-14 h-14 rounded-2xl bg-brand-purple/10 dark:bg-brand-purple/20 text-brand-purple flex items-center justify-center mx-auto mb-3">
+                    <LayoutGrid className="w-7 h-7" />
+                  </div>
+                  <h4 className="text-lg font-black text-brand-black dark:text-brand-white mb-1">No portfolio uploaded yet</h4>
+                  <p className="text-sm font-semibold text-brand-purple mb-2">Show clients what you can do.</p>
+                  <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 max-w-sm mx-auto leading-relaxed">
                     {isOwnProfile 
-                      ? "Upload photos and video clips of your work to show potential clients your talent." 
+                      ? "Upload photos, videos, audio, or design work to showcase your talent and win opportunities." 
                       : "This creator hasn't uploaded any portfolio items yet."}
                   </p>
                   {isOwnProfile && (
                     <button
                       onClick={() => setShowAddModal(true)}
-                      className="mt-5 inline-flex items-center gap-2 px-6 py-3 bg-brand-purple text-white font-bold rounded-2xl hover:bg-brand-purple-hover active:scale-95 transition-all shadow-md shadow-brand-purple/10 cursor-pointer"
+                      className="mt-5 inline-flex items-center gap-2 px-6 py-3 bg-brand-purple text-white text-sm font-bold rounded-xl hover:bg-brand-purple-hover active:scale-95 transition-all shadow-md shadow-brand-purple/20 cursor-pointer"
                     >
-                      <Plus className="w-4 h-4" /> Add Portfolio Work
+                      <Plus className="w-4 h-4" /> Upload Work
                     </button>
                   )}
                 </div>

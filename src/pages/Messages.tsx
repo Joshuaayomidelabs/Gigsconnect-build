@@ -11,10 +11,12 @@ import { handleError } from '../utils/errorHandler';
 import { supabase } from '../services/supabaseClient';
 import { useAuth } from '../context/AuthContext';
 import { useNotificationContext } from '../context/NotificationContext';
+import { useModeration } from '../hooks/useModeration';
 
 const Messages: React.FC = () => {
   const { user } = useAuth();
   const { refreshUnreadMessagesCount } = useNotificationContext();
+  const { isUserBlocked } = useModeration();
   const [conversations, setConversations] = useState<ConversationInboxItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -70,14 +72,27 @@ const Messages: React.FC = () => {
     };
   }, [user]);
 
+  // Re-filter and reload when user-blocked-changed fires
+  useEffect(() => {
+    const handleBlockedChanged = () => {
+      loadConversations(false, true);
+      refreshUnreadMessagesCount();
+    };
+
+    window.addEventListener('user-blocked-changed', handleBlockedChanged);
+    return () => window.removeEventListener('user-blocked-changed', handleBlockedChanged);
+  }, []);
+
   const filteredConversations = useMemo(() => {
-    if (!searchQuery.trim()) return conversations;
+    // Exclude conversations with users the current user blocked
+    const unblocked = conversations.filter(c => !isUserBlocked(c.other_user_id));
+    if (!searchQuery.trim()) return unblocked;
     const query = searchQuery.toLowerCase();
-    return conversations.filter(c => 
+    return unblocked.filter(c => 
       c.full_name?.toLowerCase().includes(query) ||
       c.username?.toLowerCase().includes(query)
     );
-  }, [conversations, searchQuery]);
+  }, [conversations, searchQuery, isUserBlocked]);
 
   return (
     <div className="pt-main pb-24 px-4 sm:px-6 lg:px-8 min-h-screen bg-brand-gray dark:bg-brand-black flex justify-center">

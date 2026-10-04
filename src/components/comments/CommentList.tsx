@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { CommentItem } from './CommentItem';
+import { useModeration } from '../../hooks/useModeration';
 
 interface CommentListProps {
   comments: any[];
@@ -21,10 +22,14 @@ export function CommentList({
   onDelete,
   onEdit
 }: CommentListProps) {
+  const { isUserBlocked } = useModeration();
   const [sortOption, setSortOption] = useState<'newest' | 'top'>('newest');
 
+  // Filter out comments written by blocked users (and their replies)
+  const visibleComments = comments.filter(c => !isUserBlocked(c.user_id));
+
   // Only show top level comments here, replies are handled recursively inside CommentItem
-  const topLevelComments = [...comments].filter(c => !c.parent_id);
+  const topLevelComments = [...visibleComments].filter(c => !c.parent_id);
 
   if (sortOption === 'top') {
     topLevelComments.sort((a, b) => (b.likes_count || 0) - (a.likes_count || 0));
@@ -32,14 +37,16 @@ export function CommentList({
     topLevelComments.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   }
   
-  if (comments.length === 0) {
+  if (topLevelComments.length === 0) {
     return null;
   }
 
   return (
     <div className="flex flex-col gap-4 px-3 sm:px-4 pb-2 pt-1 border-t border-gray-100 dark:border-[#1F1F23]">
       <div className="flex justify-between items-center py-2">
-        <h3 className="font-bold text-[15px] text-gray-900 dark:text-white">Comments</h3>
+        <h3 className="font-bold text-[15px] text-gray-900 dark:text-white">
+          Comments ({topLevelComments.length})
+        </h3>
         <select 
           value={sortOption}
           onChange={(e) => setSortOption(e.target.value as 'newest' | 'top')}
@@ -53,7 +60,7 @@ export function CommentList({
         <CommentItem
           key={comment.id}
           comment={comment}
-          replies={comments.filter(c => c.parent_id === comment.id)}
+          replies={visibleComments.filter(c => c.parent_id === comment.id)}
           currentUser={currentUser}
           postOwnerId={postOwnerId}
           onLike={onLike}

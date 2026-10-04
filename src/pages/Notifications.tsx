@@ -6,6 +6,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
 import { useNotificationContext } from '../context/NotificationContext';
+import { useModeration } from '../hooks/useModeration';
 import { notificationsService } from '../services/notificationsService';
 import { applicationsService } from '../services/applicationsService';
 import { handleError } from '../utils/errorHandler';
@@ -22,15 +23,18 @@ const Notifications: React.FC = () => {
     markAsRead, 
     markAllAsRead 
   } = useNotificationContext();
+  const { isUserBlocked } = useModeration();
 
   const [isProcessing, setIsProcessing] = useState<string | null>(null);
+
+  const visibleNotifications = notifications.filter(n => !n.actor?.id || !isUserBlocked(n.actor.id));
   
   // Auto-mark as read when opening the page
   useEffect(() => {
-    if (notifications.some(n => !n.is_read)) {
+    if (visibleNotifications.some(n => !n.is_read)) {
       markAllAsRead();
     }
-  }, [notifications, markAllAsRead]);
+  }, [visibleNotifications, markAllAsRead]);
 
   const handleMarkAsRead = async (id: string) => {
     await markAsRead(id);
@@ -97,8 +101,8 @@ const Notifications: React.FC = () => {
         </div>
       ) : (
         <div className="space-y-4">
-          {notifications.length > 0 ? (
-            notifications.map((notif, i) => (
+          {visibleNotifications.length > 0 ? (
+            visibleNotifications.map((notif, i) => (
               <motion.div
                 key={notif.id}
                 initial={{ opacity: 0, y: 20 }}

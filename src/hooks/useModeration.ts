@@ -64,7 +64,7 @@ export const useModeration = () => {
     if (alreadyBlocked) {
       toast.info(`You have already blocked ${targetName}.`, { id: toastId });
     } else {
-      toast.success(`Blocked ${targetName}. Their posts, comments, and profile content are now filtered.`, { id: toastId });
+      toast.success(`Blocked ${targetName}. Their posts, comments and messages are now hidden.`, { id: toastId });
     }
     
     return true;

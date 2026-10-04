@@ -6,14 +6,17 @@ import { useAuth } from '../context/AuthContext';
 import { fetchMessages, sendMessage, markConversationRead, Message } from '../services/messagesService';
 import { supabase } from '../services/supabaseClient';
 import { handleError } from '../utils/errorHandler';
+import { toast } from 'sonner';
 import { ChatMessage } from '../components/messages/ChatMessage';
 import { RichComposer } from '../components/messages/RichComposer';
+import { useModeration } from '../hooks/useModeration';
 import { isSameDay, format } from 'date-fns';
 
 const Chat: React.FC = () => {
   const { conversationId } = useParams<{ conversationId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { isUserBlocked } = useModeration();
   
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
@@ -242,10 +245,15 @@ const Chat: React.FC = () => {
 
       await sendMessage(conversationId, content);
       
-    } catch (err) {
+    } catch (err: any) {
       // Remove optimistic update
       setMessages(prev => prev.filter(m => m.id !== tempId));
-      handleError(err, "Couldn't send message.");
+      const msg = String(err?.message || err?.details || err || '');
+      if (msg.includes("You cannot message this user") || msg.includes("You cannot send messages in this conversation")) {
+        toast.error("You can't message this user.");
+      } else {
+        handleError(err, "Couldn't send message.");
+      }
       throw err;
     } finally {
       setSending(false);
@@ -369,12 +377,26 @@ const Chat: React.FC = () => {
           )}
         </div>
 
-        {/* Composer */}
-        <RichComposer 
-          conversationId={conversationId || ''} 
-          onSend={handleSend} 
-          sending={sending} 
-        />
+        {/* Composer or Blocked Notice */}
+        {otherUserId && isUserBlocked(otherUserId) ? (
+          <div className="p-4 bg-gray-50 dark:bg-[#141418] border-t border-gray-200 dark:border-gray-800 text-center flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-medium">
+              You blocked this user. Unblock them in Settings to send messages.
+            </p>
+            <button
+              onClick={() => navigate('/settings?section=blocked')}
+              className="px-4 py-2 bg-brand-purple hover:bg-brand-purple-hover text-white text-xs font-bold rounded-xl shadow-xs transition-all active:scale-95 cursor-pointer shrink-0"
+            >
+              Unblock in Settings
+            </button>
+          </div>
+        ) : (
+          <RichComposer 
+            conversationId={conversationId || ''} 
+            onSend={handleSend} 
+            sending={sending} 
+          />
+        )}
       </div>
     </div>
   );

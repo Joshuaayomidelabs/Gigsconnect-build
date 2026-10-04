@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { Notification, notificationsService } from '../services/notificationsService';
 import { getUnreadMessagesCount } from '../services/messagesService';
+import { moderationService } from '../services/moderationService';
 import { useAuth } from './AuthContext';
 import { supabase } from '../services/supabaseClient';
 import { toast } from 'sonner';
@@ -67,15 +68,22 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
     const fetchNotifications = async () => {
       try {
         setIsLoading(true);
-        const { data, error: fetchError } = await notificationsService.getNotifications(user.id);
+        const [notifsResult, blocksResult] = await Promise.all([
+          notificationsService.getNotifications(user.id),
+          moderationService.getBlockedUsers(user.id)
+        ]);
 
-        if (fetchError) {
-          setError(fetchError.message);
+        if (notifsResult.error) {
+          setError(notifsResult.error.message);
           return;
         }
 
-        if (data) {
-          setNotifications(data);
+        const blockedSet = new Set(blocksResult.data || []);
+
+        if (notifsResult.data) {
+          // Do not show notifications whose actor is a blocked user
+          const visible = notifsResult.data.filter(n => !n.actor?.id || !blockedSet.has(n.actor.id));
+          setNotifications(visible);
         }
         await refreshNotificationCount();
         await refreshUnreadMessagesCount();
@@ -93,11 +101,25 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
       refreshUnreadMessagesCount();
     };
 
+    const handleBlockedChanged = () => {
+      fetchNotifications();
+      refreshUnreadMessagesCount();
+    };
+
     window.addEventListener('messages-updated', handleMessagesUpdated);
     window.addEventListener('messages-read', handleMessagesUpdated);
+    window.addEventListener('user-blocked-changed', handleBlockedChanged);
 
     // Subscribe to real-time updates for notifications
-    const subscription = notificationsService.subscribeToNotifications(user.id, (newNotif) => {
+    const subscription = notificationsService.subscribeToNotifications(user.id, async (newNotif) => {
+      // Check if actor is blocked before showing
+      if (newNotif.actor?.id) {
+        const { data: blockedIds } = await moderationService.getBlockedUsers(user.id);
+        if (blockedIds && blockedIds.includes(newNotif.actor.id)) {
+          return;
+        }
+      }
+
       setNotifications(prev => {
         // Avoid duplicates
         if (prev.some(n => n.id === newNotif.id)) return prev;
@@ -118,6 +140,7 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
     return () => {
       window.removeEventListener('messages-updated', handleMessagesUpdated);
       window.removeEventListener('messages-read', handleMessagesUpdated);
+      window.removeEventListener('user-blocked-changed', handleBlockedChanged);
       subscription.unsubscribe();
     };
   }, [user?.id]);

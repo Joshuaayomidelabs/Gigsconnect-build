@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useNotificationContext } from '../context/NotificationContext';
+import { useModeration } from '../hooks/useModeration';
 import { notificationsService } from '../services/notificationsService';
 import { supabase } from '../services/supabaseClient';
 import { getOrCreateDirectConversation } from '../services/messagesService';
@@ -14,7 +15,10 @@ const NotificationDropdown: React.FC = () => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotificationContext();
+  const { isUserBlocked } = useModeration();
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const visibleNotifications = notifications.filter(n => !n.actor?.id || !isUserBlocked(n.actor.id));
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -82,8 +86,8 @@ const NotificationDropdown: React.FC = () => {
             </div>
 
             <div className="max-h-[400px] overflow-y-auto divide-y divide-brand-gray dark:divide-brand-black">
-              {notifications.length > 0 ? (
-                notifications.map((notif) => (
+              {visibleNotifications.length > 0 ? (
+                visibleNotifications.map((notif) => (
                   <div 
                     key={notif.id}
                     className={`p-4 flex gap-4 hover:bg-brand-purple/5 dark:hover:bg-brand-purple/20 transition-colors relative group ${!notif.is_read ? 'bg-brand-purple/5 dark:bg-brand-purple/10' : ''}`}
@@ -208,9 +212,14 @@ const NotificationDropdown: React.FC = () => {
                               try {
                                 const conversationId = await getOrCreateDirectConversation(notif.actor.id);
                                 navigate(`/messages/${conversationId}`);
-                              } catch (err) {
+                              } catch (err: any) {
                                 console.error('Error starting conversation:', err);
-                                toast.error('Could not start conversation. Please try again.');
+                                const msg = String(err?.message || err?.details || err || '');
+                                if (msg.includes("You cannot message this user") || msg.includes("You cannot send messages in this conversation")) {
+                                  toast.error("You can't message this user.");
+                                } else {
+                                  toast.error('Could not start conversation. Please try again.');
+                                }
                               }
                             }}
                             className="text-[10px] font-bold text-brand-purple border border-brand-purple px-3 py-1.5 rounded-lg hover:bg-brand-purple-soft transition-all"
