@@ -9,6 +9,7 @@ import BottomNav from './components/BottomNav';
 import DesktopSidebar from './components/DesktopSidebar';
 import AppSplashScreen from './components/AppSplashScreen';
 import Landing from './pages/Landing';
+import RootRoute from './components/RootRoute';
 
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -240,7 +241,7 @@ const App: React.FC = () => {
               </div>
             }>
             <Routes>
-              <Route path="/" element={<Landing />} />
+              <Route path="/" element={<RootRoute><Landing /></RootRoute>} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<SignUp />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />

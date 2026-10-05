@@ -23,9 +23,34 @@ export interface Message {
   message_type: 'text' | 'image' | 'video' | 'voice' | 'document' | 'portfolio' | 'gig';
   created_at: string;
   edited_at?: string | null;
+  deleted_at?: string | null;
   is_deleted?: boolean;
   local_status?: 'sent' | 'delivered' | 'read';
 }
+
+export const fetchAvatarsByUserId = async (userIds: string[]): Promise<Record<string, string>> => {
+  try {
+    const uniqueIds = Array.from(new Set(userIds.filter(id => !!id && typeof id === 'string' && id.trim() !== '')));
+    if (uniqueIds.length === 0) return {};
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, avatar_url')
+      .in('id', uniqueIds);
+
+    if (error || !data) return {};
+
+    const map: Record<string, string> = {};
+    for (const p of data) {
+      if (p.id && p.avatar_url) {
+        map[p.id] = p.avatar_url;
+      }
+    }
+    return map;
+  } catch {
+    return {};
+  }
+};
 
 export const fetchMessages = async (conversationId: string): Promise<Message[]> => {
   const { data, error } = await supabase
@@ -37,7 +62,20 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
   if (error) {
     throw error;
   }
-  return data as Message[];
+  return (data || []).map((row: any) => ({
+    ...row,
+    is_deleted: !!row.deleted_at
+  })) as Message[];
+};
+
+export const deleteMessage = async (messageId: string): Promise<void> => {
+  const { error } = await supabase.rpc('delete_message', {
+    p_message_id: messageId
+  });
+
+  if (error) {
+    throw error;
+  }
 };
 
 export const sendMessage = async (conversationId: string, content: string, messageType: string = 'text'): Promise<void> => {
@@ -89,6 +127,19 @@ export const fetchConversations = async (): Promise<ConversationInboxItem[]> => 
     subscription_tier: row.subscription_tier ?? row.subscription_plan
   })) as ConversationInboxItem[];
   
+  const missingAvatarIds = inboxItems
+    .filter(item => !item.avatar_url && !!item.other_user_id)
+    .map(item => item.other_user_id);
+
+  if (missingAvatarIds.length > 0) {
+    const avatarMap = await fetchAvatarsByUserId(missingAvatarIds);
+    inboxItems.forEach(item => {
+      if (!item.avatar_url && avatarMap[item.other_user_id]) {
+        item.avatar_url = avatarMap[item.other_user_id];
+      }
+    });
+  }
+
   return inboxItems;
 };
 

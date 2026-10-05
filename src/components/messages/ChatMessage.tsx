@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Message } from '../../services/messagesService';
 import { format, isSameDay } from 'date-fns';
 import { motion } from 'motion/react';
@@ -11,12 +11,24 @@ interface ChatMessageProps {
   showAvatar: boolean;
   otherUserAvatar?: string;
   otherUserInitial?: string;
+  onDelete?: (messageId: string) => void;
 }
 
-export const ChatMessage: React.FC<ChatMessageProps> = ({ message, isMe, showAvatar, otherUserAvatar, otherUserInitial }) => {
+export const ChatMessage: React.FC<ChatMessageProps> = ({ 
+  message, 
+  isMe, 
+  showAvatar, 
+  otherUserAvatar, 
+  otherUserInitial,
+  onDelete
+}) => {
+  const [showActions, setShowActions] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+
   const timeString = format(new Date(message.created_at), 'h:mm a');
   const isDeleted = message.is_deleted; 
   const status = message.local_status; // sent, delivered, read
+  const canDelete = isMe && !isDeleted && !!onDelete && !message.id.startsWith('temp_');
 
   return (
     <motion.div 
@@ -39,7 +51,15 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, isMe, showAva
       )}
       <div className={`max-w-[75%] flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
         <div 
-          className={`px-4 py-2.5 rounded-2xl ${
+          onClick={() => {
+            if (canDelete) {
+              setShowActions(prev => {
+                if (prev) setConfirming(false);
+                return !prev;
+              });
+            }
+          }}
+          className={`px-4 py-2.5 rounded-2xl ${canDelete ? 'cursor-pointer' : ''} ${
             isDeleted 
               ? 'bg-gray-100 dark:bg-gray-800/50 text-gray-500 dark:text-gray-400 italic border border-gray-200 dark:border-gray-800'
               : isMe 
@@ -63,6 +83,52 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, isMe, showAva
             </p>
           )}
         </div>
+
+        {showActions && canDelete && (
+          <div className="flex items-center gap-1.5 mt-1.5">
+            {!confirming ? (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setConfirming(true);
+                }}
+                className="flex items-center gap-1 text-xs text-red-500 hover:text-red-600 font-medium px-2 py-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Delete</span>
+              </button>
+            ) : (
+              <div className="flex items-center gap-2 text-xs bg-brand-white dark:bg-brand-dark-card border border-gray-200 dark:border-gray-800 rounded-xl px-2.5 py-1 shadow-xs">
+                <span className="text-gray-500 dark:text-gray-400">Delete for everyone?</span>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete?.(message.id);
+                    setShowActions(false);
+                    setConfirming(false);
+                  }}
+                  className="text-red-600 hover:text-red-700 font-bold px-1.5 py-0.5 rounded hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer"
+                >
+                  Delete
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowActions(false);
+                    setConfirming(false);
+                  }}
+                  className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 font-medium px-1.5 py-0.5 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="flex items-center gap-1.5 mt-1 mx-1">
           <span className="text-[10px] text-gray-400 font-medium">{timeString}</span>
           {!isDeleted && message.edited_at && (

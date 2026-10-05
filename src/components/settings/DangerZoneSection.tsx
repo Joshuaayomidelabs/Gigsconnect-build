@@ -4,6 +4,7 @@ import { AlertTriangle, Trash2, Loader2, X, AlertCircle } from 'lucide-react';
 import { supabase } from '../../services/supabaseClient';
 import { deleteMyAccount } from '../../services/accountService';
 import { useSubscription } from '../../context/SubscriptionContext';
+import { clearReturningUser } from '../../utils/returningUser';
 import { toast } from 'sonner';
 
 interface DangerZoneSectionProps {
@@ -43,6 +44,7 @@ export const DangerZoneSection: React.FC<DangerZoneSectionProps> = ({ userId: _u
       // Local sign-out (login no longer exists on server)
       await supabase.auth.signOut({ scope: 'local' });
       localStorage.removeItem('gigsconnect_fcm_token');
+      clearReturningUser();
       window.dispatchEvent(new CustomEvent('profile-updated'));
 
       toast.success('Your account has been deleted.');

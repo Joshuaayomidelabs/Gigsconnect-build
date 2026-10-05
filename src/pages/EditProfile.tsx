@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { supabase } from '../services/supabaseClient';
 import { profilesService } from '../services/profilesService';
 import { deleteMyAccount } from '../services/accountService';
+import { clearReturningUser } from '../utils/returningUser';
 import { useSubscription } from '../context/SubscriptionContext';
 import { motion, AnimatePresence } from 'motion/react';
 import imageCompression from 'browser-image-compression';
@@ -337,6 +338,7 @@ const EditProfile: React.FC = () => {
       // On success: local sign out, remove fcm token, dispatch event and redirect
       await supabase.auth.signOut({ scope: 'local' });
       localStorage.removeItem('gigsconnect_fcm_token');
+      clearReturningUser();
       
       // Dispatch profile updated so other components clean up state
       window.dispatchEvent(new CustomEvent('profile-updated'));

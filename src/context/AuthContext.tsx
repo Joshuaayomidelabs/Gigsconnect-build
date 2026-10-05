@@ -3,6 +3,7 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../services/supabaseClient';
 import { profilesService } from '../services/profilesService';
 import { getFriendlyErrorMessage } from '../utils/errorHandler';
+import { markReturningUser } from '../utils/returningUser';
 
 interface AuthContextType {
   user: User | null;
@@ -84,6 +85,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      markReturningUser();
+    }
+  }, [user]);
 
   const fetchProfile = useCallback(async () => {
     if (!user) {

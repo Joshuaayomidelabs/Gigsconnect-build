@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Send, MoreVertical } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { fetchMessages, sendMessage, markConversationRead, Message } from '../services/messagesService';
+import { fetchMessages, sendMessage, markConversationRead, Message, deleteMessage, fetchAvatarsByUserId } from '../services/messagesService';
 import { supabase } from '../services/supabaseClient';
 import { handleError } from '../utils/errorHandler';
 import { toast } from 'sonner';
@@ -88,6 +88,12 @@ const Chat: React.FC = () => {
               is_verified: inboxData.is_verified ?? (String(inboxData.verification_status || '').toLowerCase() === 'verified'),
               subscription_tier: inboxData.subscription_tier ?? inboxData.subscription_plan
             };
+            if (!profileInfo.avatar_url && otherId) {
+              const avatars = await fetchAvatarsByUserId([otherId]);
+              if (avatars[otherId]) {
+                profileInfo.avatar_url = avatars[otherId];
+              }
+            }
             if (isMounted) setOtherUser(profileInfo);
           }
         } catch (e) {
@@ -195,6 +201,22 @@ const Chat: React.FC = () => {
           }
         }
       })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` }, (payload) => {
+        if (isMounted) {
+          const updatedRow = payload.new as any;
+          setMessages(prev => prev.map(m => {
+            if (m.id === updatedRow.id) {
+              return {
+                ...m,
+                ...updatedRow,
+                is_deleted: !!updatedRow.deleted_at,
+                local_status: m.local_status
+              };
+            }
+            return m;
+          }));
+        }
+      })
       .on('system', { event: '*' }, (payload) => {
          // Handle system events if needed
       })
@@ -257,6 +279,17 @@ const Chat: React.FC = () => {
       throw err;
     } finally {
       setSending(false);
+    }
+  };
+
+  const handleDeleteMessage = async (messageId: string) => {
+    const savedMessages = [...messages];
+    setMessages(prev => prev.map(m => m.id === messageId ? { ...m, is_deleted: true } : m));
+    try {
+      await deleteMessage(messageId);
+    } catch (err) {
+      setMessages(savedMessages);
+      toast.error('Could not delete the message. Please try again.');
     }
   };
 
@@ -359,6 +392,7 @@ const Chat: React.FC = () => {
                     showAvatar={showAvatar}
                     otherUserAvatar={otherUser?.avatar_url}
                     otherUserInitial={otherUser?.full_name?.charAt(0)}
+                    onDelete={handleDeleteMessage}
                   />
                 </React.Fragment>
               );

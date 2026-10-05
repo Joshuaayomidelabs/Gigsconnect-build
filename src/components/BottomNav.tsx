@@ -39,7 +39,7 @@ const BottomNav: React.FC = () => {
     { icon: <MessageCircle className="w-5 h-5" />, label: 'Messages', path: '/messages' },
     { 
       icon: profile?.avatar_url ? (
-        <img src={profile.avatar_url} alt="Profile" className="w-full h-full object-cover rounded-full" referrerPolicy="no-referrer" />
+        <img src={profile.avatar_url} alt="Profile" className="w-full h-full object-cover rounded-full block" referrerPolicy="no-referrer" />
       ) : (
         <User className="w-5 h-5" />
       ), 
@@ -90,14 +90,16 @@ const BottomNav: React.FC = () => {
                 to={item.path}
                 className="flex flex-col items-center justify-center gap-0.5 group relative flex-1 h-full"
               >
-                <div className={`relative px-3 py-1 rounded-full transition-all duration-300 flex items-center justify-center ${
+                <div className={`relative ${
+                  item.isProfile ? 'w-8 h-8 p-0' : 'px-3 py-1'
+                } rounded-full transition-all duration-300 flex items-center justify-center ${
                   isActive 
                     ? 'bg-brand-purple/10 dark:bg-brand-purple/20 text-brand-purple' 
                     : 'text-gray-400 dark:text-gray-500 hover:text-brand-purple'
-                } ${item.isProfile ? 'w-8 h-8 p-0' : ''}`}>
+                }`}>
                   
                   {item.isProfile ? (
-                    <div className={`w-7 h-7 rounded-full overflow-hidden flex items-center justify-center transition-all ${
+                    <div className={`w-7 h-7 rounded-full overflow-hidden shrink-0 flex items-center justify-center transition-all ${
                       isActive ? 'ring-2 ring-brand-purple ring-offset-2 dark:ring-offset-brand-black' : ''
                     }`}>
                       {item.icon}
